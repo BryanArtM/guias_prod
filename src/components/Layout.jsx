@@ -1,5 +1,16 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Package, FileText, Home, LogOut, User } from "lucide-react";
+import {
+  Package,
+  Home,
+  LogOut,
+  User,
+  Fish,
+  Box,
+  Archive,
+  ArrowUp,
+  ArrowDown,
+  BarChart3,
+} from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
 import PropTypes from "prop-types";
 
@@ -22,11 +33,13 @@ export const Layout = ({ children }) => {
       {/* Sidebar */}
       <aside className="w-64 bg-gray-800 text-white flex flex-col">
         <div className="p-6 border-b border-gray-700">
-          <h1 className="text-2xl font-bold">Guías Producción</h1>
-          <p className="text-sm text-gray-400 mt-1">Sistema de Gestión</p>
+          <h1 className="text-2xl font-bold">Inventario Producción</h1>
+          <p className="text-sm text-gray-400 mt-1">
+            Gestión de Stock Pesquero
+          </p>
         </div>
 
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-4 overflow-y-auto">
           <Link
             to="/"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
@@ -36,31 +49,109 @@ export const Layout = ({ children }) => {
             }`}
           >
             <Home size={20} />
-            <span className="font-medium">Inicio</span>
+            <span className="font-medium">Dashboard</span>
+          </Link>
+
+          <div className="mt-4 mb-2 px-4">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Catálogos
+            </h3>
+          </div>
+
+          <Link
+            to="/especies"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
+              isActive("/especies")
+                ? "bg-blue-600 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            <Fish size={20} />
+            <span className="font-medium">Especies</span>
           </Link>
 
           <Link
-            to="/productos"
+            to="/presentaciones"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
-              isActive("/productos")
+              isActive("/presentaciones")
+                ? "bg-blue-600 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            <Box size={20} />
+            <span className="font-medium">Presentaciones</span>
+          </Link>
+
+          <Link
+            to="/variantes"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
+              isActive("/variantes")
                 ? "bg-blue-600 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
             <Package size={20} />
-            <span className="font-medium">Productos</span>
+            <span className="font-medium">Variantes</span>
           </Link>
 
           <Link
-            to="/guias"
+            to="/catalogos"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
-              isActive("/guias")
+              isActive("/catalogos")
                 ? "bg-blue-600 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
-            <FileText size={20} />
-            <span className="font-medium">Guías</span>
+            <Archive size={20} />
+            <span className="font-medium">Otros Catálogos</span>
+          </Link>
+
+          <div className="mt-4 mb-2 px-4">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Movimientos
+            </h3>
+          </div>
+
+          <Link
+            to="/ingresos"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
+              isActive("/ingresos")
+                ? "bg-blue-600 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            <ArrowUp size={20} />
+            <span className="font-medium">Ingresos</span>
+          </Link>
+
+          <Link
+            to="/salidas"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
+              isActive("/salidas")
+                ? "bg-blue-600 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            <ArrowDown size={20} />
+            <span className="font-medium">Salidas</span>
+          </Link>
+
+          <div className="mt-4 mb-2 px-4">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Consultas
+            </h3>
+          </div>
+
+          <Link
+            to="/stock"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
+              isActive("/stock")
+                ? "bg-blue-600 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            <BarChart3 size={20} />
+            <span className="font-medium">Stock Actual</span>
           </Link>
         </nav>
 
@@ -84,7 +175,7 @@ export const Layout = ({ children }) => {
             <span className="text-sm font-medium">Cerrar Sesión</span>
           </button>
           <p className="text-xs text-gray-400 text-center mt-3">
-            Sistema de Gestión v1.0
+            Sistema de Gestión v2.0
           </p>
         </div>
       </aside>

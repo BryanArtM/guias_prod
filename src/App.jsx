@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
-import { ProductosList } from "./components/productos/ProductosList";
-import { GuiasList } from "./components/guias/GuiasList";
+import { EspeciesPage } from "./pages/EspeciesPage";
+import { PresentacionesPage } from "./pages/PresentacionesPage";
 import { Login } from "./components/auth/Login";
 import { Register } from "./components/auth/Register";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -37,21 +37,31 @@ function App() {
           }
         />
         <Route
-          path="/productos"
+          path="/especies"
           element={
             <ProtectedRoute>
               <Layout>
-                <ProductosList />
+                <EspeciesPage />
               </Layout>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/guias"
+          path="/presentaciones"
           element={
             <ProtectedRoute>
               <Layout>
-                <GuiasList />
+                <PresentacionesPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Home />
               </Layout>
             </ProtectedRoute>
           }
