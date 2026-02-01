@@ -1,269 +1,1069 @@
 use rusqlite::{Connection, Result};
-use std::sync::Mutex;
-#[allow(unused_imports)]
-use tauri::State;
 use serde::{Deserialize, Serialize};
+use std::sync::Mutex;
 
-// Importar el módulo auth
 use crate::auth;
 
+// ============ ESTRUCTURAS DE DATOS ============
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Producto {
+pub struct Especie {
+    pub id: Option<i64>,
+    pub nombre: String,
+    pub descripcion: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Presentacion {
+    pub id: Option<i64>,
+    pub especie_id: i64,
+    pub nombre: String,
+    pub descripcion: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FormaEnvasado {
     pub id: Option<i64>,
     pub codigo: String,
-    pub nombre: String,
-    pub unidad: String,
-    pub descripcion: String,
+    pub descripcion: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Guia {
+pub struct FormaEmpacado {
     pub id: Option<i64>,
-    pub numero_guia: String,
+    pub codigo: String,
+    pub descripcion: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TipoEnsunchado {
+    pub id: Option<i64>,
+    pub codigo: String,
+    pub descripcion: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Calidad {
+    pub id: Option<i64>,
+    pub codigo: String,
+    pub descripcion: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Calibre {
+    pub id: Option<i64>,
+    pub codigo: String,
+    pub valor_minimo: Option<f64>,
+    pub valor_maximo: Option<f64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct VariantePresentacion {
+    pub id: Option<i64>,
+    pub presentacion_id: i64,
+    pub forma_envasado_id: Option<i64>,
+    pub forma_empacado_id: Option<i64>,
+    pub tipo_ensunchado_id: Option<i64>,
+    pub calidad_id: Option<i64>,
+    pub calibre_id: Option<i64>,
+    pub observaciones: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct VarianteCompleta {
+    pub variante_id: i64,
+    pub especie_id: i64,
+    pub especie_nombre: String,
+    pub presentacion_id: i64,
+    pub presentacion_nombre: String,
+    pub forma_envasado: Option<String>,
+    pub forma_empacado: Option<String>,
+    pub tipo_ensunchado: Option<String>,
+    pub calidad: Option<String>,
+    pub calibre: Option<String>,
+    pub codigo_completo: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TipoIngreso {
+    pub id: Option<i64>,
+    pub codigo: String,
+    pub descripcion: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Ingreso {
+    pub id: Option<i64>,
+    pub variante_id: i64,
+    pub tipo_ingreso_id: i64,
     pub fecha: String,
-    pub responsable: String,
-    pub observaciones: String,
+    pub peso_total_lote: Option<f64>,
+    pub kg: f64,
+    pub cajas: i32,
+    pub numero_lote: Option<String>,
+    pub numero_orden_desembarque: Option<String>,
+    pub observaciones: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GuiaDetalle {
+pub struct TipoSalida {
     pub id: Option<i64>,
-    pub guia_id: i64,
-    pub producto_id: i64,
-    pub cantidad: f64,
-    pub lote: String,
+    pub codigo: String,
+    pub descripcion: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GuiaCompleta {
-    pub guia: Guia,
-    pub detalles: Vec<GuiaDetalleConProducto>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct GuiaDetalleConProducto {
+pub struct Salida {
     pub id: Option<i64>,
-    pub guia_id: i64,
-    pub producto_id: i64,
-    pub cantidad: f64,
-    pub lote: String,
-    pub producto_nombre: String,
-    pub producto_codigo: String,
-    pub producto_unidad: String,
+    pub variante_id: i64,
+    pub tipo_salida_id: i64,
+    pub fecha: String,
+    pub kg: f64,
+    pub cajas: i32,
+    pub numero_orden: Option<String>,
+    pub observaciones: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct StockVariante {
+    pub variante_id: i64,
+    pub codigo_completo: String,
+    pub especie_nombre: String,
+    pub presentacion_nombre: String,
+    pub kg_ingresados: f64,
+    pub kg_salidos: f64,
+    pub kg_stock: f64,
+    pub cajas_ingresadas: i32,
+    pub cajas_salidas: i32,
+    pub cajas_stock: i32,
 }
 
 pub struct AppState {
     pub db: Mutex<Connection>,
 }
 
-pub fn init_db() -> Result<Connection> {
-    let conn = Connection::open("guias_produccion.db")?;
+// ============ INICIALIZACIÓN DE BASE DE DATOS ============
 
+pub fn init_db() -> Result<Connection> {
+    let conn = Connection::open("inventario_produccion.db")?;
+
+    // 1. ESPECIES
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS productos (
+        "CREATE TABLE IF NOT EXISTS especies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo TEXT NOT NULL UNIQUE,
-            nombre TEXT NOT NULL,
-            unidad TEXT NOT NULL,
+            nombre TEXT NOT NULL UNIQUE,
             descripcion TEXT
         )",
         [],
     )?;
 
+    // 2. PRESENTACIONES
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS guias (
+        "CREATE TABLE IF NOT EXISTS presentaciones (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            numero_guia TEXT NOT NULL UNIQUE,
+            especie_id INTEGER NOT NULL,
+            nombre TEXT NOT NULL,
+            descripcion TEXT,
+            FOREIGN KEY (especie_id) REFERENCES especies(id) ON DELETE RESTRICT,
+            UNIQUE (especie_id, nombre)
+        )",
+        [],
+    )?;
+
+    // 3. FORMAS DE ENVASADO
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS formas_envasado (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL UNIQUE,
+            descripcion TEXT
+        )",
+        [],
+    )?;
+
+    // 4. FORMAS DE EMPACADO
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS formas_empacado (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL UNIQUE,
+            descripcion TEXT
+        )",
+        [],
+    )?;
+
+    // 5. TIPOS DE ENSUNCHADO
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS tipos_ensunchado (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL UNIQUE,
+            descripcion TEXT
+        )",
+        [],
+    )?;
+
+    // 6. CALIDADES
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS calidades (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL UNIQUE,
+            descripcion TEXT
+        )",
+        [],
+    )?;
+
+    // 7. CALIBRES
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS calibres (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL UNIQUE,
+            valor_minimo REAL,
+            valor_maximo REAL
+        )",
+        [],
+    )?;
+
+    // 8. VARIANTES DE PRESENTACIONES
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS variantes_presentaciones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            presentacion_id INTEGER NOT NULL,
+            forma_envasado_id INTEGER,
+            forma_empacado_id INTEGER,
+            tipo_ensunchado_id INTEGER,
+            calidad_id INTEGER,
+            calibre_id INTEGER,
+            observaciones TEXT,
+            FOREIGN KEY (presentacion_id) REFERENCES presentaciones(id) ON DELETE RESTRICT,
+            FOREIGN KEY (forma_envasado_id) REFERENCES formas_envasado(id) ON DELETE RESTRICT,
+            FOREIGN KEY (forma_empacado_id) REFERENCES formas_empacado(id) ON DELETE RESTRICT,
+            FOREIGN KEY (tipo_ensunchado_id) REFERENCES tipos_ensunchado(id) ON DELETE RESTRICT,
+            FOREIGN KEY (calidad_id) REFERENCES calidades(id) ON DELETE RESTRICT,
+            FOREIGN KEY (calibre_id) REFERENCES calibres(id) ON DELETE RESTRICT,
+            UNIQUE (presentacion_id, forma_envasado_id, forma_empacado_id, tipo_ensunchado_id, calidad_id, calibre_id)
+        )",
+        [],
+    )?;
+
+    // 9. TIPOS DE INGRESO
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS tipos_ingreso (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT NOT NULL UNIQUE,
+            descripcion TEXT
+        )",
+        [],
+    )?;
+
+    // Insertar tipos de ingreso por defecto
+    conn.execute(
+        "INSERT OR IGNORE INTO tipos_ingreso (codigo, descripcion) VALUES ('PRODUCCION', 'Ingreso por producción')",
+        [],
+    )?;
+    conn.execute(
+        "INSERT OR IGNORE INTO tipos_ingreso (codigo, descripcion) VALUES ('ORDEN_DESEMBARQUE', 'Ingreso por orden de desembarque')",
+        [],
+    )?;
+
+    // 10. INGRESOS
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS ingresos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            variante_id INTEGER NOT NULL,
+            tipo_ingreso_id INTEGER NOT NULL,
             fecha TEXT NOT NULL,
-            responsable TEXT NOT NULL,
-            observaciones TEXT
+            peso_total_lote REAL,
+            kg REAL NOT NULL,
+            cajas INTEGER NOT NULL,
+            numero_lote TEXT,
+            numero_orden_desembarque TEXT,
+            observaciones TEXT,
+            FOREIGN KEY (variante_id) REFERENCES variantes_presentaciones(id) ON DELETE RESTRICT,
+            FOREIGN KEY (tipo_ingreso_id) REFERENCES tipos_ingreso(id) ON DELETE RESTRICT
         )",
         [],
     )?;
 
+    // 11. TIPOS DE SALIDA
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS guia_detalle (
+        "CREATE TABLE IF NOT EXISTS tipos_salida (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            guia_id INTEGER NOT NULL,
-            producto_id INTEGER NOT NULL,
-            cantidad REAL NOT NULL,
-            lote TEXT NOT NULL,
-            FOREIGN KEY (guia_id) REFERENCES guias(id) ON DELETE CASCADE,
-            FOREIGN KEY (producto_id) REFERENCES productos(id)
+            codigo TEXT NOT NULL UNIQUE,
+            descripcion TEXT
         )",
         [],
     )?;
 
-    // Inicializar tabla de usuarios
+    // Insertar tipos de salida por defecto
+    conn.execute(
+        "INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('MUESTREO', 'Salida por muestreo de calidad')",
+        [],
+    )?;
+    conn.execute(
+        "INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('ORDEN_EMBARQUE', 'Salida por orden de embarque')",
+        [],
+    )?;
+
+    // 12. SALIDAS
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS salidas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            variante_id INTEGER NOT NULL,
+            tipo_salida_id INTEGER NOT NULL,
+            fecha TEXT NOT NULL,
+            kg REAL NOT NULL,
+            cajas INTEGER NOT NULL,
+            numero_orden TEXT,
+            observaciones TEXT,
+            FOREIGN KEY (variante_id) REFERENCES variantes_presentaciones(id) ON DELETE RESTRICT,
+            FOREIGN KEY (tipo_salida_id) REFERENCES tipos_salida(id) ON DELETE RESTRICT
+        )",
+        [],
+    )?;
+
+    // Inicializar tabla de usuarios (auth)
     auth::init_users_table(&conn)?;
 
     Ok(conn)
 }
 
-// CRUD Productos
-pub fn crear_producto(conn: &Connection, producto: &Producto) -> Result<i64> {
+// ============ CRUD ESPECIES ============
+
+pub fn crear_especie(conn: &Connection, especie: &Especie) -> Result<i64> {
     conn.execute(
-        "INSERT INTO productos (codigo, nombre, unidad, descripcion) VALUES (?1, ?2, ?3, ?4)",
-        (&producto.codigo, &producto.nombre, &producto.unidad, &producto.descripcion),
+        "INSERT INTO especies (nombre, descripcion) VALUES (?1, ?2)",
+        (&especie.nombre, &especie.descripcion),
     )?;
     Ok(conn.last_insert_rowid())
 }
 
-pub fn obtener_productos(conn: &Connection) -> Result<Vec<Producto>> {
-    let mut stmt = conn.prepare("SELECT id, codigo, nombre, unidad, descripcion FROM productos ORDER BY nombre")?;
-    let productos_iter = stmt.query_map([], |row| {
-        Ok(Producto {
+pub fn obtener_especies(conn: &Connection) -> Result<Vec<Especie>> {
+    let mut stmt = conn.prepare("SELECT id, nombre, descripcion FROM especies ORDER BY nombre")?;
+    let especies_iter = stmt.query_map([], |row| {
+        Ok(Especie {
+            id: Some(row.get(0)?),
+            nombre: row.get(1)?,
+            descripcion: row.get(2)?,
+        })
+    })?;
+
+    let mut especies = Vec::new();
+    for especie in especies_iter {
+        especies.push(especie?);
+    }
+    Ok(especies)
+}
+
+pub fn obtener_especie(conn: &Connection, id: i64) -> Result<Especie> {
+    conn.query_row(
+        "SELECT id, nombre, descripcion FROM especies WHERE id = ?1",
+        [id],
+        |row| {
+            Ok(Especie {
+                id: Some(row.get(0)?),
+                nombre: row.get(1)?,
+                descripcion: row.get(2)?,
+            })
+        },
+    )
+}
+
+pub fn actualizar_especie(conn: &Connection, id: i64, especie: &Especie) -> Result<()> {
+    conn.execute(
+        "UPDATE especies SET nombre = ?1, descripcion = ?2 WHERE id = ?3",
+        (&especie.nombre, &especie.descripcion, id),
+    )?;
+    Ok(())
+}
+
+pub fn eliminar_especie(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM especies WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+// ============ CRUD PRESENTACIONES ============
+
+pub fn crear_presentacion(conn: &Connection, presentacion: &Presentacion) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO presentaciones (especie_id, nombre, descripcion) VALUES (?1, ?2, ?3)",
+        (
+            &presentacion.especie_id,
+            &presentacion.nombre,
+            &presentacion.descripcion,
+        ),
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+pub fn obtener_presentaciones(conn: &Connection) -> Result<Vec<Presentacion>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, especie_id, nombre, descripcion FROM presentaciones ORDER BY nombre",
+    )?;
+    let presentaciones_iter = stmt.query_map([], |row| {
+        Ok(Presentacion {
+            id: Some(row.get(0)?),
+            especie_id: row.get(1)?,
+            nombre: row.get(2)?,
+            descripcion: row.get(3)?,
+        })
+    })?;
+
+    let mut presentaciones = Vec::new();
+    for presentacion in presentaciones_iter {
+        presentaciones.push(presentacion?);
+    }
+    Ok(presentaciones)
+}
+
+pub fn obtener_presentaciones_por_especie(
+    conn: &Connection,
+    especie_id: i64,
+) -> Result<Vec<Presentacion>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, especie_id, nombre, descripcion FROM presentaciones WHERE especie_id = ?1 ORDER BY nombre",
+    )?;
+    let presentaciones_iter = stmt.query_map([especie_id], |row| {
+        Ok(Presentacion {
+            id: Some(row.get(0)?),
+            especie_id: row.get(1)?,
+            nombre: row.get(2)?,
+            descripcion: row.get(3)?,
+        })
+    })?;
+
+    let mut presentaciones = Vec::new();
+    for presentacion in presentaciones_iter {
+        presentaciones.push(presentacion?);
+    }
+    Ok(presentaciones)
+}
+
+pub fn actualizar_presentacion(
+    conn: &Connection,
+    id: i64,
+    presentacion: &Presentacion,
+) -> Result<()> {
+    conn.execute(
+        "UPDATE presentaciones SET especie_id = ?1, nombre = ?2, descripcion = ?3 WHERE id = ?4",
+        (
+            &presentacion.especie_id,
+            &presentacion.nombre,
+            &presentacion.descripcion,
+            id,
+        ),
+    )?;
+    Ok(())
+}
+
+pub fn eliminar_presentacion(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM presentaciones WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+// ============ CRUD FORMAS DE ENVASADO ============
+
+pub fn crear_forma_envasado(conn: &Connection, forma: &FormaEnvasado) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO formas_envasado (codigo, descripcion) VALUES (?1, ?2)",
+        (&forma.codigo, &forma.descripcion),
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+pub fn obtener_formas_envasado(conn: &Connection) -> Result<Vec<FormaEnvasado>> {
+    let mut stmt =
+        conn.prepare("SELECT id, codigo, descripcion FROM formas_envasado ORDER BY codigo")?;
+    let formas_iter = stmt.query_map([], |row| {
+        Ok(FormaEnvasado {
             id: Some(row.get(0)?),
             codigo: row.get(1)?,
-            nombre: row.get(2)?,
-            unidad: row.get(3)?,
-            descripcion: row.get(4)?,
+            descripcion: row.get(2)?,
         })
     })?;
 
-    let mut productos = Vec::new();
-    for producto in productos_iter {
-        productos.push(producto?);
+    let mut formas = Vec::new();
+    for forma in formas_iter {
+        formas.push(forma?);
     }
-    Ok(productos)
+    Ok(formas)
 }
 
-pub fn obtener_producto(conn: &Connection, id: i64) -> Result<Producto> {
-    conn.query_row(
-        "SELECT id, codigo, nombre, unidad, descripcion FROM productos WHERE id = ?1",
-        [id],
-        |row| {
-            Ok(Producto {
-                id: Some(row.get(0)?),
-                codigo: row.get(1)?,
-                nombre: row.get(2)?,
-                unidad: row.get(3)?,
-                descripcion: row.get(4)?,
-            })
-        },
-    )
-}
-
-pub fn actualizar_producto(conn: &Connection, id: i64, producto: &Producto) -> Result<()> {
+pub fn actualizar_forma_envasado(conn: &Connection, id: i64, forma: &FormaEnvasado) -> Result<()> {
     conn.execute(
-        "UPDATE productos SET codigo = ?1, nombre = ?2, unidad = ?3, descripcion = ?4 WHERE id = ?5",
-        (&producto.codigo, &producto.nombre, &producto.unidad, &producto.descripcion, id),
+        "UPDATE formas_envasado SET codigo = ?1, descripcion = ?2 WHERE id = ?3",
+        (&forma.codigo, &forma.descripcion, id),
     )?;
     Ok(())
 }
 
-pub fn eliminar_producto(conn: &Connection, id: i64) -> Result<()> {
-    conn.execute("DELETE FROM productos WHERE id = ?1", [id])?;
+pub fn eliminar_forma_envasado(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM formas_envasado WHERE id = ?1", [id])?;
     Ok(())
 }
 
-// CRUD Guías
-pub fn crear_guia(conn: &Connection, guia: &Guia) -> Result<i64> {
+// ============ CRUD FORMAS DE EMPACADO ============
+
+pub fn crear_forma_empacado(conn: &Connection, forma: &FormaEmpacado) -> Result<i64> {
     conn.execute(
-        "INSERT INTO guias (numero_guia, fecha, responsable, observaciones) VALUES (?1, ?2, ?3, ?4)",
-        (&guia.numero_guia, &guia.fecha, &guia.responsable, &guia.observaciones),
+        "INSERT INTO formas_empacado (codigo, descripcion) VALUES (?1, ?2)",
+        (&forma.codigo, &forma.descripcion),
     )?;
     Ok(conn.last_insert_rowid())
 }
 
-pub fn obtener_guias(conn: &Connection) -> Result<Vec<Guia>> {
-    let mut stmt = conn.prepare("SELECT id, numero_guia, fecha, responsable, observaciones FROM guias ORDER BY fecha DESC, numero_guia DESC")?;
-    let guias_iter = stmt.query_map([], |row| {
-        Ok(Guia {
+pub fn obtener_formas_empacado(conn: &Connection) -> Result<Vec<FormaEmpacado>> {
+    let mut stmt =
+        conn.prepare("SELECT id, codigo, descripcion FROM formas_empacado ORDER BY codigo")?;
+    let formas_iter = stmt.query_map([], |row| {
+        Ok(FormaEmpacado {
             id: Some(row.get(0)?),
-            numero_guia: row.get(1)?,
-            fecha: row.get(2)?,
-            responsable: row.get(3)?,
-            observaciones: row.get(4)?,
+            codigo: row.get(1)?,
+            descripcion: row.get(2)?,
         })
     })?;
 
-    let mut guias = Vec::new();
-    for guia in guias_iter {
-        guias.push(guia?);
+    let mut formas = Vec::new();
+    for forma in formas_iter {
+        formas.push(forma?);
     }
-    Ok(guias)
+    Ok(formas)
 }
 
-pub fn obtener_guia(conn: &Connection, id: i64) -> Result<Guia> {
-    conn.query_row(
-        "SELECT id, numero_guia, fecha, responsable, observaciones FROM guias WHERE id = ?1",
-        [id],
-        |row| {
-            Ok(Guia {
-                id: Some(row.get(0)?),
-                numero_guia: row.get(1)?,
-                fecha: row.get(2)?,
-                responsable: row.get(3)?,
-                observaciones: row.get(4)?,
-            })
-        },
-    )
-}
-
-pub fn actualizar_guia(conn: &Connection, id: i64, guia: &Guia) -> Result<()> {
+pub fn actualizar_forma_empacado(conn: &Connection, id: i64, forma: &FormaEmpacado) -> Result<()> {
     conn.execute(
-        "UPDATE guias SET numero_guia = ?1, fecha = ?2, responsable = ?3, observaciones = ?4 WHERE id = ?5",
-        (&guia.numero_guia, &guia.fecha, &guia.responsable, &guia.observaciones, id),
+        "UPDATE formas_empacado SET codigo = ?1, descripcion = ?2 WHERE id = ?3",
+        (&forma.codigo, &forma.descripcion, id),
     )?;
     Ok(())
 }
 
-pub fn eliminar_guia(conn: &Connection, id: i64) -> Result<()> {
-    conn.execute("DELETE FROM guia_detalle WHERE guia_id = ?1", [id])?;
-    conn.execute("DELETE FROM guias WHERE id = ?1", [id])?;
+pub fn eliminar_forma_empacado(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM formas_empacado WHERE id = ?1", [id])?;
     Ok(())
 }
 
-// CRUD Guía Detalle
-pub fn crear_guia_detalle(conn: &Connection, detalle: &GuiaDetalle) -> Result<i64> {
+// ============ CRUD TIPOS DE ENSUNCHADO ============
+
+pub fn crear_tipo_ensunchado(conn: &Connection, tipo: &TipoEnsunchado) -> Result<i64> {
     conn.execute(
-        "INSERT INTO guia_detalle (guia_id, producto_id, cantidad, lote) VALUES (?1, ?2, ?3, ?4)",
-        (detalle.guia_id, detalle.producto_id, detalle.cantidad, &detalle.lote),
+        "INSERT INTO tipos_ensunchado (codigo, descripcion) VALUES (?1, ?2)",
+        (&tipo.codigo, &tipo.descripcion),
     )?;
     Ok(conn.last_insert_rowid())
 }
 
-pub fn obtener_detalles_guia(conn: &Connection, guia_id: i64) -> Result<Vec<GuiaDetalleConProducto>> {
+pub fn obtener_tipos_ensunchado(conn: &Connection) -> Result<Vec<TipoEnsunchado>> {
+    let mut stmt =
+        conn.prepare("SELECT id, codigo, descripcion FROM tipos_ensunchado ORDER BY codigo")?;
+    let tipos_iter = stmt.query_map([], |row| {
+        Ok(TipoEnsunchado {
+            id: Some(row.get(0)?),
+            codigo: row.get(1)?,
+            descripcion: row.get(2)?,
+        })
+    })?;
+
+    let mut tipos = Vec::new();
+    for tipo in tipos_iter {
+        tipos.push(tipo?);
+    }
+    Ok(tipos)
+}
+
+pub fn actualizar_tipo_ensunchado(
+    conn: &Connection,
+    id: i64,
+    tipo: &TipoEnsunchado,
+) -> Result<()> {
+    conn.execute(
+        "UPDATE tipos_ensunchado SET codigo = ?1, descripcion = ?2 WHERE id = ?3",
+        (&tipo.codigo, &tipo.descripcion, id),
+    )?;
+    Ok(())
+}
+
+pub fn eliminar_tipo_ensunchado(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM tipos_ensunchado WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+// ============ CRUD CALIDADES ============
+
+pub fn crear_calidad(conn: &Connection, calidad: &Calidad) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO calidades (codigo, descripcion) VALUES (?1, ?2)",
+        (&calidad.codigo, &calidad.descripcion),
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+pub fn obtener_calidades(conn: &Connection) -> Result<Vec<Calidad>> {
+    let mut stmt = conn.prepare("SELECT id, codigo, descripcion FROM calidades ORDER BY codigo")?;
+    let calidades_iter = stmt.query_map([], |row| {
+        Ok(Calidad {
+            id: Some(row.get(0)?),
+            codigo: row.get(1)?,
+            descripcion: row.get(2)?,
+        })
+    })?;
+
+    let mut calidades = Vec::new();
+    for calidad in calidades_iter {
+        calidades.push(calidad?);
+    }
+    Ok(calidades)
+}
+
+pub fn actualizar_calidad(conn: &Connection, id: i64, calidad: &Calidad) -> Result<()> {
+    conn.execute(
+        "UPDATE calidades SET codigo = ?1, descripcion = ?2 WHERE id = ?3",
+        (&calidad.codigo, &calidad.descripcion, id),
+    )?;
+    Ok(())
+}
+
+pub fn eliminar_calidad(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM calidades WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+// ============ CRUD CALIBRES ============
+
+pub fn crear_calibre(conn: &Connection, calibre: &Calibre) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO calibres (codigo, valor_minimo, valor_maximo) VALUES (?1, ?2, ?3)",
+        (&calibre.codigo, &calibre.valor_minimo, &calibre.valor_maximo),
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+pub fn obtener_calibres(conn: &Connection) -> Result<Vec<Calibre>> {
     let mut stmt = conn.prepare(
-        "SELECT gd.id, gd.guia_id, gd.producto_id, gd.cantidad, gd.lote, p.nombre, p.codigo, p.unidad
-         FROM guia_detalle gd
-         INNER JOIN productos p ON gd.producto_id = p.id
-         WHERE gd.guia_id = ?1
-         ORDER BY p.nombre"
+        "SELECT id, codigo, valor_minimo, valor_maximo FROM calibres ORDER BY codigo",
     )?;
-    
-    let detalles_iter = stmt.query_map([guia_id], |row| {
-        Ok(GuiaDetalleConProducto {
+    let calibres_iter = stmt.query_map([], |row| {
+        Ok(Calibre {
             id: Some(row.get(0)?),
-            guia_id: row.get(1)?,
-            producto_id: row.get(2)?,
-            cantidad: row.get(3)?,
-            lote: row.get(4)?,
-            producto_nombre: row.get(5)?,
-            producto_codigo: row.get(6)?,
-            producto_unidad: row.get(7)?,
+            codigo: row.get(1)?,
+            valor_minimo: row.get(2)?,
+            valor_maximo: row.get(3)?,
         })
     })?;
 
-    let mut detalles = Vec::new();
-    for detalle in detalles_iter {
-        detalles.push(detalle?);
+    let mut calibres = Vec::new();
+    for calibre in calibres_iter {
+        calibres.push(calibre?);
     }
-    Ok(detalles)
+    Ok(calibres)
 }
 
-pub fn eliminar_detalle_guia(conn: &Connection, id: i64) -> Result<()> {
-    conn.execute("DELETE FROM guia_detalle WHERE id = ?1", [id])?;
+pub fn actualizar_calibre(conn: &Connection, id: i64, calibre: &Calibre) -> Result<()> {
+    conn.execute(
+        "UPDATE calibres SET codigo = ?1, valor_minimo = ?2, valor_maximo = ?3 WHERE id = ?4",
+        (
+            &calibre.codigo,
+            &calibre.valor_minimo,
+            &calibre.valor_maximo,
+            id,
+        ),
+    )?;
     Ok(())
 }
 
-pub fn obtener_guia_completa(conn: &Connection, guia_id: i64) -> Result<GuiaCompleta> {
-    let guia = obtener_guia(conn, guia_id)?;
-    let detalles = obtener_detalles_guia(conn, guia_id)?;
-    
-    Ok(GuiaCompleta {
-        guia,
-        detalles,
-    })
+pub fn eliminar_calibre(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM calibres WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+// ============ CRUD VARIANTES DE PRESENTACIONES ============
+
+pub fn crear_variante_presentacion(
+    conn: &Connection,
+    variante: &VariantePresentacion,
+) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO variantes_presentaciones 
+         (presentacion_id, forma_envasado_id, forma_empacado_id, tipo_ensunchado_id, calidad_id, calibre_id, observaciones)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        (
+            &variante.presentacion_id,
+            &variante.forma_envasado_id,
+            &variante.forma_empacado_id,
+            &variante.tipo_ensunchado_id,
+            &variante.calidad_id,
+            &variante.calibre_id,
+            &variante.observaciones,
+        ),
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+pub fn obtener_variantes_presentaciones(conn: &Connection) -> Result<Vec<VariantePresentacion>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, presentacion_id, forma_envasado_id, forma_empacado_id, tipo_ensunchado_id, calidad_id, calibre_id, observaciones 
+         FROM variantes_presentaciones ORDER BY id DESC",
+    )?;
+    let variantes_iter = stmt.query_map([], |row| {
+        Ok(VariantePresentacion {
+            id: Some(row.get(0)?),
+            presentacion_id: row.get(1)?,
+            forma_envasado_id: row.get(2)?,
+            forma_empacado_id: row.get(3)?,
+            tipo_ensunchado_id: row.get(4)?,
+            calidad_id: row.get(5)?,
+            calibre_id: row.get(6)?,
+            observaciones: row.get(7)?,
+        })
+    })?;
+
+    let mut variantes = Vec::new();
+    for variante in variantes_iter {
+        variantes.push(variante?);
+    }
+    Ok(variantes)
+}
+
+pub fn obtener_variantes_completas(conn: &Connection) -> Result<Vec<VarianteCompleta>> {
+    let mut stmt = conn.prepare(
+        "SELECT 
+            v.id AS variante_id,
+            e.id AS especie_id,
+            e.nombre AS especie_nombre,
+            p.id AS presentacion_id,
+            p.nombre AS presentacion_nombre,
+            fe.codigo AS forma_envasado,
+            fem.codigo AS forma_empacado,
+            te.codigo AS tipo_ensunchado,
+            c.codigo AS calidad,
+            cal.codigo AS calibre
+         FROM variantes_presentaciones v
+         JOIN presentaciones p ON v.presentacion_id = p.id
+         JOIN especies e ON p.especie_id = e.id
+         LEFT JOIN formas_envasado fe ON v.forma_envasado_id = fe.id
+         LEFT JOIN formas_empacado fem ON v.forma_empacado_id = fem.id
+         LEFT JOIN tipos_ensunchado te ON v.tipo_ensunchado_id = te.id
+         LEFT JOIN calidades c ON v.calidad_id = c.id
+         LEFT JOIN calibres cal ON v.calibre_id = cal.id
+         ORDER BY e.nombre, p.nombre",
+    )?;
+
+    let variantes_iter = stmt.query_map([], |row| {
+        let especie_nombre: String = row.get(2)?;
+        let presentacion_nombre: String = row.get(4)?;
+        let forma_envasado: Option<String> = row.get(5)?;
+        let forma_empacado: Option<String> = row.get(6)?;
+        let tipo_ensunchado: Option<String> = row.get(7)?;
+        let calidad: Option<String> = row.get(8)?;
+        let calibre: Option<String> = row.get(9)?;
+
+        let mut codigo_parts = vec![especie_nombre.clone(), presentacion_nombre.clone()];
+        if let Some(fe) = &forma_envasado {
+            codigo_parts.push(fe.clone());
+        }
+        if let Some(fem) = &forma_empacado {
+            codigo_parts.push(fem.clone());
+        }
+        if let Some(te) = &tipo_ensunchado {
+            codigo_parts.push(te.clone());
+        }
+        if let Some(c) = &calidad {
+            codigo_parts.push(c.clone());
+        }
+        if let Some(cal) = &calibre {
+            codigo_parts.push(cal.clone());
+        }
+        let codigo_completo = codigo_parts.join(" ");
+
+        Ok(VarianteCompleta {
+            variante_id: row.get(0)?,
+            especie_id: row.get(1)?,
+            especie_nombre,
+            presentacion_id: row.get(3)?,
+            presentacion_nombre,
+            forma_envasado,
+            forma_empacado,
+            tipo_ensunchado,
+            calidad,
+            calibre,
+            codigo_completo,
+        })
+    })?;
+
+    let mut variantes = Vec::new();
+    for variante in variantes_iter {
+        variantes.push(variante?);
+    }
+    Ok(variantes)
+}
+
+pub fn actualizar_variante_presentacion(
+    conn: &Connection,
+    id: i64,
+    variante: &VariantePresentacion,
+) -> Result<()> {
+    conn.execute(
+        "UPDATE variantes_presentaciones 
+         SET presentacion_id = ?1, forma_envasado_id = ?2, forma_empacado_id = ?3, 
+             tipo_ensunchado_id = ?4, calidad_id = ?5, calibre_id = ?6, observaciones = ?7
+         WHERE id = ?8",
+        (
+            &variante.presentacion_id,
+            &variante.forma_envasado_id,
+            &variante.forma_empacado_id,
+            &variante.tipo_ensunchado_id,
+            &variante.calidad_id,
+            &variante.calibre_id,
+            &variante.observaciones,
+            id,
+        ),
+    )?;
+    Ok(())
+}
+
+pub fn eliminar_variante_presentacion(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM variantes_presentaciones WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+// ============ CRUD TIPOS DE INGRESO ============
+
+pub fn obtener_tipos_ingreso(conn: &Connection) -> Result<Vec<TipoIngreso>> {
+    let mut stmt =
+        conn.prepare("SELECT id, codigo, descripcion FROM tipos_ingreso ORDER BY codigo")?;
+    let tipos_iter = stmt.query_map([], |row| {
+        Ok(TipoIngreso {
+            id: Some(row.get(0)?),
+            codigo: row.get(1)?,
+            descripcion: row.get(2)?,
+        })
+    })?;
+
+    let mut tipos = Vec::new();
+    for tipo in tipos_iter {
+        tipos.push(tipo?);
+    }
+    Ok(tipos)
+}
+
+// ============ CRUD INGRESOS ============
+
+pub fn crear_ingreso(conn: &Connection, ingreso: &Ingreso) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO ingresos 
+         (variante_id, tipo_ingreso_id, fecha, peso_total_lote, kg, cajas, numero_lote, numero_orden_desembarque, observaciones)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+        (
+            &ingreso.variante_id,
+            &ingreso.tipo_ingreso_id,
+            &ingreso.fecha,
+            &ingreso.peso_total_lote,
+            &ingreso.kg,
+            &ingreso.cajas,
+            &ingreso.numero_lote,
+            &ingreso.numero_orden_desembarque,
+            &ingreso.observaciones,
+        ),
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+pub fn obtener_ingresos(conn: &Connection) -> Result<Vec<Ingreso>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, variante_id, tipo_ingreso_id, fecha, peso_total_lote, kg, cajas, 
+                numero_lote, numero_orden_desembarque, observaciones
+         FROM ingresos 
+         ORDER BY fecha DESC, id DESC",
+    )?;
+    let ingresos_iter = stmt.query_map([], |row| {
+        Ok(Ingreso {
+            id: Some(row.get(0)?),
+            variante_id: row.get(1)?,
+            tipo_ingreso_id: row.get(2)?,
+            fecha: row.get(3)?,
+            peso_total_lote: row.get(4)?,
+            kg: row.get(5)?,
+            cajas: row.get(6)?,
+            numero_lote: row.get(7)?,
+            numero_orden_desembarque: row.get(8)?,
+            observaciones: row.get(9)?,
+        })
+    })?;
+
+    let mut ingresos = Vec::new();
+    for ingreso in ingresos_iter {
+        ingresos.push(ingreso?);
+    }
+    Ok(ingresos)
+}
+
+pub fn actualizar_ingreso(conn: &Connection, id: i64, ingreso: &Ingreso) -> Result<()> {
+    conn.execute(
+        "UPDATE ingresos 
+         SET variante_id = ?1, tipo_ingreso_id = ?2, fecha = ?3, peso_total_lote = ?4, 
+             kg = ?5, cajas = ?6, numero_lote = ?7, numero_orden_desembarque = ?8, observaciones = ?9
+         WHERE id = ?10",
+        (
+            &ingreso.variante_id,
+            &ingreso.tipo_ingreso_id,
+            &ingreso.fecha,
+            &ingreso.peso_total_lote,
+            &ingreso.kg,
+            &ingreso.cajas,
+            &ingreso.numero_lote,
+            &ingreso.numero_orden_desembarque,
+            &ingreso.observaciones,
+            id,
+        ),
+    )?;
+    Ok(())
+}
+
+pub fn eliminar_ingreso(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM ingresos WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+// ============ CRUD TIPOS DE SALIDA ============
+
+pub fn obtener_tipos_salida(conn: &Connection) -> Result<Vec<TipoSalida>> {
+    let mut stmt =
+        conn.prepare("SELECT id, codigo, descripcion FROM tipos_salida ORDER BY codigo")?;
+    let tipos_iter = stmt.query_map([], |row| {
+        Ok(TipoSalida {
+            id: Some(row.get(0)?),
+            codigo: row.get(1)?,
+            descripcion: row.get(2)?,
+        })
+    })?;
+
+    let mut tipos = Vec::new();
+    for tipo in tipos_iter {
+        tipos.push(tipo?);
+    }
+    Ok(tipos)
+}
+
+// ============ CRUD SALIDAS ============
+
+pub fn crear_salida(conn: &Connection, salida: &Salida) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO salidas 
+         (variante_id, tipo_salida_id, fecha, kg, cajas, numero_orden, observaciones)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        (
+            &salida.variante_id,
+            &salida.tipo_salida_id,
+            &salida.fecha,
+            &salida.kg,
+            &salida.cajas,
+            &salida.numero_orden,
+            &salida.observaciones,
+        ),
+    )?;
+    Ok(conn.last_insert_rowid())
+}
+
+pub fn obtener_salidas(conn: &Connection) -> Result<Vec<Salida>> {
+    let mut stmt = conn.prepare(
+        "SELECT id, variante_id, tipo_salida_id, fecha, kg, cajas, numero_orden, observaciones
+         FROM salidas 
+         ORDER BY fecha DESC, id DESC",
+    )?;
+    let salidas_iter = stmt.query_map([], |row| {
+        Ok(Salida {
+            id: Some(row.get(0)?),
+            variante_id: row.get(1)?,
+            tipo_salida_id: row.get(2)?,
+            fecha: row.get(3)?,
+            kg: row.get(4)?,
+            cajas: row.get(5)?,
+            numero_orden: row.get(6)?,
+            observaciones: row.get(7)?,
+        })
+    })?;
+
+    let mut salidas = Vec::new();
+    for salida in salidas_iter {
+        salidas.push(salida?);
+    }
+    Ok(salidas)
+}
+
+pub fn actualizar_salida(conn: &Connection, id: i64, salida: &Salida) -> Result<()> {
+    conn.execute(
+        "UPDATE salidas 
+         SET variante_id = ?1, tipo_salida_id = ?2, fecha = ?3, kg = ?4, cajas = ?5, 
+             numero_orden = ?6, observaciones = ?7
+         WHERE id = ?8",
+        (
+            &salida.variante_id,
+            &salida.tipo_salida_id,
+            &salida.fecha,
+            &salida.kg,
+            &salida.cajas,
+            &salida.numero_orden,
+            &salida.observaciones,
+            id,
+        ),
+    )?;
+    Ok(())
+}
+
+pub fn eliminar_salida(conn: &Connection, id: i64) -> Result<()> {
+    conn.execute("DELETE FROM salidas WHERE id = ?1", [id])?;
+    Ok(())
+}
+
+// ============ CONSULTAS DE STOCK ============
+
+pub fn obtener_stock_por_variante(conn: &Connection) -> Result<Vec<StockVariante>> {
+    let mut stmt = conn.prepare(
+        "SELECT 
+            v.id AS variante_id,
+            (e.nombre || ' ' || p.nombre || 
+             COALESCE(' ' || fe.codigo, '') || 
+             COALESCE(' ' || fem.codigo, '') || 
+             COALESCE(' ' || te.codigo, '') || 
+             COALESCE(' ' || c.codigo, '') || 
+             COALESCE(' ' || cal.codigo, '')) AS codigo_completo,
+            e.nombre AS especie_nombre,
+            p.nombre AS presentacion_nombre,
+            COALESCE(SUM(i.kg), 0) AS kg_ingresados,
+            COALESCE(SUM(s.kg), 0) AS kg_salidos,
+            COALESCE(SUM(i.kg), 0) - COALESCE(SUM(s.kg), 0) AS kg_stock,
+            COALESCE(SUM(i.cajas), 0) AS cajas_ingresadas,
+            COALESCE(SUM(s.cajas), 0) AS cajas_salidas,
+            COALESCE(SUM(i.cajas), 0) - COALESCE(SUM(s.cajas), 0) AS cajas_stock
+         FROM variantes_presentaciones v
+         JOIN presentaciones p ON v.presentacion_id = p.id
+         JOIN especies e ON p.especie_id = e.id
+         LEFT JOIN formas_envasado fe ON v.forma_envasado_id = fe.id
+         LEFT JOIN formas_empacado fem ON v.forma_empacado_id = fem.id
+         LEFT JOIN tipos_ensunchado te ON v.tipo_ensunchado_id = te.id
+         LEFT JOIN calidades c ON v.calidad_id = c.id
+         LEFT JOIN calibres cal ON v.calibre_id = cal.id
+         LEFT JOIN ingresos i ON v.id = i.variante_id
+         LEFT JOIN salidas s ON v.id = s.variante_id
+         GROUP BY v.id, e.nombre, p.nombre, fe.codigo, fem.codigo, te.codigo, c.codigo, cal.codigo
+         ORDER BY e.nombre, p.nombre",
+    )?;
+
+    let stock_iter = stmt.query_map([], |row| {
+        Ok(StockVariante {
+            variante_id: row.get(0)?,
+            codigo_completo: row.get(1)?,
+            especie_nombre: row.get(2)?,
+            presentacion_nombre: row.get(3)?,
+            kg_ingresados: row.get(4)?,
+            kg_salidos: row.get(5)?,
+            kg_stock: row.get(6)?,
+            cajas_ingresadas: row.get(7)?,
+            cajas_salidas: row.get(8)?,
+            cajas_stock: row.get(9)?,
+        })
+    })?;
+
+    let mut stocks = Vec::new();
+    for stock in stock_iter {
+        stocks.push(stock?);
+    }
+    Ok(stocks)
 }

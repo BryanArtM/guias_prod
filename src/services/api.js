@@ -26,64 +26,217 @@ const invokeWithAuth = async (command, args = {}) => {
   }
 };
 
-// ==================== PRODUCTOS ====================
+// ==================== ESPECIES ====================
 
-export const crearProducto = (producto) => {
-  return invokeWithAuth("crear_producto_cmd", { producto });
+export const crearEspecie = (especie) => {
+  return invokeWithAuth("crear_especie_cmd", { especie });
 };
 
-export const obtenerProductos = () => {
-  return invokeWithAuth("obtener_productos_cmd");
+export const obtenerEspecies = () => {
+  return invokeWithAuth("obtener_especies_cmd");
 };
 
-export const obtenerProducto = (id) => {
-  return invokeWithAuth("obtener_producto_cmd", { id });
+export const obtenerEspecie = (id) => {
+  return invokeWithAuth("obtener_especie_cmd", { id });
 };
 
-export const actualizarProducto = (id, producto) => {
-  return invokeWithAuth("actualizar_producto_cmd", { id, producto });
+export const actualizarEspecie = (id, especie) => {
+  return invokeWithAuth("actualizar_especie_cmd", { id, especie });
 };
 
-export const eliminarProducto = (id) => {
-  return invokeWithAuth("eliminar_producto_cmd", { id });
+export const eliminarEspecie = (id) => {
+  return invokeWithAuth("eliminar_especie_cmd", { id });
 };
 
-// ==================== GUÍAS ====================
+// ==================== PRESENTACIONES ====================
 
-export const crearGuia = (guia) => {
-  return invokeWithAuth("crear_guia_cmd", { guia });
+export const crearPresentacion = (presentacion) => {
+  return invokeWithAuth("crear_presentacion_cmd", { presentacion });
 };
 
-export const obtenerGuias = () => {
-  return invokeWithAuth("obtener_guias_cmd");
+export const obtenerPresentaciones = () => {
+  return invokeWithAuth("obtener_presentaciones_cmd");
 };
 
-export const obtenerGuia = (id) => {
-  return invokeWithAuth("obtener_guia_cmd", { id });
+export const obtenerPresentacionesPorEspecie = (especieId) => {
+  return invokeWithAuth("obtener_presentaciones_por_especie_cmd", {
+    especieId,
+  });
 };
 
-export const actualizarGuia = (id, guia) => {
-  return invokeWithAuth("actualizar_guia_cmd", { id, guia });
+export const actualizarPresentacion = (id, presentacion) => {
+  return invokeWithAuth("actualizar_presentacion_cmd", { id, presentacion });
 };
 
-export const eliminarGuia = (id) => {
-  return invokeWithAuth("eliminar_guia_cmd", { id });
+export const eliminarPresentacion = (id) => {
+  return invokeWithAuth("eliminar_presentacion_cmd", { id });
 };
 
-// ==================== GUÍA DETALLE ====================
+// ==================== FORMAS DE ENVASADO ====================
 
-export const crearGuiaDetalle = (detalle) => {
-  return invokeWithAuth("crear_guia_detalle_cmd", { detalle });
+export const crearFormaEnvasado = (forma) => {
+  return invokeWithAuth("crear_forma_envasado_cmd", { forma });
 };
 
-export const obtenerDetallesGuia = (guiaId) => {
-  return invokeWithAuth("obtener_detalles_guia_cmd", { guiaId });
+export const obtenerFormasEnvasado = () => {
+  return invokeWithAuth("obtener_formas_envasado_cmd");
 };
 
-export const eliminarDetalleGuia = (id) => {
-  return invokeWithAuth("eliminar_detalle_guia_cmd", { id });
+export const actualizarFormaEnvasado = (id, forma) => {
+  return invokeWithAuth("actualizar_forma_envasado_cmd", { id, forma });
 };
 
-export const obtenerGuiaCompleta = (guiaId) => {
-  return invokeWithAuth("obtener_guia_completa_cmd", { guiaId });
+export const eliminarFormaEnvasado = (id) => {
+  return invokeWithAuth("eliminar_forma_envasado_cmd", { id });
+};
+
+// ==================== FORMAS DE EMPACADO ====================
+
+export const crearFormaEmpacado = (forma) => {
+  return invokeWithAuth("crear_forma_empacado_cmd", { forma });
+};
+
+export const obtenerFormasEmpacado = () => {
+  return invokeWithAuth("obtener_formas_empacado_cmd");
+};
+
+export const actualizarFormaEmpacado = (id, forma) => {
+  return invokeWithAuth("actualizar_forma_empacado_cmd", { id, forma });
+};
+
+export const eliminarFormaEmpacado = (id) => {
+  return invokeWithAuth("eliminar_forma_empacado_cmd", { id });
+};
+
+// ==================== TIPOS DE ENSUNCHADO ====================
+
+export const crearTipoEnsunchado = (tipo) => {
+  return invokeWithAuth("crear_tipo_ensunchado_cmd", { tipo });
+};
+
+export const obtenerTiposEnsunchado = () => {
+  return invokeWithAuth("obtener_tipos_ensunchado_cmd");
+};
+
+export const actualizarTipoEnsunchado = (id, tipo) => {
+  return invokeWithAuth("actualizar_tipo_ensunchado_cmd", { id, tipo });
+};
+
+export const eliminarTipoEnsunchado = (id) => {
+  return invokeWithAuth("eliminar_tipo_ensunchado_cmd", { id });
+};
+
+// ==================== CALIDADES ====================
+
+export const crearCalidad = (calidad) => {
+  return invokeWithAuth("crear_calidad_cmd", { calidad });
+};
+
+export const obtenerCalidades = () => {
+  return invokeWithAuth("obtener_calidades_cmd");
+};
+
+export const actualizarCalidad = (id, calidad) => {
+  return invokeWithAuth("actualizar_calidad_cmd", { id, calidad });
+};
+
+export const eliminarCalidad = (id) => {
+  return invokeWithAuth("eliminar_calidad_cmd", { id });
+};
+
+// ==================== CALIBRES ====================
+
+export const crearCalibre = (calibre) => {
+  return invokeWithAuth("crear_calibre_cmd", { calibre });
+};
+
+export const obtenerCalibres = () => {
+  return invokeWithAuth("obtener_calibres_cmd");
+};
+
+export const actualizarCalibre = (id, calibre) => {
+  return invokeWithAuth("actualizar_calibre_cmd", { id, calibre });
+};
+
+export const eliminarCalibre = (id) => {
+  return invokeWithAuth("eliminar_calibre_cmd", { id });
+};
+
+// ==================== VARIANTES DE PRESENTACIONES ====================
+
+export const crearVariantePresentacion = (variante) => {
+  return invokeWithAuth("crear_variante_presentacion_cmd", { variante });
+};
+
+export const obtenerVariantesPresentaciones = () => {
+  return invokeWithAuth("obtener_variantes_presentaciones_cmd");
+};
+
+export const obtenerVariantesCompletas = () => {
+  return invokeWithAuth("obtener_variantes_completas_cmd");
+};
+
+export const actualizarVariantePresentacion = (id, variante) => {
+  return invokeWithAuth("actualizar_variante_presentacion_cmd", {
+    id,
+    variante,
+  });
+};
+
+export const eliminarVariantePresentacion = (id) => {
+  return invokeWithAuth("eliminar_variante_presentacion_cmd", { id });
+};
+
+// ==================== TIPOS DE INGRESO ====================
+
+export const obtenerTiposIngreso = () => {
+  return invokeWithAuth("obtener_tipos_ingreso_cmd");
+};
+
+// ==================== INGRESOS ====================
+
+export const crearIngreso = (ingreso) => {
+  return invokeWithAuth("crear_ingreso_cmd", { ingreso });
+};
+
+export const obtenerIngresos = () => {
+  return invokeWithAuth("obtener_ingresos_cmd");
+};
+
+export const actualizarIngreso = (id, ingreso) => {
+  return invokeWithAuth("actualizar_ingreso_cmd", { id, ingreso });
+};
+
+export const eliminarIngreso = (id) => {
+  return invokeWithAuth("eliminar_ingreso_cmd", { id });
+};
+
+// ==================== TIPOS DE SALIDA ====================
+
+export const obtenerTiposSalida = () => {
+  return invokeWithAuth("obtener_tipos_salida_cmd");
+};
+
+// ==================== SALIDAS ====================
+
+export const crearSalida = (salida) => {
+  return invokeWithAuth("crear_salida_cmd", { salida });
+};
+
+export const obtenerSalidas = () => {
+  return invokeWithAuth("obtener_salidas_cmd");
+};
+
+export const actualizarSalida = (id, salida) => {
+  return invokeWithAuth("actualizar_salida_cmd", { id, salida });
+};
+
+export const eliminarSalida = (id) => {
+  return invokeWithAuth("eliminar_salida_cmd", { id });
+};
+
+// ==================== CONSULTAS ====================
+
+export const obtenerStockPorVariante = () => {
+  return invokeWithAuth("obtener_stock_por_variante_cmd");
 };
