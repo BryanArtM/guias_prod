@@ -93,3 +93,60 @@ Table.propTypes = {
   compact: PropTypes.bool,
   className: PropTypes.string,
 };
+
+// ============ COMPONENTES MODULARES PARA TABLAS ============
+
+/**
+ * Componentes modulares para construir tablas de forma más flexible
+ * Uso:
+ * <Table>
+ *   <TableHeader>
+ *     <TableRow>
+ *       <TableHead>Columna 1</TableHead>
+ *       <TableHead>Columna 2</TableHead>
+ *     </TableRow>
+ *   </TableHeader>
+ *   <TableBody>
+ *     <TableRow>
+ *       <TableCell>Dato 1</TableCell>
+ *       <TableCell>Dato 2</TableCell>
+ *     </TableRow>
+ *   </TableBody>
+ * </Table>
+ */
+
+export const TableModular = ({ children, className = "" }) => {
+  return (
+    <div className="table-wrapper">
+      <table className={`table table--hover ${className}`}>{children}</table>
+    </div>
+  );
+};
+
+export const TableHeader = ({ children }) => {
+  return <thead className="table__head">{children}</thead>;
+};
+
+export const TableBody = ({ children }) => {
+  return <tbody className="table__body">{children}</tbody>;
+};
+
+export const TableRow = ({ children, className = "" }) => {
+  return <tr className={`table__row ${className}`}>{children}</tr>;
+};
+
+export const TableHead = ({ children, className = "", ...props }) => {
+  return (
+    <th className={`table__header ${className}`} {...props}>
+      {children}
+    </th>
+  );
+};
+
+export const TableCell = ({ children, className = "", ...props }) => {
+  return (
+    <td className={`${className}`} {...props}>
+      {children}
+    </td>
+  );
+};

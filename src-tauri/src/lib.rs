@@ -4,6 +4,7 @@ mod db;
 use auth::*;
 use db::*;
 use tauri::State;
+use tauri::Manager;
 
 // ============ COMANDOS TAURI - ESPECIES ============
 
@@ -377,13 +378,26 @@ fn verify_token_cmd(state: State<AppState>, user_id: i64) -> Result<User, String
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let db_conn = init_db().expect("Error al inicializar la base de datos");
-    let app_state = AppState {
-        db: std::sync::Mutex::new(db_conn),
-    };
-
     tauri::Builder::default()
-        .manage(app_state)
+        .setup(|app| {
+            // Obtener el AppHandle
+            let app_handle = app.handle();
+            
+            // Inicializar la base de datos con la nueva ruta
+            let db_conn = init_db(&app_handle)
+                .expect("Error al inicializar la base de datos");
+            
+            println!("Base de datos inicializada correctamente");
+            
+            // Crear y gestionar el estado de la aplicación
+            let app_state = AppState {
+                db: std::sync::Mutex::new(db_conn),
+            };
+            
+            app.manage(app_state);
+            
+            Ok(())
+        })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             // Especies

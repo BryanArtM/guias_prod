@@ -1,7 +1,9 @@
 use rusqlite::{Connection, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-
+use tauri::AppHandle;
+use std::path::PathBuf;
+use tauri::Manager;
 use crate::auth;
 
 // ============ ESTRUCTURAS DE DATOS ============
@@ -143,9 +145,24 @@ pub struct AppState {
 }
 
 // ============ INICIALIZACIÓN DE BASE DE DATOS ============
+pub fn get_db_path(app_handle: &AppHandle) -> PathBuf {
+    let app_dir = app_handle
+        .path()
+        .app_data_dir()
+        .expect("No se pudo obtener el directorio de datos de la app");
+    
+    std::fs::create_dir_all(&app_dir).expect("No se pudo crear el directorio");
+    
+    let db_path = app_dir.join("inventario_produccion.db");
+    println!("Base de datos ubicada en: {:?}", db_path);
+    
+    db_path
+}
 
-pub fn init_db() -> Result<Connection> {
-    let conn = Connection::open("inventario_produccion.db")?;
+// Modificar init_db para recibir el AppHandle
+pub fn init_db(app_handle: &AppHandle) -> Result<Connection> {
+    let db_path = get_db_path(app_handle);
+    let conn = Connection::open(db_path)?;
 
     // 1. ESPECIES
     conn.execute(
