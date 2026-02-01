@@ -1,0 +1,113 @@
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border-left: 4px solid;
+  animation: alert-slide-in var(--transition-base);
+}
+
+@keyframes alert-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== VARIANTES ========== */
+
+.alert--error {
+  background-color: var(--color-danger-50);
+  border-color: var(--color-danger-600);
+  color: var(--color-danger-800);
+}
+
+.alert--error .alert__icon {
+  color: var(--color-danger-600);
+}
+
+.alert--success {
+  background-color: var(--color-success-50);
+  border-color: var(--color-success-600);
+  color: var(--color-success-800);
+}
+
+.alert--success .alert__icon {
+  color: var(--color-success-600);
+}
+
+.alert--warning {
+  background-color: var(--color-warning-50);
+  border-color: var(--color-warning-500);
+  color: var(--color-warning-800);
+}
+
+.alert--warning .alert__icon {
+  color: var(--color-warning-500);
+}
+
+.alert--info {
+  background-color: var(--color-info-50);
+  border-color: var(--color-info-600);
+  color: var(--color-info-800);
+}
+
+.alert--info .alert__icon {
+  color: var(--color-info-600);
+}
+
+/* ========== ELEMENTOS INTERNOS ========== */
+.alert__icon {
+  display: flex;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alert__content {
+  flex: 1;
+}
+
+.alert__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+}
+
+.alert__message {
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.alert__close {
+  /* Reset */
+  border: none;
+  background: none;
+  padding: var(--spacing-xs);
+  margin: calc(var(--spacing-xs) * -1);
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: currentColor;
+  opacity: 0.6;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.alert__close:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.alert__close:active {
+  transform: scale(0.95);
+}
