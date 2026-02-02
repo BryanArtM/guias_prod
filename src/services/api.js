@@ -11,7 +11,8 @@ const getToken = () => {
 
 const invokeWithAuth = async (command, args = {}) => {
   try {
-    return await invoke(command, { token: getToken(), ...args });
+    const result = await invoke(command, { token: getToken(), ...args });
+    return result;
   } catch (error) {
     // Si el error es de autenticación, limpiar el store y redirigir al login
     const errorMsg = String(error);
@@ -60,7 +61,7 @@ export const obtenerPresentaciones = () => {
 
 export const obtenerPresentacionesPorEspecie = (especieId) => {
   return invokeWithAuth("obtener_presentaciones_por_especie_cmd", {
-    especieId,
+    especieId: especieId,
   });
 };
 
@@ -106,24 +107,6 @@ export const actualizarFormaEmpacado = (id, forma) => {
 
 export const eliminarFormaEmpacado = (id) => {
   return invokeWithAuth("eliminar_forma_empacado_cmd", { id });
-};
-
-// ==================== TIPOS DE ENSUNCHADO ====================
-
-export const crearTipoEnsunchado = (tipo) => {
-  return invokeWithAuth("crear_tipo_ensunchado_cmd", { tipo });
-};
-
-export const obtenerTiposEnsunchado = () => {
-  return invokeWithAuth("obtener_tipos_ensunchado_cmd");
-};
-
-export const actualizarTipoEnsunchado = (id, tipo) => {
-  return invokeWithAuth("actualizar_tipo_ensunchado_cmd", { id, tipo });
-};
-
-export const eliminarTipoEnsunchado = (id) => {
-  return invokeWithAuth("eliminar_tipo_ensunchado_cmd", { id });
 };
 
 // ==================== CALIDADES ====================
@@ -239,4 +222,10 @@ export const eliminarSalida = (id) => {
 
 export const obtenerStockPorVariante = () => {
   return invokeWithAuth("obtener_stock_por_variante_cmd");
+};
+
+// ==================== DIAGNÓSTICO ====================
+
+export const diagnosticarDB = () => {
+  return invokeWithAuth("diagnosticar_db_cmd");
 };

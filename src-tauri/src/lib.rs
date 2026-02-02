@@ -62,8 +62,11 @@ fn obtener_presentaciones_cmd(state: State<AppState>, token: String) -> Result<V
 #[tauri::command]
 fn obtener_presentaciones_por_especie_cmd(state: State<AppState>, token: String, especie_id: i64) -> Result<Vec<Presentacion>, String> {
     require_auth(&token)?;
+    println!("🔍 Tauri: obtener_presentaciones_por_especie_cmd - especie_id: {}", especie_id);
     let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_presentaciones_por_especie(&conn, especie_id).map_err(|e| e.to_string())
+    let result = obtener_presentaciones_por_especie(&conn, especie_id).map_err(|e| e.to_string())?;
+    println!("✅ Tauri: Encontradas {} presentaciones para especie {}", result.len(), especie_id);
+    Ok(result)
 }
 
 #[tauri::command]
@@ -138,36 +141,6 @@ fn eliminar_forma_empacado_cmd(state: State<AppState>, token: String, id: i64) -
     require_auth(&token)?;
     let conn = state.db.lock().map_err(|e| e.to_string())?;
     eliminar_forma_empacado(&conn, id).map_err(|e| e.to_string())
-}
-
-// ============ COMANDOS TAURI - TIPOS DE ENSUNCHADO ============
-
-#[tauri::command]
-fn crear_tipo_ensunchado_cmd(state: State<AppState>, token: String, tipo: TipoEnsunchado) -> Result<i64, String> {
-    require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_tipo_ensunchado(&conn, &tipo).map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-fn obtener_tipos_ensunchado_cmd(state: State<AppState>, token: String) -> Result<Vec<TipoEnsunchado>, String> {
-    require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_tipos_ensunchado(&conn).map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-fn actualizar_tipo_ensunchado_cmd(state: State<AppState>, token: String, id: i64, tipo: TipoEnsunchado) -> Result<(), String> {
-    require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_tipo_ensunchado(&conn, id, &tipo).map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-fn eliminar_tipo_ensunchado_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
-    require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_tipo_ensunchado(&conn, id).map_err(|e| e.to_string())
 }
 
 // ============ COMANDOS TAURI - CALIDADES ============
@@ -422,11 +395,6 @@ pub fn run() {
             obtener_formas_empacado_cmd,
             actualizar_forma_empacado_cmd,
             eliminar_forma_empacado_cmd,
-            // Tipos de ensunchado
-            crear_tipo_ensunchado_cmd,
-            obtener_tipos_ensunchado_cmd,
-            actualizar_tipo_ensunchado_cmd,
-            eliminar_tipo_ensunchado_cmd,
             // Calidades
             crear_calidad_cmd,
             obtener_calidades_cmd,

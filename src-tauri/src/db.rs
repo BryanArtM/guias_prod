@@ -26,37 +26,29 @@ pub struct Presentacion {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FormaEnvasado {
     pub id: Option<i64>,
-    pub codigo: String,
+    pub nombre: String,
     pub descripcion: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FormaEmpacado {
     pub id: Option<i64>,
-    pub codigo: String,
-    pub descripcion: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TipoEnsunchado {
-    pub id: Option<i64>,
-    pub codigo: String,
+    pub nombre: String,
     pub descripcion: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Calidad {
     pub id: Option<i64>,
-    pub codigo: String,
+    pub nombre: String,
     pub descripcion: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Calibre {
     pub id: Option<i64>,
-    pub codigo: String,
-    pub valor_minimo: Option<f64>,
-    pub valor_maximo: Option<f64>,
+    pub valor_minimo: Option<i64>,
+    pub valor_maximo: Option<i64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -65,7 +57,7 @@ pub struct VariantePresentacion {
     pub presentacion_id: i64,
     pub forma_envasado_id: Option<i64>,
     pub forma_empacado_id: Option<i64>,
-    pub tipo_ensunchado_id: Option<i64>,
+    pub ensunchado: bool,
     pub calidad_id: Option<i64>,
     pub calibre_id: Option<i64>,
     pub observaciones: Option<String>,
@@ -154,12 +146,11 @@ pub fn get_db_path(app_handle: &AppHandle) -> PathBuf {
     std::fs::create_dir_all(&app_dir).expect("No se pudo crear el directorio");
     
     let db_path = app_dir.join("inventario_produccion.db");
-    println!("Base de datos ubicada en: {:?}", db_path);
     
     db_path
 }
 
-// Modificar init_db para recibir el AppHandle
+// ============ INICIALIZACIÓN DE TABLAS ============
 pub fn init_db(app_handle: &AppHandle) -> Result<Connection> {
     let db_path = get_db_path(app_handle);
     let conn = Connection::open(db_path)?;
@@ -191,7 +182,7 @@ pub fn init_db(app_handle: &AppHandle) -> Result<Connection> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS formas_envasado (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo TEXT NOT NULL UNIQUE,
+            nombre TEXT NOT NULL UNIQUE,
             descripcion TEXT
         )",
         [],
@@ -201,66 +192,54 @@ pub fn init_db(app_handle: &AppHandle) -> Result<Connection> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS formas_empacado (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo TEXT NOT NULL UNIQUE,
+            nombre TEXT NOT NULL UNIQUE,
             descripcion TEXT
         )",
         [],
     )?;
 
-    // 5. TIPOS DE ENSUNCHADO
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS tipos_ensunchado (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo TEXT NOT NULL UNIQUE,
-            descripcion TEXT
-        )",
-        [],
-    )?;
-
-    // 6. CALIDADES
+    // 5. CALIDADES
     conn.execute(
         "CREATE TABLE IF NOT EXISTS calidades (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo TEXT NOT NULL UNIQUE,
+            nombre TEXT NOT NULL UNIQUE,
             descripcion TEXT
         )",
         [],
     )?;
 
-    // 7. CALIBRES
+    // 6. CALIBRES
     conn.execute(
         "CREATE TABLE IF NOT EXISTS calibres (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            codigo TEXT NOT NULL UNIQUE,
-            valor_minimo REAL,
-            valor_maximo REAL
+            valor_minimo INTEGER,
+            valor_maximo INTEGER
         )",
         [],
     )?;
 
-    // 8. VARIANTES DE PRESENTACIONES
+    // 7. VARIANTES DE PRESENTACIONES
     conn.execute(
         "CREATE TABLE IF NOT EXISTS variantes_presentaciones (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             presentacion_id INTEGER NOT NULL,
             forma_envasado_id INTEGER,
             forma_empacado_id INTEGER,
-            tipo_ensunchado_id INTEGER,
+            ensunchado INTEGER NOT NULL DEFAULT 0,
             calidad_id INTEGER,
             calibre_id INTEGER,
             observaciones TEXT,
             FOREIGN KEY (presentacion_id) REFERENCES presentaciones(id) ON DELETE RESTRICT,
             FOREIGN KEY (forma_envasado_id) REFERENCES formas_envasado(id) ON DELETE RESTRICT,
             FOREIGN KEY (forma_empacado_id) REFERENCES formas_empacado(id) ON DELETE RESTRICT,
-            FOREIGN KEY (tipo_ensunchado_id) REFERENCES tipos_ensunchado(id) ON DELETE RESTRICT,
             FOREIGN KEY (calidad_id) REFERENCES calidades(id) ON DELETE RESTRICT,
             FOREIGN KEY (calibre_id) REFERENCES calibres(id) ON DELETE RESTRICT,
-            UNIQUE (presentacion_id, forma_envasado_id, forma_empacado_id, tipo_ensunchado_id, calidad_id, calibre_id)
+            UNIQUE (presentacion_id, forma_envasado_id, forma_empacado_id, ensunchado, calidad_id, calibre_id)
         )",
         [],
     )?;
 
-    // 9. TIPOS DE INGRESO
+    // 8. TIPOS DE INGRESO
     conn.execute(
         "CREATE TABLE IF NOT EXISTS tipos_ingreso (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -479,19 +458,19 @@ pub fn eliminar_presentacion(conn: &Connection, id: i64) -> Result<()> {
 
 pub fn crear_forma_envasado(conn: &Connection, forma: &FormaEnvasado) -> Result<i64> {
     conn.execute(
-        "INSERT INTO formas_envasado (codigo, descripcion) VALUES (?1, ?2)",
-        (&forma.codigo, &forma.descripcion),
+        "INSERT INTO formas_envasado (nombre, descripcion) VALUES (?1, ?2)",
+        (&forma.nombre, &forma.descripcion),
     )?;
     Ok(conn.last_insert_rowid())
 }
 
 pub fn obtener_formas_envasado(conn: &Connection) -> Result<Vec<FormaEnvasado>> {
     let mut stmt =
-        conn.prepare("SELECT id, codigo, descripcion FROM formas_envasado ORDER BY codigo")?;
+        conn.prepare("SELECT id, nombre, descripcion FROM formas_envasado ORDER BY nombre")?;
     let formas_iter = stmt.query_map([], |row| {
         Ok(FormaEnvasado {
             id: Some(row.get(0)?),
-            codigo: row.get(1)?,
+            nombre: row.get(1)?,
             descripcion: row.get(2)?,
         })
     })?;
@@ -505,8 +484,8 @@ pub fn obtener_formas_envasado(conn: &Connection) -> Result<Vec<FormaEnvasado>> 
 
 pub fn actualizar_forma_envasado(conn: &Connection, id: i64, forma: &FormaEnvasado) -> Result<()> {
     conn.execute(
-        "UPDATE formas_envasado SET codigo = ?1, descripcion = ?2 WHERE id = ?3",
-        (&forma.codigo, &forma.descripcion, id),
+        "UPDATE formas_envasado SET nombre = ?1, descripcion = ?2 WHERE id = ?3",
+        (&forma.nombre, &forma.descripcion, id),
     )?;
     Ok(())
 }
@@ -520,19 +499,19 @@ pub fn eliminar_forma_envasado(conn: &Connection, id: i64) -> Result<()> {
 
 pub fn crear_forma_empacado(conn: &Connection, forma: &FormaEmpacado) -> Result<i64> {
     conn.execute(
-        "INSERT INTO formas_empacado (codigo, descripcion) VALUES (?1, ?2)",
-        (&forma.codigo, &forma.descripcion),
+        "INSERT INTO formas_empacado (nombre, descripcion) VALUES (?1, ?2)",
+        (&forma.nombre, &forma.descripcion),
     )?;
     Ok(conn.last_insert_rowid())
 }
 
 pub fn obtener_formas_empacado(conn: &Connection) -> Result<Vec<FormaEmpacado>> {
     let mut stmt =
-        conn.prepare("SELECT id, codigo, descripcion FROM formas_empacado ORDER BY codigo")?;
+        conn.prepare("SELECT id, nombre, descripcion FROM formas_empacado ORDER BY nombre")?;
     let formas_iter = stmt.query_map([], |row| {
         Ok(FormaEmpacado {
             id: Some(row.get(0)?),
-            codigo: row.get(1)?,
+            nombre: row.get(1)?,
             descripcion: row.get(2)?,
         })
     })?;
@@ -546,8 +525,8 @@ pub fn obtener_formas_empacado(conn: &Connection) -> Result<Vec<FormaEmpacado>> 
 
 pub fn actualizar_forma_empacado(conn: &Connection, id: i64, forma: &FormaEmpacado) -> Result<()> {
     conn.execute(
-        "UPDATE formas_empacado SET codigo = ?1, descripcion = ?2 WHERE id = ?3",
-        (&forma.codigo, &forma.descripcion, id),
+        "UPDATE formas_empacado SET nombre = ?1, descripcion = ?2 WHERE id = ?3",
+        (&forma.nombre, &forma.descripcion, id),
     )?;
     Ok(())
 }
@@ -557,67 +536,22 @@ pub fn eliminar_forma_empacado(conn: &Connection, id: i64) -> Result<()> {
     Ok(())
 }
 
-// ============ CRUD TIPOS DE ENSUNCHADO ============
-
-pub fn crear_tipo_ensunchado(conn: &Connection, tipo: &TipoEnsunchado) -> Result<i64> {
-    conn.execute(
-        "INSERT INTO tipos_ensunchado (codigo, descripcion) VALUES (?1, ?2)",
-        (&tipo.codigo, &tipo.descripcion),
-    )?;
-    Ok(conn.last_insert_rowid())
-}
-
-pub fn obtener_tipos_ensunchado(conn: &Connection) -> Result<Vec<TipoEnsunchado>> {
-    let mut stmt =
-        conn.prepare("SELECT id, codigo, descripcion FROM tipos_ensunchado ORDER BY codigo")?;
-    let tipos_iter = stmt.query_map([], |row| {
-        Ok(TipoEnsunchado {
-            id: Some(row.get(0)?),
-            codigo: row.get(1)?,
-            descripcion: row.get(2)?,
-        })
-    })?;
-
-    let mut tipos = Vec::new();
-    for tipo in tipos_iter {
-        tipos.push(tipo?);
-    }
-    Ok(tipos)
-}
-
-pub fn actualizar_tipo_ensunchado(
-    conn: &Connection,
-    id: i64,
-    tipo: &TipoEnsunchado,
-) -> Result<()> {
-    conn.execute(
-        "UPDATE tipos_ensunchado SET codigo = ?1, descripcion = ?2 WHERE id = ?3",
-        (&tipo.codigo, &tipo.descripcion, id),
-    )?;
-    Ok(())
-}
-
-pub fn eliminar_tipo_ensunchado(conn: &Connection, id: i64) -> Result<()> {
-    conn.execute("DELETE FROM tipos_ensunchado WHERE id = ?1", [id])?;
-    Ok(())
-}
-
 // ============ CRUD CALIDADES ============
 
 pub fn crear_calidad(conn: &Connection, calidad: &Calidad) -> Result<i64> {
     conn.execute(
-        "INSERT INTO calidades (codigo, descripcion) VALUES (?1, ?2)",
-        (&calidad.codigo, &calidad.descripcion),
+        "INSERT INTO calidades (nombre, descripcion) VALUES (?1, ?2)",
+        (&calidad.nombre, &calidad.descripcion),
     )?;
     Ok(conn.last_insert_rowid())
 }
 
 pub fn obtener_calidades(conn: &Connection) -> Result<Vec<Calidad>> {
-    let mut stmt = conn.prepare("SELECT id, codigo, descripcion FROM calidades ORDER BY codigo")?;
+    let mut stmt = conn.prepare("SELECT id, nombre, descripcion FROM calidades ORDER BY nombre")?;
     let calidades_iter = stmt.query_map([], |row| {
         Ok(Calidad {
             id: Some(row.get(0)?),
-            codigo: row.get(1)?,
+            nombre: row.get(1)?,
             descripcion: row.get(2)?,
         })
     })?;
@@ -631,8 +565,8 @@ pub fn obtener_calidades(conn: &Connection) -> Result<Vec<Calidad>> {
 
 pub fn actualizar_calidad(conn: &Connection, id: i64, calidad: &Calidad) -> Result<()> {
     conn.execute(
-        "UPDATE calidades SET codigo = ?1, descripcion = ?2 WHERE id = ?3",
-        (&calidad.codigo, &calidad.descripcion, id),
+        "UPDATE calidades SET nombre = ?1, descripcion = ?2 WHERE id = ?3",
+        (&calidad.nombre, &calidad.descripcion, id),
     )?;
     Ok(())
 }
@@ -646,22 +580,21 @@ pub fn eliminar_calidad(conn: &Connection, id: i64) -> Result<()> {
 
 pub fn crear_calibre(conn: &Connection, calibre: &Calibre) -> Result<i64> {
     conn.execute(
-        "INSERT INTO calibres (codigo, valor_minimo, valor_maximo) VALUES (?1, ?2, ?3)",
-        (&calibre.codigo, &calibre.valor_minimo, &calibre.valor_maximo),
+        "INSERT INTO calibres (valor_minimo, valor_maximo) VALUES (?1, ?2)",
+        (&calibre.valor_minimo, &calibre.valor_maximo),
     )?;
     Ok(conn.last_insert_rowid())
 }
 
 pub fn obtener_calibres(conn: &Connection) -> Result<Vec<Calibre>> {
     let mut stmt = conn.prepare(
-        "SELECT id, codigo, valor_minimo, valor_maximo FROM calibres ORDER BY codigo",
+        "SELECT id, valor_minimo, valor_maximo FROM calibres ORDER BY valor_minimo, valor_maximo",
     )?;
     let calibres_iter = stmt.query_map([], |row| {
         Ok(Calibre {
             id: Some(row.get(0)?),
-            codigo: row.get(1)?,
-            valor_minimo: row.get(2)?,
-            valor_maximo: row.get(3)?,
+            valor_minimo: row.get(1)?,
+            valor_maximo: row.get(2)?,
         })
     })?;
 
@@ -674,9 +607,8 @@ pub fn obtener_calibres(conn: &Connection) -> Result<Vec<Calibre>> {
 
 pub fn actualizar_calibre(conn: &Connection, id: i64, calibre: &Calibre) -> Result<()> {
     conn.execute(
-        "UPDATE calibres SET codigo = ?1, valor_minimo = ?2, valor_maximo = ?3 WHERE id = ?4",
+        "UPDATE calibres SET valor_minimo = ?1, valor_maximo = ?2 WHERE id = ?3",
         (
-            &calibre.codigo,
             &calibre.valor_minimo,
             &calibre.valor_maximo,
             id,
@@ -698,13 +630,13 @@ pub fn crear_variante_presentacion(
 ) -> Result<i64> {
     conn.execute(
         "INSERT INTO variantes_presentaciones 
-         (presentacion_id, forma_envasado_id, forma_empacado_id, tipo_ensunchado_id, calidad_id, calibre_id, observaciones)
+         (presentacion_id, forma_envasado_id, forma_empacado_id, ensunchado, calidad_id, calibre_id, observaciones)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         (
             &variante.presentacion_id,
             &variante.forma_envasado_id,
             &variante.forma_empacado_id,
-            &variante.tipo_ensunchado_id,
+            if variante.ensunchado { 1 } else { 0 },
             &variante.calidad_id,
             &variante.calibre_id,
             &variante.observaciones,
@@ -715,16 +647,17 @@ pub fn crear_variante_presentacion(
 
 pub fn obtener_variantes_presentaciones(conn: &Connection) -> Result<Vec<VariantePresentacion>> {
     let mut stmt = conn.prepare(
-        "SELECT id, presentacion_id, forma_envasado_id, forma_empacado_id, tipo_ensunchado_id, calidad_id, calibre_id, observaciones 
+        "SELECT id, presentacion_id, forma_envasado_id, forma_empacado_id, ensunchado, calidad_id, calibre_id, observaciones 
          FROM variantes_presentaciones ORDER BY id DESC",
     )?;
     let variantes_iter = stmt.query_map([], |row| {
+        let ensunchado_int: i64 = row.get(4)?;
         Ok(VariantePresentacion {
             id: Some(row.get(0)?),
             presentacion_id: row.get(1)?,
             forma_envasado_id: row.get(2)?,
             forma_empacado_id: row.get(3)?,
-            tipo_ensunchado_id: row.get(4)?,
+            ensunchado: ensunchado_int != 0,
             calidad_id: row.get(5)?,
             calibre_id: row.get(6)?,
             observaciones: row.get(7)?,
@@ -746,28 +679,35 @@ pub fn obtener_variantes_completas(conn: &Connection) -> Result<Vec<VarianteComp
             e.nombre AS especie_nombre,
             p.id AS presentacion_id,
             p.nombre AS presentacion_nombre,
-            fe.codigo AS forma_envasado,
-            fem.codigo AS forma_empacado,
-            te.codigo AS tipo_ensunchado,
-            c.codigo AS calidad,
-            cal.codigo AS calibre
+            fe.nombre AS forma_envasado,
+            fem.nombre AS forma_empacado,
+            v.ensunchado AS ensunchado,
+            c.nombre AS calidad,
+            CASE 
+                WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL 
+                THEN CAST(cal.valor_minimo AS TEXT) || '-' || CAST(cal.valor_maximo AS TEXT)
+                WHEN cal.valor_minimo IS NOT NULL 
+                THEN CAST(cal.valor_minimo AS TEXT) || '+'
+                WHEN cal.valor_maximo IS NOT NULL 
+                THEN '0-' || CAST(cal.valor_maximo AS TEXT)
+                ELSE NULL
+            END AS calibre
          FROM variantes_presentaciones v
          JOIN presentaciones p ON v.presentacion_id = p.id
          JOIN especies e ON p.especie_id = e.id
          LEFT JOIN formas_envasado fe ON v.forma_envasado_id = fe.id
          LEFT JOIN formas_empacado fem ON v.forma_empacado_id = fem.id
-         LEFT JOIN tipos_ensunchado te ON v.tipo_ensunchado_id = te.id
          LEFT JOIN calidades c ON v.calidad_id = c.id
          LEFT JOIN calibres cal ON v.calibre_id = cal.id
          ORDER BY e.nombre, p.nombre",
     )?;
-
     let variantes_iter = stmt.query_map([], |row| {
         let especie_nombre: String = row.get(2)?;
         let presentacion_nombre: String = row.get(4)?;
         let forma_envasado: Option<String> = row.get(5)?;
         let forma_empacado: Option<String> = row.get(6)?;
-        let tipo_ensunchado: Option<String> = row.get(7)?;
+        let ensunchado_int: i64 = row.get(7)?;
+        let ensunchado = ensunchado_int != 0;
         let calidad: Option<String> = row.get(8)?;
         let calibre: Option<String> = row.get(9)?;
 
@@ -778,8 +718,8 @@ pub fn obtener_variantes_completas(conn: &Connection) -> Result<Vec<VarianteComp
         if let Some(fem) = &forma_empacado {
             codigo_parts.push(fem.clone());
         }
-        if let Some(te) = &tipo_ensunchado {
-            codigo_parts.push(te.clone());
+        if ensunchado {
+            codigo_parts.push("Z".to_string());
         }
         if let Some(c) = &calidad {
             codigo_parts.push(c.clone());
@@ -797,7 +737,7 @@ pub fn obtener_variantes_completas(conn: &Connection) -> Result<Vec<VarianteComp
             presentacion_nombre,
             forma_envasado,
             forma_empacado,
-            tipo_ensunchado,
+            tipo_ensunchado: if ensunchado { Some("Z".to_string()) } else { None },
             calidad,
             calibre,
             codigo_completo,
@@ -819,13 +759,13 @@ pub fn actualizar_variante_presentacion(
     conn.execute(
         "UPDATE variantes_presentaciones 
          SET presentacion_id = ?1, forma_envasado_id = ?2, forma_empacado_id = ?3, 
-             tipo_ensunchado_id = ?4, calidad_id = ?5, calibre_id = ?6, observaciones = ?7
+             ensunchado = ?4, calidad_id = ?5, calibre_id = ?6, observaciones = ?7
          WHERE id = ?8",
         (
             &variante.presentacion_id,
             &variante.forma_envasado_id,
             &variante.forma_empacado_id,
-            &variante.tipo_ensunchado_id,
+            if variante.ensunchado { 1 } else { 0 },
             &variante.calidad_id,
             &variante.calibre_id,
             &variante.observaciones,
@@ -1036,11 +976,19 @@ pub fn obtener_stock_por_variante(conn: &Connection) -> Result<Vec<StockVariante
         "SELECT 
             v.id AS variante_id,
             (e.nombre || ' ' || p.nombre || 
-             COALESCE(' ' || fe.codigo, '') || 
-             COALESCE(' ' || fem.codigo, '') || 
-             COALESCE(' ' || te.codigo, '') || 
-             COALESCE(' ' || c.codigo, '') || 
-             COALESCE(' ' || cal.codigo, '')) AS codigo_completo,
+             COALESCE(' ' || fe.nombre, '') || 
+             COALESCE(' ' || fem.nombre, '') || 
+             CASE WHEN v.ensunchado = 1 THEN ' Z' ELSE '' END || 
+             COALESCE(' ' || c.nombre, '') || 
+             CASE 
+                WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL 
+                THEN ' ' || cal.valor_minimo || '-' || cal.valor_maximo
+                WHEN cal.valor_minimo IS NOT NULL 
+                THEN ' ' || cal.valor_minimo || '+'
+                WHEN cal.valor_maximo IS NOT NULL 
+                THEN ' -' || cal.valor_maximo
+                ELSE ''
+             END) AS codigo_completo,
             e.nombre AS especie_nombre,
             p.nombre AS presentacion_nombre,
             COALESCE(SUM(i.kg), 0) AS kg_ingresados,
@@ -1054,12 +1002,11 @@ pub fn obtener_stock_por_variante(conn: &Connection) -> Result<Vec<StockVariante
          JOIN especies e ON p.especie_id = e.id
          LEFT JOIN formas_envasado fe ON v.forma_envasado_id = fe.id
          LEFT JOIN formas_empacado fem ON v.forma_empacado_id = fem.id
-         LEFT JOIN tipos_ensunchado te ON v.tipo_ensunchado_id = te.id
          LEFT JOIN calidades c ON v.calidad_id = c.id
          LEFT JOIN calibres cal ON v.calibre_id = cal.id
          LEFT JOIN ingresos i ON v.id = i.variante_id
          LEFT JOIN salidas s ON v.id = s.variante_id
-         GROUP BY v.id, e.nombre, p.nombre, fe.codigo, fem.codigo, te.codigo, c.codigo, cal.codigo
+         GROUP BY v.id, e.nombre, p.nombre, fe.nombre, fem.nombre, v.ensunchado, c.nombre, cal.valor_minimo, cal.valor_maximo
          ORDER BY e.nombre, p.nombre",
     )?;
 
