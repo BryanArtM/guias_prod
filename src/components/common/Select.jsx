@@ -1,7 +1,6 @@
 import { forwardRef } from "react";
 import "./Select.css";
 
-
 /**
  * @typedef {Object} SelectOption
  * @property {string|number} value - Valor de la opción
@@ -57,6 +56,7 @@ export const Select = forwardRef(
       fullWidth = false,
       icon,
       className = "",
+      children,
       ...props
     },
     ref,
@@ -115,29 +115,36 @@ export const Select = forwardRef(
             }
             {...props}
           >
-            {placeholder && (
-              <option value="" disabled>
-                {placeholder}
-              </option>
+            {children ? (
+              children
+            ) : (
+              <>
+                {placeholder && (
+                  <option value="" disabled>
+                    {placeholder}
+                  </option>
+                )}
+
+                {options.map((option) => {
+                  const optionValue =
+                    typeof option === "object" ? option.value : option;
+                  const optionLabel =
+                    typeof option === "object" ? option.label : option;
+                  const isDisabled =
+                    typeof option === "object" && option.disabled;
+
+                  return (
+                    <option
+                      key={optionValue}
+                      value={optionValue}
+                      disabled={isDisabled}
+                    >
+                      {optionLabel}
+                    </option>
+                  );
+                })}
+              </>
             )}
-
-            {options.map((option) => {
-              const optionValue =
-                typeof option === "object" ? option.value : option;
-              const optionLabel =
-                typeof option === "object" ? option.label : option;
-              const isDisabled = typeof option === "object" && option.disabled;
-
-              return (
-                <option
-                  key={optionValue}
-                  value={optionValue}
-                  disabled={isDisabled}
-                >
-                  {optionLabel}
-                </option>
-              );
-            })}
           </select>
 
           <span className="select__chevron">
