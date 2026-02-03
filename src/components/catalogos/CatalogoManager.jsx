@@ -13,7 +13,7 @@ import { Alert } from "../common/Alert";
 import { Input } from "../common/Input";
 import { Edit2, Trash2, Plus } from "lucide-react";
 
-export default function CatalogoGenerico({
+export default function CatalogoManager({
   titulo,
   datos,
   campos,
@@ -154,8 +154,7 @@ export default function CatalogoGenerico({
 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-800">{titulo}</h2>
-        <Button onClick={() => abrirModal()}>
-          <Plus className="w-4 h-4 mr-2" />
+        <Button onClick={() => abrirModal()} icon={<Plus className="w-4 h-4" />} iconPosition="left">
           Crear {titulo}
         </Button>
       </div>
@@ -169,19 +168,19 @@ export default function CatalogoGenerico({
           <TableHeader>
             <TableRow>
               {obtenerColumnas().map((col, idx) => (
-                <TableHead key={idx}>{col}</TableHead>
+                <TableHead key={idx} >{col}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {datos.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
+                <TableCell className="text-center">{item.id}</TableCell>
                 {campos.map((campo, idx) => (
-                  <TableCell key={idx}>{renderCelda(item, campo)}</TableCell>
+                  <TableCell key={idx} className="text-center">{renderCelda(item, campo)}</TableCell>
                 ))}
-                <TableCell>
-                  <div className="flex gap-2">
+                <TableCell className="text-center">
+                  <div className="flex gap-5 justify-center ">
                     <button
                       onClick={() => abrirModal(item)}
                       className="text-blue-600 hover:text-blue-800"

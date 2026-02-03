@@ -1,8 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
+import DashboardPage from "./pages/DashboardPage";
 import { EspeciesPage } from "./pages/EspeciesPage";
 import { PresentacionesPage } from "./pages/PresentacionesPage";
+import CatalogosPage from "./pages/CatalogosPage";
+import VariantesPage from "./pages/VariantesPage";
+import IngresosPage from "./pages/IngresosPage";
+import SalidasPage from "./pages/SalidasPage";
+import StockPage from "./pages/StockPage";
+import ReportesPage from "./pages/ReportesPage";
 import { Login } from "./components/auth/Login";
 import { Register } from "./components/auth/Register";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -37,6 +44,26 @@ function App() {
           }
         />
         <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <DashboardPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reportes"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ReportesPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/especies"
           element={
             <ProtectedRoute>
@@ -52,6 +79,56 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <PresentacionesPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/catalogos"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CatalogosPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/variantes"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <VariantesPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ingresos"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <IngresosPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/salidas"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SalidasPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stock"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <StockPage />
               </Layout>
             </ProtectedRoute>
           }

@@ -10,6 +10,7 @@ import {
   ArrowUp,
   ArrowDown,
   BarChart3,
+  FileText,
 } from "lucide-react";
 import { useAuthStore } from "../stores/authStore";
 import PropTypes from "prop-types";
@@ -34,17 +35,14 @@ export const Layout = ({ children }) => {
       <aside className="w-64 bg-gray-800 text-white flex flex-col">
         <div className="p-6 border-b border-gray-700">
           <h1 className="text-2xl font-bold">Inventario Producción</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Gestión de Stock Pesquero
-          </p>
         </div>
 
         <nav className="flex-1 p-4 overflow-y-auto">
           <Link
-            to="/"
+            to="/dashboard"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
-              isActive("/")
-                ? "bg-blue-600 text-white"
+              isActive("/dashboard") || isActive("/")
+                ? "bg-cyan-900 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
@@ -62,7 +60,7 @@ export const Layout = ({ children }) => {
             to="/especies"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
               isActive("/especies")
-                ? "bg-blue-600 text-white"
+                ? "bg-cyan-900 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
@@ -74,7 +72,7 @@ export const Layout = ({ children }) => {
             to="/presentaciones"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
               isActive("/presentaciones")
-                ? "bg-blue-600 text-white"
+                ? "bg-cyan-900 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
@@ -86,7 +84,7 @@ export const Layout = ({ children }) => {
             to="/variantes"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
               isActive("/variantes")
-                ? "bg-blue-600 text-white"
+                ? "bg-cyan-900 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
@@ -98,7 +96,7 @@ export const Layout = ({ children }) => {
             to="/catalogos"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
               isActive("/catalogos")
-                ? "bg-blue-600 text-white"
+                ? "bg-cyan-900 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
@@ -116,7 +114,7 @@ export const Layout = ({ children }) => {
             to="/ingresos"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
               isActive("/ingresos")
-                ? "bg-blue-600 text-white"
+                ? "bg-cyan-900 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
@@ -128,7 +126,7 @@ export const Layout = ({ children }) => {
             to="/salidas"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
               isActive("/salidas")
-                ? "bg-blue-600 text-white"
+                ? "bg-cyan-900 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
@@ -146,18 +144,30 @@ export const Layout = ({ children }) => {
             to="/stock"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
               isActive("/stock")
-                ? "bg-blue-600 text-white"
+                ? "bg-cyan-900 text-white"
                 : "text-gray-300 hover:bg-gray-700"
             }`}
           >
             <BarChart3 size={20} />
             <span className="font-medium">Stock Actual</span>
           </Link>
+
+          <Link
+            to="/reportes"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition ${
+              isActive("/reportes")
+                ? "bg-cyan-900 text-white"
+                : "text-gray-300 hover:bg-gray-700"
+            }`}
+          >
+            <FileText size={20} />
+            <span className="font-medium">Reportes</span>
+          </Link>
         </nav>
 
         <div className="p-4 border-t border-gray-700">
           <div className="flex items-center gap-3 mb-3 px-2">
-            <div className="bg-blue-600 p-2 rounded-full">
+            <div className="bg-cyan-900 p-2 rounded-full">
               <User size={16} />
             </div>
             <div className="flex-1 min-w-0">
