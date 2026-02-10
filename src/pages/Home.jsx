@@ -1,58 +1,17 @@
-import { Fish, Package, ArrowUp, ArrowDown, BarChart3 } from "lucide-react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowDown, ArrowUp, Fish, BarChart3 } from "lucide-react";
 import { Card } from "../components/common";
-
 export const Home = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirigir automáticamente al dashboard
+    navigate("/dashboard");
+  }, [navigate]);
+
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-800">
-          Sistema de Inventario de Producción Pesquera
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Gestión integral de especies, presentaciones, variantes e inventarios
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card
-          padding="lg"
-          className="bg-gradient-to-br from-blue-500 to-blue-600 text-white"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm">Especies</p>
-              <h3 className="text-3xl font-bold mt-1">-</h3>
-            </div>
-            <Fish size={40} className="text-blue-200" />
-          </div>
-        </Card>
-
-        <Card
-          padding="lg"
-          className="bg-gradient-to-br from-green-500 to-green-600 text-white"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">Variantes</p>
-              <h3 className="text-3xl font-bold mt-1">-</h3>
-            </div>
-            <Package size={40} className="text-green-200" />
-          </div>
-        </Card>
-
-        <Card
-          padding="lg"
-          className="bg-gradient-to-br from-purple-500 to-purple-600 text-white"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100 text-sm">Ingresos Hoy</p>
-              <h3 className="text-3xl font-bold mt-1">-</h3>
-            </div>
-            <ArrowUp size={40} className="text-purple-200" />
-          </div>
-        </Card>
-
+    <div className="space-y-6">
         <Card
           padding="lg"
           className="bg-gradient-to-br from-orange-500 to-orange-600 text-white"
@@ -65,7 +24,6 @@ export const Home = () => {
             <ArrowDown size={40} className="text-orange-200" />
           </div>
         </Card>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
