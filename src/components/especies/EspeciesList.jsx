@@ -104,8 +104,11 @@ export function EspeciesList() {
           <h2 className="text-2xl font-bold text-gray-800">Especies</h2>
           <p className="text-gray-600 text-sm">Gestión de especies pesqueras</p>
         </div>
-        <Button onClick={handleCrear}>
-          <Plus className="w-4 h-4 mr-2" />
+        <Button
+          onClick={handleCrear}
+          icon={<Plus className="w-4 h-4" />}
+          iconPosition="left"
+        >
           Nueva Especie
         </Button>
       </div>
@@ -122,7 +125,7 @@ export function EspeciesList() {
               <TableHead>ID</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Descripción</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className="text-right pe-14">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -152,7 +155,7 @@ export function EspeciesList() {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-5">
                       <Button
                         variant="secondary"
                         size="sm"

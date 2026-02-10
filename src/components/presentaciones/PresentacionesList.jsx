@@ -137,9 +137,8 @@ export function PresentacionesList({ especies = [] }) {
             Gestión de presentaciones por especie
           </p>
         </div>
-        <Button onClick={handleCrear}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nueva Presentación
+        <Button onClick={handleCrear} icon={<Plus className="w-4 h-4" />} iconPosition="left">
+          <span> Nueva Presentación </span>
         </Button>
       </div>
 
@@ -184,7 +183,7 @@ export function PresentacionesList({ especies = [] }) {
               <TableHead>Especie</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Descripción</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className="text-right pe-14">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -221,7 +220,7 @@ export function PresentacionesList({ especies = [] }) {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-5">
                       <Button
                         variant="secondary"
                         size="sm"

@@ -137,7 +137,7 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
       )}
 
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">
+        <h2 className="text-2xl font-bold text-gray-800">
           Registro de Ingresos
         </h2>
         <Button onClick={abrirModal}  icon={<Plus className="w-4 h-4" />} iconPosition="left">
