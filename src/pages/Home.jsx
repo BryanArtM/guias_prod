@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowDown, ArrowUp, Fish, BarChart3 } from "lucide-react";
-import { Card } from "../components/common";
+import { Card } from "@/components/common";
 export const Home = () => {
   const navigate = useNavigate();
 
@@ -12,18 +12,18 @@ export const Home = () => {
 
   return (
     <div className="space-y-6">
-        <Card
-          padding="lg"
-          className="bg-gradient-to-br from-orange-500 to-orange-600 text-white"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-100 text-sm">Salidas Hoy</p>
-              <h3 className="text-3xl font-bold mt-1">-</h3>
-            </div>
-            <ArrowDown size={40} className="text-orange-200" />
+      <Card
+        padding="lg"
+        className="bg-gradient-to-br from-orange-500 to-orange-600 text-white"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-orange-100 text-sm">Salidas Hoy</p>
+            <h3 className="text-3xl font-bold mt-1">-</h3>
           </div>
-        </Card>
+          <ArrowDown size={40} className="text-orange-200" />
+        </div>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>

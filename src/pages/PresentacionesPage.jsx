@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { PresentacionesList } from "../components/presentaciones/PresentacionesList";
-import { obtenerEspecies } from "../services/api";
-import { Loading } from "../components/common/Loading";
-import { Alert } from "../components/common/Alert";
+import { PresentacionesList } from "@/components/presentaciones";
+import { obtenerEspecies } from "@/services";
+import { Loading, Alert } from "@/components/common";
 
 export function PresentacionesPage() {
   const [especies, setEspecies] = useState([]);

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import CatalogoManager from "../components/catalogos/CatalogoManager";
-import { Loading } from "../components/common/Loading";
-import { Alert } from "../components/common/Alert";
+import { CatalogoManager } from "@/components/catalogos";
+import { Loading, Alert } from "@/components/common";
 import {
   obtenerFormasEnvasado,
   crearFormaEnvasado,
@@ -19,7 +18,7 @@ import {
   crearCalibre,
   actualizarCalibre,
   eliminarCalibre,
-} from "../services/api";
+} from "@/services";
 
 export default function CatalogosPage() {
   const [tabActiva, setTabActiva] = useState("formasEnvasado");

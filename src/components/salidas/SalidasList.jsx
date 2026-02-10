@@ -6,18 +6,11 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "../common/Table";
-import { Button } from "../common/Button";
-import { Modal } from "../common/Modal";
-import { Alert } from "../common/Alert";
-import { Select } from "../common/Select";
+} from "@/components/common/Table";
+import { Button, Modal, Alert, Select } from "@/components/common";
 import SalidaForm from "./SalidaForm";
 import { Trash2, Plus, Filter } from "lucide-react";
-import {
-  obtenerSalidas,
-  crearSalida,
-  eliminarSalida,
-} from "../../services/api";
+import { obtenerSalidas, crearSalida, eliminarSalida } from "@/services";
 
 export default function SalidasList({ variantes = [], tiposSalida = [] }) {
   const [salidas, setSalidas] = useState([]);
@@ -140,7 +133,11 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
         <h2 className="text-2xl font-bold text-gray-800">
           Registro de Salidas
         </h2>
-        <Button onClick={abrirModal} icon={<Plus className="w-4 h-4" />} iconPosition="left">
+        <Button
+          onClick={abrirModal}
+          icon={<Plus className="w-4 h-4" />}
+          iconPosition="left"
+        >
           Registrar Salida
         </Button>
       </div>

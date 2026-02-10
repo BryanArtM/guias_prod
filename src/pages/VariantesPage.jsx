@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
-import VariantesList from "../components/variantes/VariantesList";
-import { Loading } from "../components/common/Loading";
-import { Alert } from "../components/common/Alert";
+import { VariantesList } from "@/components/variantes";
+import { Loading, Alert } from "@/components/common";
 import {
   obtenerEspecies,
   obtenerFormasEnvasado,
   obtenerFormasEmpacado,
   obtenerCalidades,
   obtenerCalibres,
-} from "../services/api";
+} from "@/services";
 
 export default function VariantesPage() {
   const [cargando, setCargando] = useState(true);

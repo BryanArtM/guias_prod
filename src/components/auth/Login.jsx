@@ -3,10 +3,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "../../services/authService";
-import { useAuthStore } from "../../stores/authStore";
+import { authService } from "@/services";
+import { useAuthStore } from "@/stores";
 import { LogIn } from "lucide-react";
-import { Button, Input, Card, Alert } from "../common";
+import { Button, Input, Card, Alert } from "@/components/common";
 
 const loginSchema = z.object({
   username: z.string().min(3, "El usuario debe tener al menos 3 caracteres"),

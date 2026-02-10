@@ -6,11 +6,8 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "../common/Table";
-import { Button } from "../common/Button";
-import { Modal } from "../common/Modal";
-import { Alert } from "../common/Alert";
-import { Input } from "../common/Input";
+} from "@/components/common/Table";
+import { Button, Modal, Alert, Input } from "@/components/common";
 import { Edit2, Trash2, Plus } from "lucide-react";
 
 export default function CatalogoManager({
@@ -154,7 +151,11 @@ export default function CatalogoManager({
 
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-800">{titulo}</h2>
-        <Button onClick={() => abrirModal()} icon={<Plus className="w-4 h-4" />} iconPosition="left">
+        <Button
+          onClick={() => abrirModal()}
+          icon={<Plus className="w-4 h-4" />}
+          iconPosition="left"
+        >
           Crear {titulo}
         </Button>
       </div>
@@ -168,7 +169,7 @@ export default function CatalogoManager({
           <TableHeader>
             <TableRow>
               {obtenerColumnas().map((col, idx) => (
-                <TableHead key={idx} >{col}</TableHead>
+                <TableHead key={idx}>{col}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -177,7 +178,9 @@ export default function CatalogoManager({
               <TableRow key={item.id}>
                 <TableCell className="text-center">{item.id}</TableCell>
                 {campos.map((campo, idx) => (
-                  <TableCell key={idx} className="text-center">{renderCelda(item, campo)}</TableCell>
+                  <TableCell key={idx} className="text-center">
+                    {renderCelda(item, campo)}
+                  </TableCell>
                 ))}
                 <TableCell className="text-center">
                   <div className="flex gap-5 justify-center ">

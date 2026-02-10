@@ -12,7 +12,7 @@ import {
   BarChart3,
   FileText,
 } from "lucide-react";
-import { useAuthStore } from "../stores/authStore";
+import { useAuthStore } from "@/stores";
 import PropTypes from "prop-types";
 
 export const Layout = ({ children }) => {

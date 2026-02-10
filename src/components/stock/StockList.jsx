@@ -6,12 +6,10 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "../common/Table";
-import { Button } from "../common/Button";
-import { Alert } from "../common/Alert";
-import { Select } from "../common/Select";
+} from "@/components/common/Table";
+import { Button, Alert, Select } from "@/components/common";
 import { Filter, Download, RefreshCw } from "lucide-react";
-import { obtenerStockPorVariante } from "../../services/api";
+import { obtenerStockPorVariante } from "@/services";
 
 export default function StockList() {
   const [stock, setStock] = useState([]);

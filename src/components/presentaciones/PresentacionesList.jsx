@@ -5,7 +5,7 @@ import {
   obtenerPresentaciones,
   actualizarPresentacion,
   eliminarPresentacion,
-} from "../../services/api";
+} from "@/services";
 import {
   TableModular as Table,
   TableHeader,
@@ -13,12 +13,8 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "../common/Table";
-import { Button } from "../common/Button";
-import { Select } from "../common/Select";
-import { Modal } from "../common/Modal";
-import { Alert } from "../common/Alert";
-import { Loading } from "../common/Loading";
+} from "@/components/common/Table";
+import { Button, Select, Modal, Alert, Loading } from "@/components/common";
 import { PresentacionForm } from "./PresentacionForm";
 
 export function PresentacionesList({ especies = [] }) {
@@ -137,7 +133,11 @@ export function PresentacionesList({ especies = [] }) {
             Gestión de presentaciones por especie
           </p>
         </div>
-        <Button onClick={handleCrear} icon={<Plus className="w-4 h-4" />} iconPosition="left">
+        <Button
+          onClick={handleCrear}
+          icon={<Plus className="w-4 h-4" />}
+          iconPosition="left"
+        >
           <span> Nueva Presentación </span>
         </Button>
       </div>

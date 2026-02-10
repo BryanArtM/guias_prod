@@ -5,7 +5,7 @@ import {
   obtenerEspecies,
   actualizarEspecie,
   eliminarEspecie,
-} from "../../services/api";
+} from "@/services";
 import {
   TableModular as Table,
   TableHeader,
@@ -13,11 +13,8 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "../common/Table";
-import { Button } from "../common/Button";
-import { Modal } from "../common/Modal";
-import { Alert } from "../common/Alert";
-import { Loading } from "../common/Loading";
+} from "@/components/common/Table";
+import { Button, Modal, Alert, Loading } from "@/components/common";
 import { EspecieForm } from "./EspecieForm";
 
 export function EspeciesList() {

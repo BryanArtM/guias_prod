@@ -8,16 +8,15 @@ import {
   AlertTriangle,
   CheckCircle,
 } from "lucide-react";
-import { StatsCard } from "../components/dashboard/StatsCard";
-import { Loading } from "../components/common/Loading";
-import { Alert } from "../components/common/Alert";
+import { StatsCard } from "@/components/dashboard";
+import { Loading, Alert } from "@/components/common";
 import {
   obtenerEspecies,
   obtenerVariantesCompletas,
   obtenerIngresos,
   obtenerSalidas,
   obtenerStockPorVariante,
-} from "../services/api";
+} from "@/services";
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);

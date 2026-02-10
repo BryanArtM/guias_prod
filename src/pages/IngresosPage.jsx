@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
-import IngresosList from "../components/ingresos/IngresosList";
-import { Loading } from "../components/common/Loading";
-import { Alert } from "../components/common/Alert";
-import {
-  obtenerVariantesCompletas,
-  obtenerTiposIngreso,
-} from "../services/api";
+import { IngresosList } from "@/components/ingresos";
+import { Loading, Alert } from "@/components/common";
+import { obtenerVariantesCompletas, obtenerTiposIngreso } from "@/services";
 
 export default function IngresosPage() {
   const [cargando, setCargando] = useState(true);

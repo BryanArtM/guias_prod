@@ -6,11 +6,8 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "../common/Table";
-import { Button } from "../common/Button";
-import { Modal } from "../common/Modal";
-import { Alert } from "../common/Alert";
-import { Select } from "../common/Select";
+} from "@/components/common/Table";
+import { Button, Modal, Alert, Select } from "@/components/common";
 import VarianteForm from "./VarianteForm";
 import { Edit2, Trash2, Plus, Filter } from "lucide-react";
 import {
@@ -18,7 +15,7 @@ import {
   crearVariantePresentacion,
   actualizarVariantePresentacion,
   eliminarVariantePresentacion,
-} from "../../services/api";
+} from "@/services";
 
 export default function VariantesList({
   especies = [],

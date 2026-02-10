@@ -1,20 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Layout } from "./components/Layout";
-import { Home } from "./pages/Home";
-import DashboardPage from "./pages/DashboardPage";
-import { EspeciesPage } from "./pages/EspeciesPage";
-import { PresentacionesPage } from "./pages/PresentacionesPage";
-import CatalogosPage from "./pages/CatalogosPage";
-import VariantesPage from "./pages/VariantesPage";
-import IngresosPage from "./pages/IngresosPage";
-import SalidasPage from "./pages/SalidasPage";
-import StockPage from "./pages/StockPage";
-import ReportesPage from "./pages/ReportesPage";
-import { Login } from "./components/auth/Login";
-import { Register } from "./components/auth/Register";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { useAuthStore } from "./stores/authStore";
-import "./index.css";
+import { Layout } from "@/components/Layout";
+import {
+  Home,
+  DashboardPage,
+  EspeciesPage,
+  PresentacionesPage,
+  CatalogosPage,
+  VariantesPage,
+  IngresosPage,
+  SalidasPage,
+  StockPage,
+  ReportesPage,
+} from "@/pages";
+import { Login, Register, ProtectedRoute } from "@/components/auth";
+import { useAuthStore } from "@/stores";
+import "@/index.css";
 
 function App() {
   const { isAuthenticated } = useAuthStore();

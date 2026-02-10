@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { Select } from "../common/Select";
-import { Input } from "../common/Input";
-import { Button } from "../common/Button";
+import { Select, Input, Button } from "@/components/common";
 
 export default function IngresoForm({
   onSubmit,
@@ -56,7 +54,6 @@ export default function IngresoForm({
     if (!formData.kg || parseFloat(formData.kg) <= 0) {
       nuevosErrores.kg = "Los kilogramos deben ser mayor a 0";
     }
-
 
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;

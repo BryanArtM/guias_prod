@@ -1,9 +1,6 @@
 import { useState } from "react";
-import { Select } from "../common/Select";
-import { Input } from "../common/Input";
-import { Button } from "../common/Button";
-import { Alert } from "../common/Alert";
-import { obtenerStockPorVariante } from "../../services/api";
+import { Select, Input, Button, Alert } from "@/components/common";
+import { obtenerStockPorVariante } from "@/services";
 
 export default function SalidaForm({
   onSubmit,

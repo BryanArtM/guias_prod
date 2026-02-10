@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Select, Button } from "../common";
+import { Select, Button } from "@/components/common";
 
 export default function VarianteForm({
   onSubmit,
@@ -59,10 +59,7 @@ export default function VarianteForm({
         );
         setPresentaciones(data);
       } catch (error) {
-        console.error(
-          "VarianteForm: Error al cargar presentaciones:",
-          error,
-        );
+        console.error("VarianteForm: Error al cargar presentaciones:", error);
         setPresentaciones([]);
       } finally {
         setCargandoPresentaciones(false);
@@ -149,9 +146,9 @@ export default function VarianteForm({
         presentacion_id: "",
       }));
     } else {
-      setFormData((prev) => ({ 
-        ...prev, 
-        [name]: type === 'checkbox' ? checked : value 
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
       }));
     }
 
@@ -297,7 +294,10 @@ export default function VarianteForm({
           onChange={handleChange}
           className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
         />
-        <label htmlFor="ensunchado" className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor="ensunchado"
+          className="text-sm font-medium text-gray-700"
+        >
           Ensunchado (Z)
         </label>
       </div>

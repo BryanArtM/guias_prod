@@ -1,4 +1,4 @@
-import { EspeciesList } from "../components/especies/EspeciesList";
+import { EspeciesList } from "@/components/especies";
 
 export function EspeciesPage() {
   return (

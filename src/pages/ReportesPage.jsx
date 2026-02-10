@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
 import { Download, FileText, Calendar, Filter } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { Select } from "../components/common/Select";
-import { Alert } from "../components/common/Alert";
+import { Button, Select, Alert } from "@/components/common";
 import {
   obtenerIngresos,
   obtenerSalidas,
   obtenerStockPorVariante,
   obtenerVariantesCompletas,
   obtenerEspecies,
-} from "../services/api";
+} from "@/services";
 
 export default function ReportesPage() {
   const [loading, setLoading] = useState(false);

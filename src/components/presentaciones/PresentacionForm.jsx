@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import { Input } from "../common/Input";
-import { Select } from "../common/Select";
-import { Button } from "../common/Button";
-import { Alert } from "../common/Alert";
+import { Input, Select, Button, Alert } from "@/components/common";
 
 export function PresentacionForm({
   onSubmit,

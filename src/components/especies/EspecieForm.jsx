@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { Input } from "../common/Input";
-import { Button } from "../common/Button";
-import { Alert } from "../common/Alert";
+import { Input, Button, Alert } from "@/components/common";
 
 export function EspecieForm({ onSubmit, onCancel, especie = null }) {
   const [formData, setFormData] = useState({

@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import SalidasList from "../components/salidas/SalidasList";
-import { Loading } from "../components/common/Loading";
-import { Alert } from "../components/common/Alert";
-import { obtenerVariantesCompletas, obtenerTiposSalida } from "../services/api";
+import { SalidasList } from "@/components/salidas";
+import { Loading, Alert } from "@/components/common";
+import { obtenerVariantesCompletas, obtenerTiposSalida } from "@/services";
 
 export default function SalidasPage() {
   const [cargando, setCargando] = useState(true);
