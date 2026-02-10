@@ -209,7 +209,7 @@ export default function VariantesList({
       )}
 
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">
+        <h2 className="text-2xl font-bold text-gray-800">
           Variantes de Presentaciones
         </h2>
         <Button
@@ -221,8 +221,9 @@ export default function VariantesList({
             calidades.length === 0 ||
             calibres.length === 0
           }
+          icon={<Plus className="w-4 h-4" />}
+          iconPosition="left"
         >
-          <Plus className="w-4 h-4 mr-2" />
           Crear Variante
         </Button>
       </div>
@@ -305,7 +306,7 @@ export default function VariantesList({
                 <TableCell>{variante.especie_nombre}</TableCell>
                 <TableCell>{variante.presentacion_nombre}</TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
+                  <div className="flex justify-center gap-5">
                     <button
                       onClick={() => abrirModal(variante)}
                       className="text-blue-600 hover:text-blue-800"
