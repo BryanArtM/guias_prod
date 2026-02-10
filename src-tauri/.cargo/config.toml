@@ -1,0 +1,5 @@
+[build]
+rustflags = ["-C", "link-args=-Wl,-zstack-size=8388608"]
+
+[env]
+RUST_MIN_STACK = "8388608"

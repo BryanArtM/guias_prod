@@ -5,346 +5,309 @@ use auth::*;
 use db::*;
 use tauri::State;
 use tauri::Manager;
+use std::sync::Arc;
+use libsql::Database;
+
+// ============ ESTADO DE LA APLICACIÓN ============
+
+pub struct AppState {
+    pub db: Arc<Database>,
+}
 
 // ============ COMANDOS TAURI - ESPECIES ============
 
 #[tauri::command]
-fn crear_especie_cmd(state: State<AppState>, token: String, especie: Especie) -> Result<i64, String> {
+async fn crear_especie_cmd(state: State<'_, AppState>, token: String, especie: Especie) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_especie(&conn, &especie).map_err(|e| e.to_string())
+    crear_especie(&state.db, &especie).await
 }
 
 #[tauri::command]
-fn obtener_especies_cmd(state: State<AppState>, token: String) -> Result<Vec<Especie>, String> {
+async fn obtener_especies_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Especie>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_especies(&conn).map_err(|e| e.to_string())
+    obtener_especies(&state.db).await
 }
 
 #[tauri::command]
-fn obtener_especie_cmd(state: State<AppState>, token: String, id: i64) -> Result<Especie, String> {
+async fn obtener_especie_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<Especie, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_especie(&conn, id).map_err(|e| e.to_string())
+    obtener_especie(&state.db, id).await
 }
 
 #[tauri::command]
-fn actualizar_especie_cmd(state: State<AppState>, token: String, id: i64, especie: Especie) -> Result<(), String> {
+async fn actualizar_especie_cmd(state: State<'_, AppState>, token: String, id: i64, especie: Especie) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_especie(&conn, id, &especie).map_err(|e| e.to_string())
+    actualizar_especie(&state.db, id, &especie).await
 }
 
 #[tauri::command]
-fn eliminar_especie_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_especie_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_especie(&conn, id).map_err(|e| e.to_string())
+    eliminar_especie(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - PRESENTACIONES ============
 
 #[tauri::command]
-fn crear_presentacion_cmd(state: State<AppState>, token: String, presentacion: Presentacion) -> Result<i64, String> {
+async fn crear_presentacion_cmd(state: State<'_, AppState>, token: String, presentacion: Presentacion) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_presentacion(&conn, &presentacion).map_err(|e| e.to_string())
+    crear_presentacion(&state.db, &presentacion).await
 }
 
 #[tauri::command]
-fn obtener_presentaciones_cmd(state: State<AppState>, token: String) -> Result<Vec<Presentacion>, String> {
+async fn obtener_presentaciones_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Presentacion>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_presentaciones(&conn).map_err(|e| e.to_string())
+    obtener_presentaciones(&state.db).await
 }
 
 #[tauri::command]
-fn obtener_presentaciones_por_especie_cmd(state: State<AppState>, token: String, especie_id: i64) -> Result<Vec<Presentacion>, String> {
+async fn obtener_presentaciones_por_especie_cmd(state: State<'_, AppState>, token: String, especie_id: i64) -> Result<Vec<Presentacion>, String> {
     require_auth(&token)?;
     println!("🔍 Tauri: obtener_presentaciones_por_especie_cmd - especie_id: {}", especie_id);
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    let result = obtener_presentaciones_por_especie(&conn, especie_id).map_err(|e| e.to_string())?;
+    let result = obtener_presentaciones_por_especie(&state.db, especie_id).await?;
     println!("✅ Tauri: Encontradas {} presentaciones para especie {}", result.len(), especie_id);
     Ok(result)
 }
 
 #[tauri::command]
-fn actualizar_presentacion_cmd(state: State<AppState>, token: String, id: i64, presentacion: Presentacion) -> Result<(), String> {
+async fn actualizar_presentacion_cmd(state: State<'_, AppState>, token: String, id: i64, presentacion: Presentacion) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_presentacion(&conn, id, &presentacion).map_err(|e| e.to_string())
+    actualizar_presentacion(&state.db, id, &presentacion).await
 }
 
 #[tauri::command]
-fn eliminar_presentacion_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_presentacion_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_presentacion(&conn, id).map_err(|e| e.to_string())
+    eliminar_presentacion(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - FORMAS DE ENVASADO ============
 
 #[tauri::command]
-fn crear_forma_envasado_cmd(state: State<AppState>, token: String, forma: FormaEnvasado) -> Result<i64, String> {
+async fn crear_forma_envasado_cmd(state: State<'_, AppState>, token: String, forma: FormaEnvasado) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_forma_envasado(&conn, &forma).map_err(|e| e.to_string())
+    crear_forma_envasado(&state.db, &forma).await
 }
 
 #[tauri::command]
-fn obtener_formas_envasado_cmd(state: State<AppState>, token: String) -> Result<Vec<FormaEnvasado>, String> {
+async fn obtener_formas_envasado_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<FormaEnvasado>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_formas_envasado(&conn).map_err(|e| e.to_string())
+    obtener_formas_envasado(&state.db).await
 }
 
 #[tauri::command]
-fn actualizar_forma_envasado_cmd(state: State<AppState>, token: String, id: i64, forma: FormaEnvasado) -> Result<(), String> {
+async fn actualizar_forma_envasado_cmd(state: State<'_, AppState>, token: String, id: i64, forma: FormaEnvasado) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_forma_envasado(&conn, id, &forma).map_err(|e| e.to_string())
+    actualizar_forma_envasado(&state.db, id, &forma).await
 }
 
 #[tauri::command]
-fn eliminar_forma_envasado_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_forma_envasado_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_forma_envasado(&conn, id).map_err(|e| e.to_string())
+    eliminar_forma_envasado(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - FORMAS DE EMPACADO ============
 
 #[tauri::command]
-fn crear_forma_empacado_cmd(state: State<AppState>, token: String, forma: FormaEmpacado) -> Result<i64, String> {
+async fn crear_forma_empacado_cmd(state: State<'_, AppState>, token: String, forma: FormaEmpacado) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_forma_empacado(&conn, &forma).map_err(|e| e.to_string())
+    crear_forma_empacado(&state.db, &forma).await
 }
 
 #[tauri::command]
-fn obtener_formas_empacado_cmd(state: State<AppState>, token: String) -> Result<Vec<FormaEmpacado>, String> {
+async fn obtener_formas_empacado_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<FormaEmpacado>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_formas_empacado(&conn).map_err(|e| e.to_string())
+    obtener_formas_empacado(&state.db).await
 }
 
 #[tauri::command]
-fn actualizar_forma_empacado_cmd(state: State<AppState>, token: String, id: i64, forma: FormaEmpacado) -> Result<(), String> {
+async fn actualizar_forma_empacado_cmd(state: State<'_, AppState>, token: String, id: i64, forma: FormaEmpacado) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_forma_empacado(&conn, id, &forma).map_err(|e| e.to_string())
+    actualizar_forma_empacado(&state.db, id, &forma).await
 }
 
 #[tauri::command]
-fn eliminar_forma_empacado_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_forma_empacado_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_forma_empacado(&conn, id).map_err(|e| e.to_string())
+    eliminar_forma_empacado(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - CALIDADES ============
 
 #[tauri::command]
-fn crear_calidad_cmd(state: State<AppState>, token: String, calidad: Calidad) -> Result<i64, String> {
+async fn crear_calidad_cmd(state: State<'_, AppState>, token: String, calidad: Calidad) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_calidad(&conn, &calidad).map_err(|e| e.to_string())
+    crear_calidad(&state.db, &calidad).await
 }
 
 #[tauri::command]
-fn obtener_calidades_cmd(state: State<AppState>, token: String) -> Result<Vec<Calidad>, String> {
+async fn obtener_calidades_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Calidad>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_calidades(&conn).map_err(|e| e.to_string())
+    obtener_calidades(&state.db).await
 }
 
 #[tauri::command]
-fn actualizar_calidad_cmd(state: State<AppState>, token: String, id: i64, calidad: Calidad) -> Result<(), String> {
+async fn actualizar_calidad_cmd(state: State<'_, AppState>, token: String, id: i64, calidad: Calidad) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_calidad(&conn, id, &calidad).map_err(|e| e.to_string())
+    actualizar_calidad(&state.db, id, &calidad).await
 }
 
 #[tauri::command]
-fn eliminar_calidad_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_calidad_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_calidad(&conn, id).map_err(|e| e.to_string())
+    eliminar_calidad(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - CALIBRES ============
 
 #[tauri::command]
-fn crear_calibre_cmd(state: State<AppState>, token: String, calibre: Calibre) -> Result<i64, String> {
+async fn crear_calibre_cmd(state: State<'_, AppState>, token: String, calibre: Calibre) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_calibre(&conn, &calibre).map_err(|e| e.to_string())
+    crear_calibre(&state.db, &calibre).await
 }
 
 #[tauri::command]
-fn obtener_calibres_cmd(state: State<AppState>, token: String) -> Result<Vec<Calibre>, String> {
+async fn obtener_calibres_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Calibre>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_calibres(&conn).map_err(|e| e.to_string())
+    obtener_calibres(&state.db).await
 }
 
 #[tauri::command]
-fn actualizar_calibre_cmd(state: State<AppState>, token: String, id: i64, calibre: Calibre) -> Result<(), String> {
+async fn actualizar_calibre_cmd(state: State<'_, AppState>, token: String, id: i64, calibre: Calibre) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_calibre(&conn, id, &calibre).map_err(|e| e.to_string())
+    actualizar_calibre(&state.db, id, &calibre).await
 }
 
 #[tauri::command]
-fn eliminar_calibre_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_calibre_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_calibre(&conn, id).map_err(|e| e.to_string())
+    eliminar_calibre(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - VARIANTES DE PRESENTACIONES ============
 
 #[tauri::command]
-fn crear_variante_presentacion_cmd(state: State<AppState>, token: String, variante: VariantePresentacion) -> Result<i64, String> {
+async fn crear_variante_presentacion_cmd(state: State<'_, AppState>, token: String, variante: VariantePresentacion) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_variante_presentacion(&conn, &variante).map_err(|e| e.to_string())
+    crear_variante_presentacion(&state.db, &variante).await
 }
 
 #[tauri::command]
-fn obtener_variantes_presentaciones_cmd(state: State<AppState>, token: String) -> Result<Vec<VariantePresentacion>, String> {
+async fn obtener_variantes_presentaciones_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<VariantePresentacion>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_variantes_presentaciones(&conn).map_err(|e| e.to_string())
+    obtener_variantes_presentaciones(&state.db).await
 }
 
 #[tauri::command]
-fn obtener_variantes_completas_cmd(state: State<AppState>, token: String) -> Result<Vec<VarianteCompleta>, String> {
+async fn obtener_variantes_completas_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<VarianteCompleta>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_variantes_completas(&conn).map_err(|e| e.to_string())
+    obtener_variantes_completas(&state.db).await
 }
 
 #[tauri::command]
-fn actualizar_variante_presentacion_cmd(state: State<AppState>, token: String, id: i64, variante: VariantePresentacion) -> Result<(), String> {
+async fn actualizar_variante_presentacion_cmd(state: State<'_, AppState>, token: String, id: i64, variante: VariantePresentacion) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_variante_presentacion(&conn, id, &variante).map_err(|e| e.to_string())
+    actualizar_variante_presentacion(&state.db, id, &variante).await
 }
 
 #[tauri::command]
-fn eliminar_variante_presentacion_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_variante_presentacion_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_variante_presentacion(&conn, id).map_err(|e| e.to_string())
+    eliminar_variante_presentacion(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - TIPOS DE INGRESO ============
 
 #[tauri::command]
-fn obtener_tipos_ingreso_cmd(state: State<AppState>, token: String) -> Result<Vec<TipoIngreso>, String> {
+async fn obtener_tipos_ingreso_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<TipoIngreso>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_tipos_ingreso(&conn).map_err(|e| e.to_string())
+    obtener_tipos_ingreso(&state.db).await
 }
 
 // ============ COMANDOS TAURI - INGRESOS ============
 
 #[tauri::command]
-fn crear_ingreso_cmd(state: State<AppState>, token: String, ingreso: Ingreso) -> Result<i64, String> {
+async fn crear_ingreso_cmd(state: State<'_, AppState>, token: String, ingreso: Ingreso) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_ingreso(&conn, &ingreso).map_err(|e| e.to_string())
+    crear_ingreso(&state.db, &ingreso).await
 }
 
 #[tauri::command]
-fn obtener_ingresos_cmd(state: State<AppState>, token: String) -> Result<Vec<Ingreso>, String> {
+async fn obtener_ingresos_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Ingreso>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_ingresos(&conn).map_err(|e| e.to_string())
+    obtener_ingresos(&state.db).await
 }
 
 #[tauri::command]
-fn actualizar_ingreso_cmd(state: State<AppState>, token: String, id: i64, ingreso: Ingreso) -> Result<(), String> {
+async fn actualizar_ingreso_cmd(state: State<'_, AppState>, token: String, id: i64, ingreso: Ingreso) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_ingreso(&conn, id, &ingreso).map_err(|e| e.to_string())
+    actualizar_ingreso(&state.db, id, &ingreso).await
 }
 
 #[tauri::command]
-fn eliminar_ingreso_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_ingreso_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_ingreso(&conn, id).map_err(|e| e.to_string())
+    eliminar_ingreso(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - TIPOS DE SALIDA ============
 
 #[tauri::command]
-fn obtener_tipos_salida_cmd(state: State<AppState>, token: String) -> Result<Vec<TipoSalida>, String> {
+async fn obtener_tipos_salida_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<TipoSalida>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_tipos_salida(&conn).map_err(|e| e.to_string())
+    obtener_tipos_salida(&state.db).await
 }
 
 // ============ COMANDOS TAURI - SALIDAS ============
 
 #[tauri::command]
-fn crear_salida_cmd(state: State<AppState>, token: String, salida: Salida) -> Result<i64, String> {
+async fn crear_salida_cmd(state: State<'_, AppState>, token: String, salida: Salida) -> Result<i64, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    crear_salida(&conn, &salida).map_err(|e| e.to_string())
+    crear_salida(&state.db, &salida).await
 }
 
 #[tauri::command]
-fn obtener_salidas_cmd(state: State<AppState>, token: String) -> Result<Vec<Salida>, String> {
+async fn obtener_salidas_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Salida>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_salidas(&conn).map_err(|e| e.to_string())
+    obtener_salidas(&state.db).await
 }
 
 #[tauri::command]
-fn actualizar_salida_cmd(state: State<AppState>, token: String, id: i64, salida: Salida) -> Result<(), String> {
+async fn actualizar_salida_cmd(state: State<'_, AppState>, token: String, id: i64, salida: Salida) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    actualizar_salida(&conn, id, &salida).map_err(|e| e.to_string())
+    actualizar_salida(&state.db, id, &salida).await
 }
 
 #[tauri::command]
-fn eliminar_salida_cmd(state: State<AppState>, token: String, id: i64) -> Result<(), String> {
+async fn eliminar_salida_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    eliminar_salida(&conn, id).map_err(|e| e.to_string())
+    eliminar_salida(&state.db, id).await
 }
 
 // ============ COMANDOS TAURI - CONSULTAS ============
 
 #[tauri::command]
-fn obtener_stock_por_variante_cmd(state: State<AppState>, token: String) -> Result<Vec<StockVariante>, String> {
+async fn obtener_stock_por_variante_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<StockVariante>, String> {
     require_auth(&token)?;
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    obtener_stock_por_variante(&conn).map_err(|e| e.to_string())
+    obtener_stock_por_variante(&state.db).await
 }
 
 // ============ COMANDOS TAURI - AUTENTICACIÓN ============
 
 #[tauri::command]
-fn register_cmd(state: State<AppState>, data: RegisterData) -> Result<AuthResponse, String> {
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    register_user(&conn, data)
+async fn register_cmd(state: State<'_, AppState>, data: RegisterData) -> Result<AuthResponse, String> {
+    register_user(&state.db, data).await
 }
 
 #[tauri::command]
-fn login_cmd(state: State<AppState>, credentials: LoginCredentials) -> Result<AuthResponse, String> {
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    login_user(&conn, credentials)
+async fn login_cmd(state: State<'_, AppState>, credentials: LoginCredentials) -> Result<AuthResponse, String> {
+    login_user(&state.db, credentials).await
 }
 
 #[tauri::command]
-fn verify_token_cmd(state: State<AppState>, user_id: i64) -> Result<User, String> {
-    let conn = state.db.lock().map_err(|e| e.to_string())?;
-    get_user_by_id(&conn, user_id)
+async fn verify_token_cmd(state: State<'_, AppState>, user_id: i64) -> Result<User, String> {
+    get_user_by_id(&state.db, user_id).await
 }
 
 // ============ APLICACIÓN PRINCIPAL ============
@@ -353,24 +316,24 @@ fn verify_token_cmd(state: State<AppState>, user_id: i64) -> Result<User, String
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-            // Obtener el AppHandle
-            let app_handle = app.handle();
-            
-            // Inicializar la base de datos con la nueva ruta
-            let db_conn = init_db(&app_handle)
-                .expect("Error al inicializar la base de datos");
-            
-            println!("Base de datos inicializada correctamente");
-            
-            // Crear y gestionar el estado de la aplicación
-            let app_state = AppState {
-                db: std::sync::Mutex::new(db_conn),
-            };
-            
-            app.manage(app_state);
-            
-            Ok(())
-        })
+    let handle = app.handle().clone();
+    
+    tauri::async_runtime::spawn(async move {
+        match init_db().await {
+            Ok(db) => {
+                println!("✅ Base de datos inicializada correctamente");
+                let app_state = AppState { db: Arc::new(db) };
+                handle.manage(app_state);
+            }
+            Err(e) => {
+                eprintln!("❌ Error: {}", e);
+                std::process::exit(1);
+            }
+        }
+    });
+    
+    Ok(())
+})
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             // Especies

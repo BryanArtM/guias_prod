@@ -1,6 +1,7 @@
 //Re-exportar módulos y funciones del módulo db
 mod types;
 mod init;
+mod helpers;
 mod especies;
 mod presentaciones;
 mod formas;
@@ -81,3 +82,4 @@ pub use salidas::{
 };
 
 pub use stock::obtener_stock_por_variante;
+

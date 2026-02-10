@@ -1,79 +1,73 @@
-use rusqlite::{Connection, Result};
+use libsql::Database;
 use crate::db::types::Presentacion;
+use crate::db::helpers::option_string_to_value;
 
-pub fn crear_presentacion(conn: &Connection, presentacion: &Presentacion) -> Result<i64> {
+pub async fn crear_presentacion(db: &Database, presentacion: &Presentacion) -> Result<i64, String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
     conn.execute(
         "INSERT INTO presentaciones (especie_id, nombre, descripcion) VALUES (?1, ?2, ?3)",
-        (
-            &presentacion.especie_id,
-            &presentacion.nombre,
-            &presentacion.descripcion,
-        ),
-    )?;
+        [presentacion.especie_id.into(), presentacion.nombre.clone().into(), option_string_to_value(presentacion.descripcion.clone())],
+    ).await.map_err(|e| e.to_string())?;
     Ok(conn.last_insert_rowid())
 }
 
-pub fn obtener_presentaciones(conn: &Connection) -> Result<Vec<Presentacion>> {
-    let mut stmt = conn.prepare(
+pub async fn obtener_presentaciones(db: &Database) -> Result<Vec<Presentacion>, String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+    let mut result = conn.query(
         "SELECT id, especie_id, nombre, descripcion FROM presentaciones ORDER BY nombre",
-    )?;
-    let presentaciones_iter = stmt.query_map([], |row| {
-        Ok(Presentacion {
-            id: Some(row.get(0)?),
-            especie_id: row.get(1)?,
-            nombre: row.get(2)?,
-            descripcion: row.get(3)?,
-        })
-    })?;
+        (),
+    ).await.map_err(|e| e.to_string())?;
 
     let mut presentaciones = Vec::new();
-    for presentacion in presentaciones_iter {
-        presentaciones.push(presentacion?);
+    while let Some(row) = result.next().await.map_err(|e| e.to_string())? {
+        presentaciones.push(Presentacion {
+            id: Some(row.get(0).map_err(|e| e.to_string())?),
+            especie_id: row.get(1).map_err(|e| e.to_string())?,
+            nombre: row.get(2).map_err(|e| e.to_string())?,
+            descripcion: row.get(3).map_err(|e| e.to_string())?,
+        });
     }
     Ok(presentaciones)
 }
 
-pub fn obtener_presentaciones_por_especie(
-    conn: &Connection,
+pub async fn obtener_presentaciones_por_especie(
+    db: &Database,
     especie_id: i64,
-) -> Result<Vec<Presentacion>> {
-    let mut stmt = conn.prepare(
+) -> Result<Vec<Presentacion>, String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+    let mut result = conn.query(
         "SELECT id, especie_id, nombre, descripcion FROM presentaciones WHERE especie_id = ?1 ORDER BY nombre",
-    )?;
-    let presentaciones_iter = stmt.query_map([especie_id], |row| {
-        Ok(Presentacion {
-            id: Some(row.get(0)?),
-            especie_id: row.get(1)?,
-            nombre: row.get(2)?,
-            descripcion: row.get(3)?,
-        })
-    })?;
+        [libsql::Value::from(especie_id)],
+    ).await.map_err(|e| e.to_string())?;
 
     let mut presentaciones = Vec::new();
-    for presentacion in presentaciones_iter {
-        presentaciones.push(presentacion?);
+    while let Some(row) = result.next().await.map_err(|e| e.to_string())? {
+        presentaciones.push(Presentacion {
+            id: Some(row.get(0).map_err(|e| e.to_string())?),
+            especie_id: row.get(1).map_err(|e| e.to_string())?,
+            nombre: row.get(2).map_err(|e| e.to_string())?,
+            descripcion: row.get(3).map_err(|e| e.to_string())?,
+        });
     }
     Ok(presentaciones)
 }
 
-pub fn actualizar_presentacion(
-    conn: &Connection,
+pub async fn actualizar_presentacion(
+    db: &Database,
     id: i64,
     presentacion: &Presentacion,
-) -> Result<()> {
+) -> Result<(), String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
     conn.execute(
         "UPDATE presentaciones SET especie_id = ?1, nombre = ?2, descripcion = ?3 WHERE id = ?4",
-        (
-            &presentacion.especie_id,
-            &presentacion.nombre,
-            &presentacion.descripcion,
-            id,
-        ),
-    )?;
+        [presentacion.especie_id.into(), presentacion.nombre.clone().into(), option_string_to_value(presentacion.descripcion.clone()), id.into()],
+    ).await.map_err(|e| e.to_string())?;
     Ok(())
 }
 
-pub fn eliminar_presentacion(conn: &Connection, id: i64) -> Result<()> {
-    conn.execute("DELETE FROM presentaciones WHERE id = ?1", [id])?;
+pub async fn eliminar_presentacion(db: &Database, id: i64) -> Result<(), String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+    conn.execute("DELETE FROM presentaciones WHERE id = ?1", [libsql::Value::from(id)])
+        .await.map_err(|e| e.to_string())?;
     Ok(())
 }
