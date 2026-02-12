@@ -36,7 +36,7 @@ export function PresentacionesPage() {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <Alert type="error" message={error} />
+        <Alert variant="error">{error}</Alert>
       </div>
     );
   }
@@ -44,10 +44,10 @@ export function PresentacionesPage() {
   if (especies.length === 0) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <Alert
-          type="warning"
-          message="No hay especies registradas. Por favor, crea primero una especie antes de agregar presentaciones."
-        />
+        <Alert variant="warning">
+          No hay especies registradas. Por favor, crea primero una especie antes
+          de agregar presentaciones.
+        </Alert>
       </div>
     );
   }

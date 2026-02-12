@@ -7,15 +7,18 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Modal, Alert, Select } from "@/components/common";
+import { Button, Modal, Alert, Select, Pagination } from "@/components/common";
 import SalidaForm from "./SalidaForm";
 import { Trash2, Plus, Filter } from "lucide-react";
-import { obtenerSalidas, crearSalida, eliminarSalida } from "@/services";
+import {
+  obtenerSalidasPaginadas,
+  contarSalidas,
+  crearSalida,
+  eliminarSalida,
+} from "@/services";
+import { usePagination } from "@/hooks";
 
 export default function SalidasList({ variantes = [], tiposSalida = [] }) {
-  const [salidas, setSalidas] = useState([]);
-  const [salidasFiltradas, setSalidasFiltradas] = useState([]);
-  const [cargando, setCargando] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [alerta, setAlerta] = useState(null);
 
@@ -23,44 +26,45 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
   const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroVariante, setFiltroVariante] = useState("");
 
-  useEffect(() => {
-    cargarSalidas();
-  }, []);
+  // Control de items por página
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  // Aplicar filtros
-  useEffect(() => {
-    let resultado = [...salidas];
+  // OPTIMIZADO: Usar hook de paginación
+  const pagination = usePagination(
+    obtenerSalidasPaginadas,
+    contarSalidas,
+    itemsPerPage,
+  );
 
-    if (filtroTipo) {
-      resultado = resultado.filter(
-        (s) => s.tipo_salida_id === parseInt(filtroTipo),
-      );
+  const {
+    data: salidas,
+    cargando,
+    paginaActual,
+    totalPaginas,
+    totalItems,
+    rangoActual,
+    irAPagina,
+    paginaSiguiente,
+    paginaAnterior,
+    hayPaginaAnterior,
+    hayPaginaSiguiente,
+    refrescar,
+  } = pagination;
+
+  // Aplicar filtros localmente
+  const salidasFiltradas = salidas.filter((salida) => {
+    if (filtroTipo && salida.tipo_salida_id !== parseInt(filtroTipo)) {
+      return false;
     }
-
-    if (filtroVariante) {
-      resultado = resultado.filter(
-        (s) => s.variante_id === parseInt(filtroVariante),
-      );
+    if (filtroVariante && salida.variante_id !== parseInt(filtroVariante)) {
+      return false;
     }
-
-    setSalidasFiltradas(resultado);
-  }, [salidas, filtroTipo, filtroVariante]);
+    return true;
+  });
 
   const mostrarAlerta = (mensaje, tipo = "success") => {
     setAlerta({ mensaje, tipo });
     setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
-  };
-
-  const cargarSalidas = async () => {
-    setCargando(true);
-    try {
-      const data = await obtenerSalidas();
-      setSalidas(data);
-    } catch (error) {
-      mostrarAlerta("Error al cargar salidas: " + error.message, "error");
-    } finally {
-      setCargando(false);
-    }
   };
 
   const abrirModal = () => {
@@ -76,7 +80,7 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
       await crearSalida(data);
       mostrarAlerta("Salida registrada exitosamente");
       cerrarModal();
-      cargarSalidas();
+      refrescar(); // OPTIMIZADO: Refrescar datos paginados
     } catch (error) {
       throw error;
     }
@@ -90,7 +94,7 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
     try {
       await eliminarSalida(id);
       mostrarAlerta("Salida eliminada exitosamente");
-      cargarSalidas();
+      refrescar(); // OPTIMIZADO: Refrescar datos paginados
     } catch (error) {
       mostrarAlerta("Error al eliminar salida: " + error.message, "error");
     }
@@ -182,57 +186,89 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
         </div>
 
         <p className="text-sm text-gray-600 mt-2">
-          Mostrando {salidasFiltradas.length} de {salidas.length} salidas
+          {hayFiltrosActivos
+            ? `Mostrando ${salidasFiltradas.length} de ${salidas.length} en esta página`
+            : `Página ${paginaActual} de ${totalPaginas} - ${totalItems} total`}
         </p>
+      </div>
+
+      {/* Selector de items por página */}
+      <div className="mb-4">
+        <Select
+          label="Elementos por página"
+          value={itemsPerPage}
+          onChange={(e) => setItemsPerPage(Number(e.target.value))}
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+        </Select>
       </div>
 
       {salidasFiltradas.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           {salidas.length === 0
-            ? "No hay salidas registradas"
+            ? "No hay salidas registradas en esta página"
             : "No se encontraron salidas con los filtros aplicados"}
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Código Variante</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Kg</TableHead>
-              <TableHead>Cajas</TableHead>
-              <TableHead>Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {salidasFiltradas.map((salida) => (
-              <TableRow key={salida.id}>
-                <TableCell>{salida.fecha}</TableCell>
-                <TableCell>
-                  <span className="font-mono text-sm text-blue-700">
-                    {obtenerCodigoVariante(salida.variante_id)}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
-                    {obtenerNombreTipo(salida.tipo_salida_id)}
-                  </span>
-                </TableCell>
-                <TableCell>{salida.kg.toFixed(2)}</TableCell>
-                <TableCell>{salida.cajas || "-"}</TableCell>
-                <TableCell className="text-center">
-                  <button
-                    onClick={() => handleEliminar(salida.id, salida.fecha)}
-                    className="text-red-600 hover:text-red-800"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </TableCell>
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Código Variante</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Kg</TableHead>
+                <TableHead>Cajas</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {salidasFiltradas.map((salida) => (
+                <TableRow key={salida.id}>
+                  <TableCell>{salida.fecha}</TableCell>
+                  <TableCell>
+                    <span className="font-mono text-sm text-blue-700">
+                      {obtenerCodigoVariante(salida.variante_id)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
+                      {obtenerNombreTipo(salida.tipo_salida_id)}
+                    </span>
+                  </TableCell>
+                  <TableCell>{salida.kg.toFixed(2)}</TableCell>
+                  <TableCell>{salida.cajas || "-"}</TableCell>
+                  <TableCell className="text-center">
+                    <button
+                      onClick={() => handleEliminar(salida.id, salida.fecha)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {/* OPTIMIZADO: Componente de paginación */}
+          <Pagination
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            rangoActual={rangoActual}
+            onPaginaAnterior={paginaAnterior}
+            onPaginaSiguiente={paginaSiguiente}
+            onIrAPagina={irAPagina}
+            hayPaginaAnterior={hayPaginaAnterior}
+            hayPaginaSiguiente={hayPaginaSiguiente}
+          />
+        </>
       )}
 
       <Modal

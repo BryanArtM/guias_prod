@@ -1,6 +1,7 @@
 //Re-exportar módulos y funciones del módulo db
 mod types;
 mod init;
+mod helpers;
 mod especies;
 mod presentaciones;
 mod formas;
@@ -68,16 +69,23 @@ pub use ingresos::{
     obtener_tipos_ingreso,
     crear_ingreso,
     obtener_ingresos,
+    obtener_ingresos_paginados,
+    contar_ingresos,
     actualizar_ingreso,
     eliminar_ingreso,
+    crear_ingresos_batch,
 };
 
 pub use salidas::{
     obtener_tipos_salida,
     crear_salida,
     obtener_salidas,
+    obtener_salidas_paginadas,
+    contar_salidas,
     actualizar_salida,
     eliminar_salida,
+    crear_salidas_batch,
 };
 
 pub use stock::obtener_stock_por_variante;
+

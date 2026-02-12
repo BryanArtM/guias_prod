@@ -143,8 +143,8 @@ export function PresentacionesList({ especies = [] }) {
       </div>
 
       {/* Alertas */}
-      {error && <Alert type="error" message={error} />}
-      {success && <Alert type="success" message={success} />}
+      {error && <Alert variant="error">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
 
       {/* Filtros */}
       <div className="bg-white rounded-lg shadow p-4">

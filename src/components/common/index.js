@@ -6,3 +6,4 @@ export { Modal } from "./Modal";
 export { Alert } from "./Alert";
 export { Loading } from "./Loading";
 export { Table } from "./Table";
+export { default as Pagination } from "./Pagination";

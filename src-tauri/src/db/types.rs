@@ -1,6 +1,4 @@
-use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Especie {
@@ -121,8 +119,4 @@ pub struct StockVariante {
     pub cajas_ingresadas: i32,
     pub cajas_salidas: i32,
     pub cajas_stock: i32,
-}
-
-pub struct AppState {
-    pub db: Mutex<Connection>,
 }

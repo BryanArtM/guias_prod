@@ -21,6 +21,7 @@ import {
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState(null);
+  const [firstLoad, setFirstLoad] = useState(true);
   const [stats, setStats] = useState({
     totalEspecies: 0,
     totalVariantes: 0,
@@ -39,6 +40,7 @@ export default function DashboardPage() {
 
   const cargarDatos = async () => {
     setLoading(true);
+    setAlert(null); // Limpiar alertas previas
     try {
       const [especies, variantes, ingresos, salidas, stock] = await Promise.all(
         [
@@ -83,11 +85,17 @@ export default function DashboardPage() {
         top10Variantes: top10,
       });
     } catch (error) {
-      setAlert({
-        message: "Error al cargar datos: " + error.message,
-        type: "error",
-      });
+      // Solo mostrar alerta si NO es la primera carga
+      // En la primera carga, simplemente dejamos los stats en 0
+      if (!firstLoad) {
+        setAlert({
+          message: "Error al cargar datos: " + (error.message || String(error)),
+          type: "error",
+        });
+      }
     } finally {
+      setLoading(false);
+      setFirstLoad(false); // Marcar que ya pasó la primera carga
       setLoading(false);
     }
   };

@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Result};
+use libsql::Database;
 use serde::{Deserialize, Serialize};
 use sha2::{Sha256, Digest};
 use rand::Rng;
@@ -12,8 +12,10 @@ pub struct User {
     pub username: String,
     pub email: String,
     #[serde(skip_serializing)]
+    #[allow(dead_code)]
     pub password_hash: Option<String>,
     #[serde(skip_serializing)]
+    #[allow(dead_code)]
     pub salt: Option<String>,
     pub created_at: Option<String>,
 }
@@ -45,22 +47,6 @@ pub struct Claims {
     pub username: String, // Username
     pub exp: usize,       // Expiration time
     pub iat: usize,       // Issued at
-}
-
-// Inicializar tabla de usuarios
-pub fn init_users_table(conn: &Connection) -> Result<()> {
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            salt TEXT NOT NULL,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )",
-        [],
-    )?;
-    Ok(())
 }
 
 // Generar salt aleatorio
@@ -128,15 +114,16 @@ pub fn require_auth(token: &str) -> Result<i64, String> {
 }
 
 // Registrar usuario
-pub fn register_user(conn: &Connection, data: RegisterData) -> Result<AuthResponse, String> {
+pub async fn register_user(db: &Database, data: RegisterData) -> Result<AuthResponse, String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+    
     // Validar que el usuario no exista
-    let existing: Result<i64, _> = conn.query_row(
+    let mut existing = conn.query(
         "SELECT id FROM users WHERE username = ?1 OR email = ?2",
-        [&data.username, &data.email],
-        |row| row.get(0),
-    );
+        [libsql::Value::from(data.username.clone()), libsql::Value::from(data.email.clone())],
+    ).await.map_err(|e| e.to_string())?;
 
-    if existing.is_ok() {
+    if let Some(_) = existing.next().await.map_err(|e| e.to_string())? {
         return Ok(AuthResponse {
             success: false,
             message: "Usuario o email ya existe".to_string(),
@@ -152,8 +139,8 @@ pub fn register_user(conn: &Connection, data: RegisterData) -> Result<AuthRespon
     // Insertar usuario
     match conn.execute(
         "INSERT INTO users (username, email, password_hash, salt) VALUES (?1, ?2, ?3, ?4)",
-        [&data.username, &data.email, &password_hash, &salt],
-    ) {
+        [libsql::Value::from(data.username.clone()), libsql::Value::from(data.email.clone()), libsql::Value::from(password_hash), libsql::Value::from(salt)],
+    ).await {
         Ok(_) => {
             let user_id = conn.last_insert_rowid();
             
@@ -189,42 +176,39 @@ pub fn register_user(conn: &Connection, data: RegisterData) -> Result<AuthRespon
 }
 
 // Login usuario
-pub fn login_user(conn: &Connection, credentials: LoginCredentials) -> Result<AuthResponse, String> {
+pub async fn login_user(db: &Database, credentials: LoginCredentials) -> Result<AuthResponse, String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+    
     // Buscar usuario
-    let result = conn.query_row(
-        "SELECT id, username, email, password_hash, salt, created_at FROM users WHERE username = ?1",
-        [&credentials.username],
-        |row| {
-            Ok(User {
-                id: Some(row.get(0)?),
-                username: row.get(1)?,
-                email: row.get(2)?,
-                password_hash: Some(row.get(3)?),
-                salt: Some(row.get(4)?),
-                created_at: Some(row.get(5)?),
-            })
-        },
-    );
+    let mut result = conn.query(
+        "SELECT id, username, email, password_hash, salt, CAST(created_at AS TEXT) AS created_at FROM users WHERE username = ?1",
+        [libsql::Value::from(credentials.username.clone())],
+    ).await.map_err(|e| e.to_string())?;
 
-    match result {
-        Ok(user) => {
+    match result.next().await.map_err(|e| e.to_string())? {
+        Some(row) => {
+            let user_id: i64 = row.get(0).map_err(|e| e.to_string())?;
+            let username: String = row.get(1).map_err(|e| e.to_string())?;
+            let email: String = row.get(2).map_err(|e| e.to_string())?;
+            let stored_hash: String = row.get(3).map_err(|e| e.to_string())?;
+            let salt: String = row.get(4).map_err(|e| e.to_string())?;
+            let created_at: String = row.get(5).map_err(|e| e.to_string())?;
+            
             // Verificar password
-            let stored_hash = user.password_hash.as_ref().unwrap();
-            let salt = user.salt.as_ref().unwrap();
-            let provided_hash = hash_password(&credentials.password, salt);
+            let provided_hash = hash_password(&credentials.password, &salt);
 
-            if &provided_hash == stored_hash {
-                match generate_token(user.id.unwrap(), &user.username) {
+            if provided_hash == stored_hash {
+                match generate_token(user_id, &username) {
                     Ok(token) => Ok(AuthResponse {
                         success: true,
                         message: "Login exitoso".to_string(),
                         user: Some(User {
-                            id: user.id,
-                            username: user.username.clone(),
-                            email: user.email,
+                            id: Some(user_id),
+                            username: username.clone(),
+                            email,
                             password_hash: None,
                             salt: None,
-                            created_at: user.created_at,
+                            created_at: Some(created_at),
                         }),
                         token: Some(token),
                     }),
@@ -244,7 +228,7 @@ pub fn login_user(conn: &Connection, credentials: LoginCredentials) -> Result<Au
                 })
             }
         }
-        Err(_) => Ok(AuthResponse {
+        None => Ok(AuthResponse {
             success: false,
             message: "Usuario no encontrado".to_string(),
             user: None,
@@ -254,20 +238,25 @@ pub fn login_user(conn: &Connection, credentials: LoginCredentials) -> Result<Au
 }
 
 // Obtener usuario por ID (para verificar token)
-pub fn get_user_by_id(conn: &Connection, user_id: i64) -> Result<User, String> {
-    conn.query_row(
-        "SELECT id, username, email, created_at FROM users WHERE id = ?1",
-        [user_id],
-        |row| {
+pub async fn get_user_by_id(db: &Database, user_id: i64) -> Result<User, String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+    
+    let mut result = conn.query(
+        "SELECT id, username, email, CAST(created_at AS TEXT) AS created_at FROM users WHERE id = ?1",
+        [libsql::Value::from(user_id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    match result.next().await.map_err(|e| e.to_string())? {
+        Some(row) => {
             Ok(User {
-                id: Some(row.get(0)?),
-                username: row.get(1)?,
-                email: row.get(2)?,
+                id: Some(row.get(0).map_err(|e| e.to_string())?),
+                username: row.get(1).map_err(|e| e.to_string())?,
+                email: row.get(2).map_err(|e| e.to_string())?,
                 password_hash: None,
                 salt: None,
-                created_at: Some(row.get(3)?),
+                created_at: Some(row.get(3).map_err(|e| e.to_string())?),
             })
-        },
-    )
-    .map_err(|e| e.to_string())
+        }
+        None => Err("Usuario no encontrado".to_string()),
+    }
 }
