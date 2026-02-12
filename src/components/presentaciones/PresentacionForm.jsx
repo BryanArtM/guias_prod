@@ -60,7 +60,7 @@ export function PresentacionForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <Alert type="error" message={error} />}
+      {error && <Alert variant="error">{error}</Alert>}
 
       <Select
         label="Especie *"

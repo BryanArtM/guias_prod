@@ -323,11 +323,9 @@ export default function ReportesPage() {
 
       {alert && (
         <div className="mb-6">
-          <Alert
-            message={alert.message}
-            type={alert.type}
-            onClose={() => setAlert(null)}
-          />
+          <Alert variant={alert.type} onClose={() => setAlert(null)}>
+            {alert.message}
+          </Alert>
         </div>
       )}
 

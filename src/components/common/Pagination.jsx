@@ -13,7 +13,7 @@ export default function Pagination({
   paginaActual = 1,
   totalPaginas = 1,
   totalItems = 0,
-  itemsPerPage = 50,
+  itemsPerPage = 5,
   rangoActual = { inicio: 0, fin: 0 },
   onPaginaAnterior,
   onPaginaSiguiente,

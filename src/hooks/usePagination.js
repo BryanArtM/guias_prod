@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from "react";
  * Hook personalizado para paginación de datos
  * @param {Function} fetchFn - Función async para obtener datos paginados (limite, offset)
  * @param {Function} countFn - Función async para contar total de registros
- * @param {number} itemsPerPage - Cantidad de items por página (default: 50)
+ * @param {number} itemsPerPage - Cantidad de items por página (default: 5)
  * @returns {Object} - Estado y funciones de paginación
  */
-export function usePagination(fetchFn, countFn, itemsPerPage = 50) {
+export function usePagination(fetchFn, countFn, itemsPerPage = 5) {
   const [data, setData] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalItems, setTotalItems] = useState(0);

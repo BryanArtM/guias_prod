@@ -44,7 +44,7 @@ export default function IngresosPage() {
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Alert type="error">{error}</Alert>
+        <Alert variant="error">{error}</Alert>
       </div>
     );
   }

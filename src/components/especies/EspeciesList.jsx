@@ -111,8 +111,8 @@ export function EspeciesList() {
       </div>
 
       {/* Alertas */}
-      {error && <Alert type="error" message={error} />}
-      {success && <Alert type="success" message={success} />}
+      {error && <Alert variant="error">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
 
       {/* Tabla */}
       <div className="bg-white rounded-lg shadow overflow-hidden">

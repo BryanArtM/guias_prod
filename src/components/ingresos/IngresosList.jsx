@@ -26,11 +26,14 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
   const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroVariante, setFiltroVariante] = useState("");
 
+  // Control de items por página
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
   // OPTIMIZADO: Usar hook de paginación
   const pagination = usePagination(
     obtenerIngresosPaginados,
     contarIngresos,
-    50,
+    itemsPerPage,
   );
 
   const {
@@ -39,7 +42,6 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
     paginaActual,
     totalPaginas,
     totalItems,
-    itemsPerPage,
     rangoActual,
     irAPagina,
     paginaSiguiente,
@@ -188,6 +190,20 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
             ? `Mostrando ${ingresosFiltrados.length} de ${ingresos.length} en esta página`
             : `Página ${paginaActual} de ${totalPaginas} - ${totalItems} total`}
         </p>
+      </div>
+
+      {/* Selector de items por página */}
+      <div className="mb-4">
+        <Select
+          label="Elementos por página"
+          value={itemsPerPage}
+          onChange={(e) => setItemsPerPage(Number(e.target.value))}
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={50}>50</option>
+        </Select>
       </div>
 
       {ingresosFiltrados.length === 0 ? (
