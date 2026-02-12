@@ -186,6 +186,20 @@ export const obtenerIngresos = () => {
   return invokeWithAuth("obtener_ingresos_cmd");
 };
 
+// Paginación de ingresos
+export const obtenerIngresosPaginados = (limite = 50, offset = 0) => {
+  return invokeWithAuth("obtener_ingresos_paginados_cmd", { limite, offset });
+};
+
+export const contarIngresos = () => {
+  return invokeWithAuth("contar_ingresos_cmd");
+};
+
+// Batch insert para importación masiva
+export const crearIngresosBatch = (ingresos) => {
+  return invokeWithAuth("crear_ingresos_batch_cmd", { ingresos });
+};
+
 export const actualizarIngreso = (id, ingreso) => {
   return invokeWithAuth("actualizar_ingreso_cmd", { id, ingreso });
 };
@@ -208,6 +222,20 @@ export const crearSalida = (salida) => {
 
 export const obtenerSalidas = () => {
   return invokeWithAuth("obtener_salidas_cmd");
+};
+
+// Paginación de salidas
+export const obtenerSalidasPaginadas = (limite = 50, offset = 0) => {
+  return invokeWithAuth("obtener_salidas_paginadas_cmd", { limite, offset });
+};
+
+export const contarSalidas = () => {
+  return invokeWithAuth("contar_salidas_cmd");
+};
+
+// Batch insert para importación masiva
+export const crearSalidasBatch = (salidas) => {
+  return invokeWithAuth("crear_salidas_batch_cmd", { salidas });
 };
 
 export const actualizarSalida = (id, salida) => {
