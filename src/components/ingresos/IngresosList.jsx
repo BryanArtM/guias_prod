@@ -7,15 +7,18 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Modal, Alert, Select } from "@/components/common";
+import { Button, Modal, Alert, Select, Pagination } from "@/components/common";
 import IngresoForm from "./IngresoForm";
 import { Trash2, Plus, Filter } from "lucide-react";
-import { obtenerIngresos, crearIngreso, eliminarIngreso } from "@/services";
+import {
+  obtenerIngresosPaginados,
+  contarIngresos,
+  crearIngreso,
+  eliminarIngreso,
+} from "@/services";
+import { usePagination } from "@/hooks";
 
 export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
-  const [ingresos, setIngresos] = useState([]);
-  const [ingresosFiltrados, setIngresosFiltrados] = useState([]);
-  const [cargando, setCargando] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [alerta, setAlerta] = useState(null);
 
@@ -23,44 +26,43 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
   const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroVariante, setFiltroVariante] = useState("");
 
-  useEffect(() => {
-    cargarIngresos();
-  }, []);
+  // OPTIMIZADO: Usar hook de paginación
+  const pagination = usePagination(
+    obtenerIngresosPaginados,
+    contarIngresos,
+    50,
+  );
 
-  // Aplicar filtros
-  useEffect(() => {
-    let resultado = [...ingresos];
+  const {
+    data: ingresos,
+    cargando,
+    paginaActual,
+    totalPaginas,
+    totalItems,
+    itemsPerPage,
+    rangoActual,
+    irAPagina,
+    paginaSiguiente,
+    paginaAnterior,
+    hayPaginaAnterior,
+    hayPaginaSiguiente,
+    refrescar,
+  } = pagination;
 
-    if (filtroTipo) {
-      resultado = resultado.filter(
-        (i) => i.tipo_ingreso_id === parseInt(filtroTipo),
-      );
+  // Aplicar filtros localmente
+  const ingresosFiltrados = ingresos.filter((ingreso) => {
+    if (filtroTipo && ingreso.tipo_ingreso_id !== parseInt(filtroTipo)) {
+      return false;
     }
-
-    if (filtroVariante) {
-      resultado = resultado.filter(
-        (i) => i.variante_id === parseInt(filtroVariante),
-      );
+    if (filtroVariante && ingreso.variante_id !== parseInt(filtroVariante)) {
+      return false;
     }
-
-    setIngresosFiltrados(resultado);
-  }, [ingresos, filtroTipo, filtroVariante]);
+    return true;
+  });
 
   const mostrarAlerta = (mensaje, tipo = "success") => {
     setAlerta({ mensaje, tipo });
     setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
-  };
-
-  const cargarIngresos = async () => {
-    setCargando(true);
-    try {
-      const data = await obtenerIngresos();
-      setIngresos(data);
-    } catch (error) {
-      mostrarAlerta("Error al cargar ingresos: " + error.message, "error");
-    } finally {
-      setCargando(false);
-    }
   };
 
   const abrirModal = () => {
@@ -76,7 +78,7 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
       await crearIngreso(data);
       mostrarAlerta("Ingreso registrado exitosamente");
       cerrarModal();
-      cargarIngresos();
+      refrescar();
     } catch (error) {
       throw error;
     }
@@ -90,7 +92,7 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
     try {
       await eliminarIngreso(id);
       mostrarAlerta("Ingreso eliminado exitosamente");
-      cargarIngresos();
+      refrescar();
     } catch (error) {
       mostrarAlerta("Error al eliminar ingreso: " + error.message, "error");
     }
@@ -182,57 +184,75 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
         </div>
 
         <p className="text-sm text-gray-600 mt-2">
-          Mostrando {ingresosFiltrados.length} de {ingresos.length} ingresos
+          {hayFiltrosActivos
+            ? `Mostrando ${ingresosFiltrados.length} de ${ingresos.length} en esta página`
+            : `Página ${paginaActual} de ${totalPaginas} - ${totalItems} total`}
         </p>
       </div>
 
       {ingresosFiltrados.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           {ingresos.length === 0
-            ? "No hay ingresos registrados"
+            ? "No hay ingresos registrados en esta página"
             : "No se encontraron ingresos con los filtros aplicados"}
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Código Variante</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Kg</TableHead>
-              <TableHead>Cajas</TableHead>
-              <TableHead>Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ingresosFiltrados.map((ingreso) => (
-              <TableRow key={ingreso.id}>
-                <TableCell>{ingreso.fecha}</TableCell>
-                <TableCell>
-                  <span className="font-mono text-sm text-blue-700">
-                    {obtenerCodigoVariante(ingreso.variante_id)}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
-                    {obtenerNombreTipo(ingreso.tipo_ingreso_id)}
-                  </span>
-                </TableCell>
-                <TableCell>{ingreso.kg.toFixed(2)}</TableCell>
-                <TableCell>{ingreso.cajas || "-"}</TableCell>
-                <TableCell className="text-center">
-                  <button
-                    onClick={() => handleEliminar(ingreso.id, ingreso.fecha)}
-                    className="text-red-600 hover:text-red-800"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </TableCell>
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Código Variante</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Kg</TableHead>
+                <TableHead>Cajas</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {ingresosFiltrados.map((ingreso) => (
+                <TableRow key={ingreso.id}>
+                  <TableCell>{ingreso.fecha}</TableCell>
+                  <TableCell>
+                    <span className="font-mono text-sm text-blue-700">
+                      {obtenerCodigoVariante(ingreso.variante_id)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
+                      {obtenerNombreTipo(ingreso.tipo_ingreso_id)}
+                    </span>
+                  </TableCell>
+                  <TableCell>{ingreso.kg.toFixed(2)}</TableCell>
+                  <TableCell>{ingreso.cajas || "-"}</TableCell>
+                  <TableCell className="text-center">
+                    <button
+                      onClick={() => handleEliminar(ingreso.id, ingreso.fecha)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {/* OPTIMIZADO: Componente de paginación */}
+          <Pagination
+            paginaActual={paginaActual}
+            totalPaginas={totalPaginas}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            rangoActual={rangoActual}
+            onPaginaAnterior={paginaAnterior}
+            onPaginaSiguiente={paginaSiguiente}
+            onIrAPagina={irAPagina}
+            hayPaginaAnterior={hayPaginaAnterior}
+            hayPaginaSiguiente={hayPaginaSiguiente}
+          />
+        </>
       )}
 
       <Modal
