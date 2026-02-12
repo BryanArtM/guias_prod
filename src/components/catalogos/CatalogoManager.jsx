@@ -165,47 +165,49 @@ export default function CatalogoManager({
           No hay {titulo.toLowerCase()} registrados
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {obtenerColumnas().map((col, idx) => (
-                <TableHead key={idx}>{col}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {datos.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="text-center">{item.id}</TableCell>
-                {campos.map((campo, idx) => (
-                  <TableCell key={idx} className="text-center">
-                    {renderCelda(item, campo)}
-                  </TableCell>
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {obtenerColumnas().map((col, idx) => (
+                  <TableHead key={idx}>{col}</TableHead>
                 ))}
-                <TableCell className="text-center">
-                  <div className="flex gap-5 justify-center ">
-                    <button
-                      onClick={() => abrirModal(item)}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Editar"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleEliminar(item.id, item[campos[0].name])
-                      }
-                      className="text-red-600 hover:text-red-800"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {datos.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="text-center">{item.id}</TableCell>
+                  {campos.map((campo, idx) => (
+                    <TableCell key={idx} className="text-center">
+                      {renderCelda(item, campo)}
+                    </TableCell>
+                  ))}
+                  <TableCell className="text-center">
+                    <div className="flex gap-5 justify-center ">
+                      <button
+                        onClick={() => abrirModal(item)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Editar"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleEliminar(item.id, item[campos[0].name])
+                        }
+                        className="text-red-600 hover:text-red-800"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       <Modal

@@ -147,7 +147,7 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
       </div>
 
       {/* Filtros */}
-      <div className="bg-gray-50 p-4 rounded-lg mb-4">
+      <div className="bg-white p-4 rounded-lg shadow mb-4">
         <div className="flex items-center gap-4">
           <Filter className="w-5 h-5 text-gray-600" />
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -214,47 +214,48 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
         </div>
       ) : (
         <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Código Variante</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Kg</TableHead>
-                <TableHead>Cajas</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {salidasFiltradas.map((salida) => (
-                <TableRow key={salida.id}>
-                  <TableCell>{salida.fecha}</TableCell>
-                  <TableCell>
-                    <span className="font-mono text-sm text-blue-700">
-                      {obtenerCodigoVariante(salida.variante_id)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
-                      {obtenerNombreTipo(salida.tipo_salida_id)}
-                    </span>
-                  </TableCell>
-                  <TableCell>{salida.kg.toFixed(2)}</TableCell>
-                  <TableCell>{salida.cajas || "-"}</TableCell>
-                  <TableCell className="text-center">
-                    <button
-                      onClick={() => handleEliminar(salida.id, salida.fecha)}
-                      className="text-red-600 hover:text-red-800"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </TableCell>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Código Variante</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Kg</TableHead>
+                  <TableHead>Cajas</TableHead>
+                  <TableHead>Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
+              </TableHeader>
+              <TableBody>
+                {salidasFiltradas.map((salida) => (
+                  <TableRow key={salida.id}>
+                    <TableCell>{salida.fecha}</TableCell>
+                    <TableCell>
+                      <span className="font-mono text-sm text-blue-700">
+                        {obtenerCodigoVariante(salida.variante_id)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
+                        {obtenerNombreTipo(salida.tipo_salida_id)}
+                      </span>
+                    </TableCell>
+                    <TableCell>{salida.kg.toFixed(2)}</TableCell>
+                    <TableCell>{salida.cajas || "-"}</TableCell>
+                    <TableCell className="text-center">
+                      <button
+                        onClick={() => handleEliminar(salida.id, salida.fecha)}
+                        className="text-red-600 hover:text-red-800"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           {/* OPTIMIZADO: Componente de paginación */}
           <Pagination
             paginaActual={paginaActual}

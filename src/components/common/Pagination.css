@@ -83,38 +83,14 @@
 }
 
 .pagination-number:hover {
-  background-color: var(--color-gray-50, #f9fafb);
-  border-color: var(--color-primary, #3b82f6);
+  background-color: var(--color-gray-100, #f1f5f9);
+  border-color: var(--color-gray-400, #94a3b8);
+  color: var(--color-gray-700, #334155);
 }
 
 .pagination-number.active {
-  background-color: var(--color-primary, #3b82f6);
-  border-color: var(--color-primary, #3b82f6);
+  background-color: var(--color-gray-700, #334155);
+  border-color: var(--color-gray-700, #334155);
   color: white;
   font-weight: 600;
-}
-
-/* Modo oscuro */
-@media (prefers-color-scheme: dark) {
-  .pagination-container {
-    border-top-color: var(--color-dark-border, #374151);
-    background-color: var(--color-dark-background, #1f2937);
-  }
-
-  .pagination-btn,
-  .pagination-number {
-    border-color: var(--color-dark-border, #4b5563);
-    background-color: var(--color-dark-background, #1f2937);
-    color: var(--color-dark-text, #f3f4f6);
-  }
-
-  .pagination-btn:hover:not(:disabled),
-  .pagination-number:hover {
-    background-color: var(--color-dark-hover, #374151);
-  }
-
-  .pagination-number.active {
-    background-color: var(--color-primary, #3b82f6);
-    border-color: var(--color-primary, #3b82f6);
-  }
 }

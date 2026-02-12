@@ -226,7 +226,7 @@ export default function VariantesList({
       </div>
 
       {/* Filtros */}
-      <div className="bg-gray-50 p-4 rounded-lg mb-4">
+      <div className="bg-white p-4 rounded-lg shadow mb-4">
         <div className="flex items-center gap-4">
           <Filter className="w-5 h-5 text-gray-600" />
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -281,54 +281,56 @@ export default function VariantesList({
             : "No se encontraron variantes con los filtros aplicados"}
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Código Completo</TableHead>
-              <TableHead>Especie</TableHead>
-              <TableHead>Presentación</TableHead>
-              <TableHead>Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {variantesFiltradas.map((variante) => (
-              <TableRow key={variante.variante_id}>
-                <TableCell>{variante.variante_id}</TableCell>
-                <TableCell>
-                  <span className="font-mono text-sm font-semibold text-blue-700">
-                    {variante.codigo_completo}
-                  </span>
-                </TableCell>
-                <TableCell>{variante.especie_nombre}</TableCell>
-                <TableCell>{variante.presentacion_nombre}</TableCell>
-                <TableCell>
-                  <div className="flex justify-center gap-5">
-                    <button
-                      onClick={() => abrirModal(variante)}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Editar"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleEliminar(
-                          variante.variante_id,
-                          variante.codigo_completo,
-                        )
-                      }
-                      className="text-red-600 hover:text-red-800"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </TableCell>
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Código Completo</TableHead>
+                <TableHead>Especie</TableHead>
+                <TableHead>Presentación</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {variantesFiltradas.map((variante) => (
+                <TableRow key={variante.variante_id}>
+                  <TableCell>{variante.variante_id}</TableCell>
+                  <TableCell>
+                    <span className="font-mono text-sm font-semibold text-blue-700">
+                      {variante.codigo_completo}
+                    </span>
+                  </TableCell>
+                  <TableCell>{variante.especie_nombre}</TableCell>
+                  <TableCell>{variante.presentacion_nombre}</TableCell>
+                  <TableCell>
+                    <div className="flex justify-center gap-5">
+                      <button
+                        onClick={() => abrirModal(variante)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Editar"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleEliminar(
+                            variante.variante_id,
+                            variante.codigo_completo,
+                          )
+                        }
+                        className="text-red-600 hover:text-red-800"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       <Modal

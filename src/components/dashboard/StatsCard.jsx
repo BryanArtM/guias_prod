@@ -2,23 +2,90 @@ export function StatsCard({
   title,
   value,
   icon: Icon,
-  color = "slate",
+  color = "primary",
   subtitle,
 }) {
-  const colorClasses = {
-    slate: "bg-slate-200 text-slate-700 border-slate-400",
-    zinc: "bg-zinc-200 text-zinc-700 border-zinc-400",
+  const colorSchemes = {
+    primary: {
+      bg: 'bg-blue-50',
+      border: 'border-blue-200',
+      iconBg: 'bg-blue-900',
+      iconColor: 'text-white',
+      valueColor: 'text-blue-900',
+      titleColor: 'text-gray-700',
+    },
+    success: {
+      bg: 'bg-green-50',
+      border: 'border-green-200',
+      iconBg: 'bg-green-700',
+      iconColor: 'text-white',
+      valueColor: 'text-green-900',
+      titleColor: 'text-gray-700',
+    },
+    warning: {
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      iconBg: 'bg-amber-600',
+      iconColor: 'text-white',
+      valueColor: 'text-amber-900',
+      titleColor: 'text-gray-700',
+    },
+    danger: {
+      bg: 'bg-red-50',
+      border: 'border-red-200',
+      iconBg: 'bg-red-700',
+      iconColor: 'text-white',
+      valueColor: 'text-red-900',
+      titleColor: 'text-gray-700',
+    },
+    slate: {
+      bg: 'bg-white',
+      border: 'border-gray-200',
+      iconBg: 'bg-gray-700',
+      iconColor: 'text-white',
+      valueColor: 'text-gray-900',
+      titleColor: 'text-gray-600',
+    },
+    zinc: {
+      bg: 'bg-white',
+      border: 'border-gray-200',
+      iconBg: 'bg-gray-600',
+      iconColor: 'text-white',
+      valueColor: 'text-gray-900',
+      titleColor: 'text-gray-600',
+    },
   };
 
+  const scheme = colorSchemes[color] || colorSchemes.primary;
+
   return (
-    <div className={`${colorClasses[color]} border rounded-lg p-6 shadow-sm`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-3xl font-bold">{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+    <div 
+      className={`${scheme.bg} ${scheme.border} border rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-200`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p 
+            className={`text-xs font-bold uppercase tracking-wider mb-3 ${scheme.titleColor}`}
+          >
+            {title}
+          </p>
+          <p 
+            className={`text-4xl font-bold mb-2 ${scheme.valueColor}`}
+            style={{ fontFamily: 'Outfit, sans-serif' }}
+          >
+            {value}
+          </p>
+          {subtitle && (
+            <p className="text-xs text-gray-500 font-medium">
+              {subtitle}
+            </p>
+          )}
         </div>
-        {Icon && <Icon className="w-12 h-12 opacity-50" />}
+        {Icon && (
+          <div className={`flex items-center justify-center w-12 h-12 rounded-lg ${scheme.iconBg}`}>
+            <Icon className={`w-6 h-6 ${scheme.iconColor}`} />
+          </div>
+        )}
       </div>
     </div>
   );
