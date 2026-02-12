@@ -200,6 +200,33 @@ async fn create_views(conn: &Connection) -> Result<(), Box<dyn std::error::Error
     Ok(())
 }
 
+async fn create_indexes(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
+    println!("Creando índices de optimización...");
+    
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ingresos_variante_id ON ingresos(variante_id)", ()).await?;
+    println!(" Índice idx_ingresos_variante_id");
+    
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_salidas_variante_id ON salidas(variante_id)", ()).await?;
+    println!(" Índice idx_salidas_variante_id");
+    
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ingresos_fecha ON ingresos(fecha DESC)", ()).await?;
+    println!(" Índice idx_ingresos_fecha");
+    
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_salidas_fecha ON salidas(fecha DESC)", ()).await?;
+    println!(" Índice idx_salidas_fecha");
+    
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ingresos_variante_fecha ON ingresos(variante_id, fecha DESC)", ()).await?;
+    println!(" Índice idx_ingresos_variante_fecha");
+    
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_salidas_variante_fecha ON salidas(variante_id, fecha DESC)", ()).await?;
+    println!(" Índice idx_salidas_variante_fecha");
+    
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_presentaciones_especie_id ON presentaciones(especie_id)", ()).await?;
+    println!(" Índice idx_presentaciones_especie_id");
+    
+    Ok(())
+}
+
 pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
     dotenv().ok();
     
@@ -222,8 +249,9 @@ pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
     create_transaction_tables(&conn).await?;
     create_users_table(&conn).await?;
     create_views(&conn).await?;
+    create_indexes(&conn).await?;
 
-    println!("Tablas y vistas creadas/verificadas correctamente");
+    println!("Tablas, vistas e índices creados/verificados correctamente");
 
     Ok(db)
 }

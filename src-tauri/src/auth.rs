@@ -181,7 +181,7 @@ pub async fn login_user(db: &Database, credentials: LoginCredentials) -> Result<
     
     // Buscar usuario
     let mut result = conn.query(
-        "SELECT id, username, email, password_hash, salt, created_at FROM users WHERE username = ?1",
+        "SELECT id, username, email, password_hash, salt, CAST(created_at AS TEXT) AS created_at FROM users WHERE username = ?1",
         [libsql::Value::from(credentials.username.clone())],
     ).await.map_err(|e| e.to_string())?;
 
@@ -242,7 +242,7 @@ pub async fn get_user_by_id(db: &Database, user_id: i64) -> Result<User, String>
     let conn = db.connect().map_err(|e| e.to_string())?;
     
     let mut result = conn.query(
-        "SELECT id, username, email, created_at FROM users WHERE id = ?1",
+        "SELECT id, username, email, CAST(created_at AS TEXT) AS created_at FROM users WHERE id = ?1",
         [libsql::Value::from(user_id)],
     ).await.map_err(|e| e.to_string())?;
 

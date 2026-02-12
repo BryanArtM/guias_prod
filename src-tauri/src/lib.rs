@@ -240,6 +240,24 @@ async fn obtener_ingresos_cmd(state: State<'_, AppState>, token: String) -> Resu
 }
 
 #[tauri::command]
+async fn obtener_ingresos_paginados_cmd(state: State<'_, AppState>, token: String, limite: i64, offset: i64) -> Result<Vec<Ingreso>, String> {
+    require_auth(&token)?;
+    obtener_ingresos_paginados(&state.db, limite, offset).await
+}
+
+#[tauri::command]
+async fn contar_ingresos_cmd(state: State<'_, AppState>, token: String) -> Result<i64, String> {
+    require_auth(&token)?;
+    contar_ingresos(&state.db).await
+}
+
+#[tauri::command]
+async fn crear_ingresos_batch_cmd(state: State<'_, AppState>, token: String, ingresos: Vec<Ingreso>) -> Result<Vec<i64>, String> {
+    require_auth(&token)?;
+    crear_ingresos_batch(&state.db, &ingresos).await
+}
+
+#[tauri::command]
 async fn actualizar_ingreso_cmd(state: State<'_, AppState>, token: String, id: i64, ingreso: Ingreso) -> Result<(), String> {
     require_auth(&token)?;
     actualizar_ingreso(&state.db, id, &ingreso).await
@@ -271,6 +289,24 @@ async fn crear_salida_cmd(state: State<'_, AppState>, token: String, salida: Sal
 async fn obtener_salidas_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Salida>, String> {
     require_auth(&token)?;
     obtener_salidas(&state.db).await
+}
+
+#[tauri::command]
+async fn obtener_salidas_paginadas_cmd(state: State<'_, AppState>, token: String, limite: i64, offset: i64) -> Result<Vec<Salida>, String> {
+    require_auth(&token)?;
+    obtener_salidas_paginadas(&state.db, limite, offset).await
+}
+
+#[tauri::command]
+async fn contar_salidas_cmd(state: State<'_, AppState>, token: String) -> Result<i64, String> {
+    require_auth(&token)?;
+    contar_salidas(&state.db).await
+}
+
+#[tauri::command]
+async fn crear_salidas_batch_cmd(state: State<'_, AppState>, token: String, salidas: Vec<Salida>) -> Result<Vec<i64>, String> {
+    require_auth(&token)?;
+    crear_salidas_batch(&state.db, &salidas).await
 }
 
 #[tauri::command]
@@ -379,6 +415,9 @@ pub fn run() {
             // Ingresos
             crear_ingreso_cmd,
             obtener_ingresos_cmd,
+            obtener_ingresos_paginados_cmd,
+            contar_ingresos_cmd,
+            crear_ingresos_batch_cmd,
             actualizar_ingreso_cmd,
             eliminar_ingreso_cmd,
             // Tipos de salida
@@ -386,6 +425,9 @@ pub fn run() {
             // Salidas
             crear_salida_cmd,
             obtener_salidas_cmd,
+            obtener_salidas_paginadas_cmd,
+            contar_salidas_cmd,
+            crear_salidas_batch_cmd,
             actualizar_salida_cmd,
             eliminar_salida_cmd,
             // Consultas

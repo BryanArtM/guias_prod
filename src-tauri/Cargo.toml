@@ -29,5 +29,5 @@ rand = "0.8"
 base64 = "0.22"
 jsonwebtoken = "9.2"
 dotenvy = "0.15"
-libsql = "0.6"
+libsql = "0.9.29"
 tokio = { version = "1", features = ["full"] }

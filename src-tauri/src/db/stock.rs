@@ -11,16 +11,23 @@ pub async fn obtener_stock_por_variante(db: &Database) -> Result<Vec<StockVarian
             v.codigo_completo,
             v.especie_nombre,
             v.presentacion_nombre,
-            COALESCE(SUM(i.kg), 0) AS kg_ingresados,
-            COALESCE(SUM(s.kg), 0) AS kg_salidos,
-            COALESCE(SUM(i.kg), 0) - COALESCE(SUM(s.kg), 0) AS kg_stock,
-            COALESCE(SUM(i.cajas), 0) AS cajas_ingresadas,
-            COALESCE(SUM(s.cajas), 0) AS cajas_salidas,
-            COALESCE(SUM(i.cajas), 0) - COALESCE(SUM(s.cajas), 0) AS cajas_stock
+            CAST(COALESCE(ing.total_kg, 0.0) AS REAL) AS kg_ingresados,
+            CAST(COALESCE(sal.total_kg, 0.0) AS REAL) AS kg_salidos,
+            CAST(COALESCE(ing.total_kg, 0.0) - COALESCE(sal.total_kg, 0.0) AS REAL) AS kg_stock,
+            CAST(COALESCE(ing.total_cajas, 0) AS INTEGER) AS cajas_ingresadas,
+            CAST(COALESCE(sal.total_cajas, 0) AS INTEGER) AS cajas_salidas,
+            CAST(COALESCE(ing.total_cajas, 0) - COALESCE(sal.total_cajas, 0) AS INTEGER) AS cajas_stock
          FROM variantes_completas_view v
-         LEFT JOIN ingresos i ON v.variante_id = i.variante_id
-         LEFT JOIN salidas s ON v.variante_id = s.variante_id
-         GROUP BY v.variante_id, v.codigo_completo, v.especie_nombre, v.presentacion_nombre
+         LEFT JOIN (
+             SELECT variante_id, CAST(SUM(kg) AS REAL) AS total_kg, CAST(SUM(cajas) AS INTEGER) AS total_cajas
+             FROM ingresos
+             GROUP BY variante_id
+         ) ing ON v.variante_id = ing.variante_id
+         LEFT JOIN (
+             SELECT variante_id, CAST(SUM(kg) AS REAL) AS total_kg, CAST(SUM(cajas) AS INTEGER) AS total_cajas
+             FROM salidas
+             GROUP BY variante_id
+         ) sal ON v.variante_id = sal.variante_id
          ORDER BY v.especie_nombre, v.presentacion_nombre",
         (),
     ).await.map_err(|e| e.to_string())?;
