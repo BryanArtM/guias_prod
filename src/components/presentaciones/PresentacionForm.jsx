@@ -14,6 +14,7 @@ export function PresentacionForm({
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showRequired, setShowRequired] = useState(false);
 
   useEffect(() => {
     if (presentacion) {
@@ -28,6 +29,7 @@ export function PresentacionForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setShowRequired(true);
 
     if (!formData.especie_id) {
       setError("Debes seleccionar una especie");
@@ -63,7 +65,7 @@ export function PresentacionForm({
       {error && <Alert variant="error">{error}</Alert>}
 
       <Select
-        label="Especie *"
+        label="Especie"
         name="especie_id"
         value={formData.especie_id}
         onChange={(e) =>
@@ -74,15 +76,17 @@ export function PresentacionForm({
           ...especiesOptions,
         ]}
         required
+        showRequiredIndicator={showRequired && !formData.especie_id}
       />
 
       <Input
-        label="Nombre *"
+        label="Nombre"
         name="nombre"
         value={formData.nombre}
         onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
         placeholder="Ej: Tubo, Tentáculos, Filete"
         required
+        showRequiredIndicator={showRequired && !formData.nombre.trim()}
         autoFocus={!presentacion}
       />
 

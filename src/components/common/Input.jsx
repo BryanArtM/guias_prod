@@ -32,6 +32,7 @@ import "./Input.css";
  * @property {string} [helperText] - Texto de ayuda
  * @property {boolean} [disabled=false] - Deshabilitar el input
  * @property {boolean} [required=false] - Campo requerido
+ * @property {boolean} [showRequiredIndicator] - Mostrar asterisco solo cuando corresponda
  * @property {boolean} [fullWidth=false] - Ocupar todo el ancho
  * @property {React.ReactNode} [icon] - Icono a mostrar
  * @property {'left'|'right'} [iconPosition='left'] - Posición del icono
@@ -52,6 +53,7 @@ export const Input = forwardRef(
       helperText,
       disabled = false,
       required = false,
+      showRequiredIndicator,
       fullWidth = false,
       icon,
       iconPosition = "left",
@@ -62,6 +64,8 @@ export const Input = forwardRef(
   ) => {
     const inputId = name || `input-${Math.random().toString(36).substr(2, 9)}`;
     const hasError = Boolean(error);
+
+    const shouldShowRequired = required && (showRequiredIndicator ?? hasError);
 
     const inputClass = [
       "input",
@@ -86,7 +90,7 @@ export const Input = forwardRef(
         {label && (
           <label htmlFor={inputId} className="input__label">
             {label}
-            {required && <span className="input__required">*</span>}
+            {shouldShowRequired && <span className="input__required">*</span>}
           </label>
         )}
 

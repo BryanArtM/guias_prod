@@ -21,6 +21,7 @@ import "./Select.css";
  * @property {string} [helperText] - Texto de ayuda
  * @property {boolean} [disabled=false] - Deshabilitar el select
  * @property {boolean} [required=false] - Campo requerido
+ * @property {boolean} [showRequiredIndicator] - Mostrar asterisco solo cuando corresponda
  * @property {boolean} [fullWidth=false] - Ocupar todo el ancho
  * @property {React.ReactNode} [icon] - Icono a mostrar
  * @property {string} [className=''] - Clases CSS adicionales
@@ -53,6 +54,7 @@ export const Select = forwardRef(
       helperText,
       disabled = false,
       required = false,
+      showRequiredIndicator,
       fullWidth = false,
       icon,
       className = "",
@@ -64,6 +66,8 @@ export const Select = forwardRef(
     const selectId =
       name || `select-${Math.random().toString(36).substr(2, 9)}`;
     const hasError = Boolean(error);
+
+    const shouldShowRequired = required && (showRequiredIndicator ?? hasError);
 
     const selectClass = [
       "select",
@@ -88,7 +92,7 @@ export const Select = forwardRef(
         {label && (
           <label htmlFor={selectId} className="select__label">
             {label}
-            {required && <span className="select__required">*</span>}
+            {shouldShowRequired && <span className="select__required">*</span>}
           </label>
         )}
 

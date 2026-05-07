@@ -8,6 +8,7 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showRequired, setShowRequired] = useState(false);
 
   useEffect(() => {
     if (especie) {
@@ -21,6 +22,7 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setShowRequired(true);
 
     if (!formData.nombre.trim()) {
       setError("El nombre es requerido");
@@ -43,12 +45,13 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
       {error && <Alert variant="error">{error}</Alert>}
 
       <Input
-        label="Nombre *"
+        label="Nombre"
         name="nombre"
         value={formData.nombre}
         onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
         placeholder="Ej: Pota, Calamar, Jurel"
         required
+        showRequiredIndicator={showRequired && !formData.nombre.trim()}
         autoFocus
       />
 
