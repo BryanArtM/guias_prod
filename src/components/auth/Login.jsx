@@ -7,6 +7,7 @@ import { authService } from "@/services";
 import { useAuthStore } from "@/stores";
 import { LogIn } from "lucide-react";
 import { Button, Input, Card, Alert } from "@/components/common";
+import imgGuia from "@/assets/Guias_Prod.png";
 
 const loginSchema = z.object({
   username: z.string().min(3, "El usuario debe tener al menos 3 caracteres"),
@@ -50,9 +51,7 @@ export function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <Card className="max-w-md w-full" padding="xl">
         <div className="flex justify-center mb-6">
-          <div className="bg-blue-600 p-3 rounded-full">
-            <LogIn className="w-8 h-8 text-white" />
-          </div>
+            <img src={imgGuia} alt="Guía"  className="w-20 h-20 text-white" />
         </div>
 
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
