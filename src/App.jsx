@@ -11,6 +11,7 @@ import {
   SalidasPage,
   StockPage,
   ReportesPage,
+  NewPartePage,
 } from "@/pages";
 import { Login, Register, ProtectedRoute } from "@/components/auth";
 import { useAuthStore } from "@/stores";
@@ -129,6 +130,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <StockPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/partes/:tipo"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <NewPartePage />
               </Layout>
             </ProtectedRoute>
           }
