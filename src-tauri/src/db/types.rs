@@ -108,6 +108,63 @@ pub struct Salida {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ParteProduccion {
+    pub id: Option<i64>,
+    pub codigo: Option<String>,
+    pub revision: Option<String>,
+    pub version: Option<String>,
+    pub usuario: Option<String>,
+    pub fecha: String,
+    pub turno: Option<String>,
+    pub codigo_trazabilidad: Option<String>,
+    pub especie_id: Option<i64>,
+    pub entera: Option<f64>,
+    pub observaciones: Option<String>,
+    pub tipo_documento: String, // 'PRODUCCION', 'DESEMBARQUE', 'DIRIMENCIA'
+    pub transportes: Vec<ParteProduccionTransporte>,
+    pub productos: Vec<ParteProduccionProducto>,
+    pub insumos: Vec<ParteProduccionInsumo>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ParteProduccionTransporte {
+    pub id: Option<i64>,
+    pub num_guia: Option<String>,
+    pub num_carro: Option<String>,
+    pub placa: Option<String>,
+    pub embarcaciones: Vec<ParteProduccionEmbarcacion>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ParteProduccionEmbarcacion {
+    pub id: Option<i64>,
+    pub nombre_embarcacion_pesquera: Option<String>,
+    pub matricula_embarcacion_pesquera: Option<String>,
+    pub peso_total_kg: Option<f64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ParteProduccionProducto {
+    pub id: Option<i64>,
+    pub variante_id: i64,
+    pub peso_unidad: Option<f64>,
+    pub cajas_carro_1: i32,
+    pub cajas_carro_2: i32,
+    pub cajas_carro_3: i32,
+    pub cajas_carro_4: i32,
+    pub peso_total_neto_kg: Option<f64>,
+    pub acumulado_presentacion: Option<f64>,
+    pub rendimiento: Option<f64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ParteProduccionInsumo {
+    pub id: Option<i64>,
+    pub nombre: Option<String>,
+    pub cantidad: Option<i32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct StockVariante {
     pub variante_id: i64,
     pub codigo_completo: String,

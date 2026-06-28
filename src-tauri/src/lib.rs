@@ -321,6 +321,20 @@ async fn eliminar_salida_cmd(state: State<'_, AppState>, token: String, id: i64)
     eliminar_salida(&state.db, id).await
 }
 
+// ============ COMANDOS TAURI - PARTES DE PRODUCCIÓN ============
+
+#[tauri::command]
+async fn crear_parte_produccion_cmd(state: State<'_, AppState>, token: String, parte: ParteProduccion) -> Result<i64, String> {
+    require_auth(&token)?;
+    crear_parte_produccion(&state.db, &parte).await
+}
+
+#[tauri::command]
+async fn obtener_partes_produccion_cmd(state: State<'_, AppState>, token: String, tipo: Option<String>) -> Result<Vec<ParteProduccion>, String> {
+    require_auth(&token)?;
+    obtener_partes_produccion(&state.db, tipo).await
+}
+
 // ============ COMANDOS TAURI - CONSULTAS ============
 
 #[tauri::command]
@@ -430,6 +444,9 @@ pub fn run() {
             crear_salidas_batch_cmd,
             actualizar_salida_cmd,
             eliminar_salida_cmd,
+            // Partes de producción
+            crear_parte_produccion_cmd,
+            obtener_partes_produccion_cmd,
             // Consultas
             obtener_stock_por_variante_cmd,
             // Autenticación

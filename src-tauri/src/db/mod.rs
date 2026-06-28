@@ -11,6 +11,7 @@ mod variantes;
 mod ingresos;
 mod salidas;
 mod stock;
+mod partes;
 
 pub use types::*;
 
@@ -88,4 +89,9 @@ pub use salidas::{
 };
 
 pub use stock::obtener_stock_por_variante;
+
+pub use partes::{
+    crear_parte_produccion,
+    obtener_partes_produccion,
+};
 

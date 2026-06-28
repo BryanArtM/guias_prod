@@ -95,6 +95,64 @@ const CREATE_SALIDAS: &str = "CREATE TABLE IF NOT EXISTS salidas (
     FOREIGN KEY (tipo_salida_id) REFERENCES tipos_salida(id) ON DELETE RESTRICT
 )";
 
+const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produccion (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT,
+    revision TEXT,
+    version TEXT,
+    usuario TEXT,
+    fecha TEXT NOT NULL,
+    turno TEXT,
+    codigo_trazabilidad TEXT,
+    especie_id INTEGER,
+    entera REAL DEFAULT 0,
+    observaciones TEXT,
+    tipo_documento TEXT,
+    FOREIGN KEY (especie_id) REFERENCES especies(id)
+)";
+
+const CREATE_PARTE_PRODUCCION_TRANSPORTE: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_transporte (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parte_id INTEGER NOT NULL,
+    num_guia TEXT,
+    num_carro TEXT,
+    placa TEXT,
+    FOREIGN KEY (parte_id) REFERENCES partes_produccion(id) ON DELETE CASCADE
+)";
+
+const CREATE_PARTE_PRODUCCION_EMBARCACION: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_embarcacion (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    transporte_id INTEGER NOT NULL,
+    nombre_embarcacion_pesquera TEXT,
+    matricula_embarcacion_pesquera TEXT,
+    peso_total_kg REAL,
+    FOREIGN KEY (transporte_id) REFERENCES parte_produccion_transporte(id) ON DELETE CASCADE
+)";
+
+const CREATE_PARTE_PRODUCCION_PRODUCTO: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_producto (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parte_id INTEGER NOT NULL,
+    variante_id INTEGER NOT NULL,
+    peso_unidad REAL,
+    cajas_carro_1 INTEGER DEFAULT 0,
+    cajas_carro_2 INTEGER DEFAULT 0,
+    cajas_carro_3 INTEGER DEFAULT 0,
+    cajas_carro_4 INTEGER DEFAULT 0,
+    peso_total_neto_kg REAL,
+    acumulado_presentacion REAL,
+    rendimiento REAL,
+    FOREIGN KEY (parte_id) REFERENCES partes_produccion(id) ON DELETE CASCADE,
+    FOREIGN KEY (variante_id) REFERENCES variantes_presentaciones(id)
+)";
+
+const CREATE_PARTE_PRODUCCION_INSUMO: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_insumo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    parte_id INTEGER NOT NULL,
+    nombre TEXT,
+    cantidad INTEGER,
+    FOREIGN KEY (parte_id) REFERENCES partes_produccion(id) ON DELETE CASCADE
+)";
+
 const CREATE_USERS: &str = "CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -176,6 +234,7 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     conn.execute(CREATE_TIPOS_INGRESO, ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_ingreso (codigo, descripcion) VALUES ('PRODUCCION', 'Ingreso por producción')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_ingreso (codigo, descripcion) VALUES ('ORDEN_DESEMBARQUE', 'Ingreso por orden de desembarque')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO tipos_ingreso (codigo, descripcion) VALUES ('DIRIMENCIA', 'Ingreso por dirimencia')", ()).await?;
     
     conn.execute(CREATE_INGRESOS, ()).await?;
     
@@ -184,6 +243,12 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('ORDEN_EMBARQUE', 'Salida por orden de embarque')", ()).await?;
     
     conn.execute(CREATE_SALIDAS, ()).await?;
+    
+    conn.execute(CREATE_PARTES_PRODUCCION, ()).await?;
+    conn.execute(CREATE_PARTE_PRODUCCION_TRANSPORTE, ()).await?;
+    conn.execute(CREATE_PARTE_PRODUCCION_EMBARCACION, ()).await?;
+    conn.execute(CREATE_PARTE_PRODUCCION_PRODUCTO, ()).await?;
+    conn.execute(CREATE_PARTE_PRODUCCION_INSUMO, ()).await?;
     
     Ok(())
 }
