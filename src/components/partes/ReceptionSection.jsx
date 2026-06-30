@@ -209,9 +209,11 @@ export default function ReceptionSection({
                 variant="secondary"
                 size="sm"
                 className="w-full h-8"
+                icon={<Plus size={14} />}
+                iconPosition="left"
                 onClick={() => addEmbarcacion(tIndex)}
               >
-                <Plus size={14} className="mr-1" /> Añadir Embarcación
+                Añadir Embarcación
               </Button>
             </div>
           </div>
@@ -219,11 +221,14 @@ export default function ReceptionSection({
 
         <Button
           type="button"
-          variant="outline"
-          className="w-full border-dashed"
+          variant="secondary"
+          size="sm"
+          className="w-full h-8 border-dashed border-2 border-blue-900"
+          icon={<Plus size={14} />}
+          iconPosition="left"
           onClick={addTransporte}
         >
-          <Plus size={18} className="mr-2" /> Añadir Transporte
+          Añadir Embarcación
         </Button>
       </div>
       <div className="flex my-6">

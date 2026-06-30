@@ -19,7 +19,7 @@ export default function InsumosSection({ insumos, onChangeInsumos }) {
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
       <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
-        Sección 3 — Control de insumos
+        Control de insumos
       </h2>
 
       <div className="space-y-3">
@@ -48,7 +48,7 @@ export default function InsumosSection({ insumos, onChangeInsumos }) {
               variant="danger"
               size="sm"
               onClick={() => removeInsumo(index)}
-              className={index === 0 ? "mb-0" : ""}
+              className={"w-10 h-10 p-0 flex items-center justify-center mb-1"}
             >
               <Trash2 size={16} />
             </Button>
@@ -66,10 +66,12 @@ export default function InsumosSection({ insumos, onChangeInsumos }) {
         type="button"
         variant="secondary"
         size="sm"
-        className="mt-4"
+        className="my-3"
+        icon={<Plus size={14} />}
+        iconPosition="left"
         onClick={addInsumo}
       >
-        <Plus size={16} className="mr-2" /> Añadir Insumo
+        Añadir Insumo
       </Button>
     </div>
   );

@@ -34,14 +34,14 @@ export default function NewPartePage() {
     );
   }
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-10">
       {error && (
         <Alert variant="error" className="mb-4">
           {error}
         </Alert>
       )}
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex mb-6 justify-center gap-20">
         {tipos.map((t) => (
           <button
             key={t}

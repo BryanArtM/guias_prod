@@ -47,7 +47,7 @@ export default function ParteProduccionForm({
   useEffect(() => {
     setFormData((prev) => ({ ...prev, tipo_documento: tipo }));
   }, [tipo]);
-  
+
   const [especies, setEspecies] = useState([]);
   const [variantes, setVariantes] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -229,7 +229,7 @@ export default function ParteProduccionForm({
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
           <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
-            Sección 4 — Observaciones
+            Observaciones
           </h2>
           <textarea
             name="observaciones"

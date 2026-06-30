@@ -63,9 +63,9 @@ async fn obtener_presentaciones_cmd(state: State<'_, AppState>, token: String) -
 #[tauri::command]
 async fn obtener_presentaciones_por_especie_cmd(state: State<'_, AppState>, token: String, especie_id: i64) -> Result<Vec<Presentacion>, String> {
     require_auth(&token)?;
-    println!("🔍 Tauri: obtener_presentaciones_por_especie_cmd - especie_id: {}", especie_id);
+    println!("Tauri: obtener_presentaciones_por_especie_cmd - especie_id: {}", especie_id);
     let result = obtener_presentaciones_por_especie(&state.db, especie_id).await?;
-    println!("✅ Tauri: Encontradas {} presentaciones para especie {}", result.len(), especie_id);
+    println!("Tauri: Encontradas {} presentaciones para especie {}", result.len(), especie_id);
     Ok(result)
 }
 
@@ -371,12 +371,12 @@ pub fn run() {
     tauri::async_runtime::spawn(async move {
         match init_db().await {
             Ok(db) => {
-                println!("✅ Base de datos inicializada correctamente");
+                println!("Base de datos inicializada correctamente");
                 let app_state = AppState { db: Arc::new(db) };
                 handle.manage(app_state);
             }
             Err(e) => {
-                eprintln!("❌ Error: {}", e);
+                eprintln!("Error: {}", e);
                 std::process::exit(1);
             }
         }

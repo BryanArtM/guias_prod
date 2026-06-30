@@ -87,7 +87,7 @@ export default function PackedProductSection({
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 overflow-x-auto">
       <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
-        Sección 2 — Producto empacado
+        Producto empacado
       </h2>
 
       <table className="w-full text-sm text-left border-collapse">
@@ -95,10 +95,10 @@ export default function PackedProductSection({
           <tr>
             <th className="p-2 border">Presentación / Variante</th>
             <th className="p-2 border w-24">Peso Und</th>
-            <th className="p-2 border w-20">C1</th>
-            <th className="p-2 border w-20">C2</th>
-            <th className="p-2 border w-20">C3</th>
-            <th className="p-2 border w-20">C4</th>
+            <th className="p-2 border w-20">Carro 1</th>
+            <th className="p-2 border w-20">Carro 2</th>
+            <th className="p-2 border w-20">Carro 3</th>
+            <th className="p-2 border w-20">Carro 4</th>
             <th className="p-2 border">Total Neto (kg)</th>
             <th className="p-2 border">Rend. (%)</th>
             <th className="p-2 border w-10"></th>
@@ -213,10 +213,12 @@ export default function PackedProductSection({
         type="button"
         variant="secondary"
         size="sm"
-        className="mt-4"
+        className="my-3"
+        icon={<Plus size={14} />}
+        iconPosition="left"
         onClick={addProducto}
       >
-        <Plus size={16} className="mr-2" /> Añadir Fila de Producción
+        Añadir Fila de Producción
       </Button>
     </div>
   );
