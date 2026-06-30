@@ -321,6 +321,14 @@ async fn eliminar_salida_cmd(state: State<'_, AppState>, token: String, id: i64)
     eliminar_salida(&state.db, id).await
 }
 
+// ============ COMANDOS TAURI - CONTROL DE SALIDA ============
+
+#[tauri::command]
+async fn crear_control_salida_cmd(state: State<'_, AppState>, token: String, controlSalida: ControlSalida) -> Result<i64, String> {
+    require_auth(&token)?;
+    crear_control_salida(&state.db, &controlSalida).await
+}
+
 // ============ COMANDOS TAURI - PARTES DE PRODUCCIÓN ============
 
 #[tauri::command]
@@ -444,6 +452,8 @@ pub fn run() {
             crear_salidas_batch_cmd,
             actualizar_salida_cmd,
             eliminar_salida_cmd,
+            // Control de salida
+            crear_control_salida_cmd,
             // Partes de producción
             crear_parte_produccion_cmd,
             obtener_partes_produccion_cmd,

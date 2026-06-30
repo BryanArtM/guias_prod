@@ -10,6 +10,7 @@ mod calibres;
 mod variantes;
 mod ingresos;
 mod salidas;
+mod control;
 mod stock;
 mod partes;
 
@@ -86,6 +87,10 @@ pub use salidas::{
     actualizar_salida,
     eliminar_salida,
     crear_salidas_batch,
+};
+
+pub use control::{
+    crear_control_salida,
 };
 
 pub use stock::obtener_stock_por_variante;

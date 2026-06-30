@@ -95,6 +95,39 @@ const CREATE_SALIDAS: &str = "CREATE TABLE IF NOT EXISTS salidas (
     FOREIGN KEY (tipo_salida_id) REFERENCES tipos_salida(id) ON DELETE RESTRICT
 )";
 
+const CREATE_CONTROLES_SALIDA: &str = "CREATE TABLE IF NOT EXISTS controles_salida (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo_documento TEXT NOT NULL,
+    numero_control TEXT NOT NULL UNIQUE,
+    fecha TEXT NOT NULL,
+    usuario TEXT NOT NULL,
+    fecha_produccion TEXT,
+    turno TEXT,
+    numero_lote TEXT,
+    numero_camara TEXT,
+    especie_id INTEGER NOT NULL,
+    motivo_salida TEXT NOT NULL,
+    suma_cantidad INTEGER NOT NULL DEFAULT 0,
+    suma_total_kg REAL NOT NULL DEFAULT 0,
+    observaciones TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (especie_id) REFERENCES especies(id) ON DELETE RESTRICT
+)";
+
+const CREATE_CONTROL_SALIDA_ITEMS: &str = "CREATE TABLE IF NOT EXISTS control_salida_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    control_salida_id INTEGER NOT NULL,
+    numero_item INTEGER NOT NULL,
+    descripcion TEXT NOT NULL,
+    codigo_trazabilidad TEXT,
+    cantidad INTEGER NOT NULL,
+    peso_unidad REAL NOT NULL,
+    total_kg REAL NOT NULL,
+    observaciones TEXT,
+    FOREIGN KEY (control_salida_id) REFERENCES controles_salida(id) ON DELETE CASCADE,
+    UNIQUE (control_salida_id, numero_item)
+)";
+
 const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produccion (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     codigo TEXT,
@@ -239,10 +272,13 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     conn.execute(CREATE_INGRESOS, ()).await?;
     
     conn.execute(CREATE_TIPOS_SALIDA, ()).await?;
+
     conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('MUESTREO', 'Salida por muestreo de calidad')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('ORDEN_EMBARQUE', 'Salida por orden de embarque')", ()).await?;
     
     conn.execute(CREATE_SALIDAS, ()).await?;
+    conn.execute(CREATE_CONTROLES_SALIDA, ()).await?;
+    conn.execute(CREATE_CONTROL_SALIDA_ITEMS, ()).await?;
     
     conn.execute(CREATE_PARTES_PRODUCCION, ()).await?;
     conn.execute(CREATE_PARTE_PRODUCCION_TRANSPORTE, ()).await?;
@@ -285,6 +321,15 @@ async fn create_indexes(conn: &Connection) -> Result<(), Box<dyn std::error::Err
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_salidas_variante_fecha ON salidas(variante_id, fecha DESC)", ()).await?;
     println!(" Índice idx_salidas_variante_fecha");
+
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_fecha ON controles_salida(fecha DESC)", ()).await?;
+    println!(" Índice idx_controles_salida_fecha");
+
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_especie_id ON controles_salida(especie_id)", ()).await?;
+    println!(" Índice idx_controles_salida_especie_id");
+
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_control_salida_items_control_id ON control_salida_items(control_salida_id)", ()).await?;
+    println!(" Índice idx_control_salida_items_control_id");
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_presentaciones_especie_id ON presentaciones(especie_id)", ()).await?;
     println!(" Índice idx_presentaciones_especie_id");

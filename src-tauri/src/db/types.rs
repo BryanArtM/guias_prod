@@ -108,6 +108,38 @@ pub struct Salida {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ControlSalidaItem {
+    pub id: Option<i64>,
+    pub control_salida_id: Option<i64>,
+    pub numero_item: i32,
+    pub descripcion: String,
+    pub codigo_trazabilidad: Option<String>,
+    pub cantidad: i32,
+    pub peso_unidad: f64,
+    pub total_kg: f64,
+    pub observaciones: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ControlSalida {
+    pub id: Option<i64>,
+    pub tipo_documento: String,
+    pub numero_control: String,
+    pub fecha: String,
+    pub usuario: String,
+    pub fecha_produccion: Option<String>,
+    pub turno: Option<String>,
+    pub numero_lote: Option<String>,
+    pub numero_camara: Option<String>,
+    pub especie_id: i64,
+    pub suma_cantidad: i32,
+    pub suma_total_kg: f64,
+    pub motivo_salida: String,
+    pub observaciones: Option<String>,
+    pub items: Vec<ControlSalidaItem>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ParteProduccion {
     pub id: Option<i64>,
     pub codigo: Option<String>,
