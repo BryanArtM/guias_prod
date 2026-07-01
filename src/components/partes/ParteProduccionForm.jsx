@@ -144,13 +144,13 @@ export default function ParteProduccionForm({
                 Usuario: {formData.usuario}
               </p>
               <p className="text-xs text-blue-200">
-                Versión: {formData.version}
+                Documento: {formData.tipo_documento}
               </p>
             </div>
             <Button
               type="submit"
               variant="primary"
-              className="bg-white text-blue-900 hover:bg-blue-50"
+              className="bg-white text-blue-900 hover:bg-transparent hover:text-white"
             >
               Guardar Documento
             </Button>
