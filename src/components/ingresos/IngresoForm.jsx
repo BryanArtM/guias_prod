@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Select, Input, Button } from "@/components/common";
 
 export default function IngresoForm({
   onSubmit,
   onCancel,
+  especies = [],
   variantes = [],
   tiposIngreso = [],
 }) {
   const [formData, setFormData] = useState({
+    especie_id: "",
     variante_id: "",
     tipo_ingreso_id: "",
     fecha: new Date().toISOString().split("T")[0],
@@ -20,6 +22,15 @@ export default function IngresoForm({
   const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(false);
 
+  const variantesFiltradas = useMemo(() => {
+    if (!formData.especie_id) {
+      return [];
+    }
+
+    const especieId = parseInt(formData.especie_id, 10);
+    return variantes.filter((variante) => variante.especie_id === especieId);
+  }, [formData.especie_id, variantes]);
+
   // Determinar si es ORDEN_DESEMBARQUE
   const tipoOrdenDesembarque = tiposIngreso.find(
     (t) => t.codigo === "ORDEN_DESEMBARQUE",
@@ -30,7 +41,16 @@ export default function IngresoForm({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "especie_id") {
+      setFormData((prev) => ({
+        ...prev,
+        especie_id: value,
+        variante_id: "",
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
     if (errores[name]) {
       setErrores((prev) => ({ ...prev, [name]: "" }));
     }
@@ -38,6 +58,10 @@ export default function IngresoForm({
 
   const validarFormulario = () => {
     const nuevosErrores = {};
+
+    if (!formData.especie_id) {
+      nuevosErrores.especie_id = "Debe seleccionar una especie";
+    }
 
     if (!formData.variante_id) {
       nuevosErrores.variante_id = "Debe seleccionar una variante";
@@ -87,9 +111,25 @@ export default function IngresoForm({
       setCargando(false);
     }
   };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Especie */}
+      <Select
+        label="Especie"
+        name="especie_id"
+        value={formData.especie_id}
+        onChange={handleChange}
+        error={errores.especie_id}
+        required
+      >
+        <option value="">Seleccione una especie</option>
+        {especies.map((especie) => (
+          <option key={especie.id} value={especie.id}>
+            {especie.nombre}
+          </option>
+        ))}
+      </Select>
+
       {/* Variante */}
       <Select
         label="Variante"
@@ -98,9 +138,14 @@ export default function IngresoForm({
         onChange={handleChange}
         error={errores.variante_id}
         required
+        disabled={!formData.especie_id}
       >
-        <option value="">Seleccione una variante</option>
-        {variantes.map((variante) => (
+        <option value="">
+          {formData.especie_id
+            ? "Seleccione una variante"
+            : "Primero seleccione una especie"}
+        </option>
+        {variantesFiltradas.map((variante) => (
           <option key={variante.variante_id} value={variante.variante_id}>
             {variante.codigo_completo}
           </option>

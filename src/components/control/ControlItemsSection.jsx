@@ -93,7 +93,11 @@ export default function ControlItemsSection({
                   className="w-full p-2 border-none bg-transparent focus:ring-0"
                   value={item.variante_id}
                   onChange={(e) =>
-                    updateItem(index, "variante_id", parseInt(e.target.value))
+                    updateItem(
+                      index,
+                      "variante_id",
+                      e.target.value ? parseInt(e.target.value, 10) : "",
+                    )
                   }
                 >
                   <option value="">Seleccione...</option>

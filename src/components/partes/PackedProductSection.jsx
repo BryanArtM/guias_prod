@@ -1,13 +1,25 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Button, Input, Select } from "@/components/common";
 import { Plus, Trash2 } from "lucide-react";
 
 export default function PackedProductSection({
   productos,
   variantes = [],
+  especieId,
   onChangeProductos,
   totalRecepcion,
 }) {
+  const variantesFiltradas = useMemo(() => {
+    if (!especieId) {
+      return [];
+    }
+
+    const especieIdNumerico = parseInt(especieId, 10);
+    return variantes.filter(
+      (variante) => variante.especie_id === especieIdNumerico,
+    );
+  }, [especieId, variantes]);
+
   // Recalcular rendimientos si cambia el total de recepción
   useEffect(() => {
     if (totalRecepcion > 0 && productos.length > 0) {
@@ -22,6 +34,24 @@ export default function PackedProductSection({
       }
     }
   }, [totalRecepcion]);
+
+  useEffect(() => {
+    if (productos.length === 0) {
+      return;
+    }
+
+    const variantesValidas = new Set(
+      variantesFiltradas.map((variante) => variante.variante_id),
+    );
+
+    const productosLimpios = productos.filter((producto) =>
+      variantesValidas.has(producto.variante_id),
+    );
+
+    if (productosLimpios.length !== productos.length) {
+      onChangeProductos(productosLimpios);
+    }
+  }, [especieId, variantesFiltradas]);
 
   const addProducto = () => {
     onChangeProductos([
@@ -111,12 +141,21 @@ export default function PackedProductSection({
                 <Select
                   value={p.variante_id}
                   onChange={(e) =>
-                    updateProducto(index, "variante_id", e.target.value)
+                    updateProducto(
+                      index,
+                      "variante_id",
+                      e.target.value ? parseInt(e.target.value, 10) : "",
+                    )
                   }
                   className="border-none bg-transparent"
+                  disabled={!especieId}
                 >
-                  <option value="">Selección...</option>
-                  {variantes.map((v) => (
+                  <option value="">
+                    {especieId
+                      ? "Selección..."
+                      : "Primero seleccione una especie"}
+                  </option>
+                  {variantesFiltradas.map((v) => (
                     <option key={v.variante_id} value={v.variante_id}>
                       {v.codigo_completo}
                     </option>

@@ -45,12 +45,37 @@ export default function ControlSalidaForm({
   const [cargando, setCargando] = useState(false);
   const [mensajeError, setMensajeError] = useState(null);
 
+  const variantesFiltradasPorEspecie = useMemo(() => {
+    if (!formData.especie_id) {
+      return [];
+    }
+
+    const especieId = parseInt(formData.especie_id, 10);
+    return variantes.filter((variante) => variante.especie_id === especieId);
+  }, [formData.especie_id, variantes]);
+
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
       usuario_sistema: user?.username || prev.usuario_sistema,
     }));
   }, [user?.username]);
+
+  useEffect(() => {
+    setItems((prevItems) =>
+      prevItems.map((item) => {
+        if (!item.variante_id) {
+          return item;
+        }
+
+        const varianteValida = variantesFiltradasPorEspecie.some(
+          (variante) => variante.variante_id === item.variante_id,
+        );
+
+        return varianteValida ? item : { ...item, variante_id: "" };
+      }),
+    );
+  }, [variantesFiltradasPorEspecie]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -205,7 +230,7 @@ export default function ControlSalidaForm({
         items={items}
         onChangeItems={setItems}
         motivoSalida={formData.motivo_salida}
-        variantes={variantes}
+        variantes={variantesFiltradasPorEspecie}
         onChangeMotivoSalida={(val) =>
           setFormData((prev) => ({ ...prev, motivo_salida: val }))
         }

@@ -75,6 +75,14 @@ export default function ParteProduccionForm({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleChangeEspecie = (val) => {
+    setFormData((prev) => ({
+      ...prev,
+      especie_id: val,
+      productos: [],
+    }));
+  };
+
   const calculateTotalRecepcion = () => {
     return formData.transportes.reduce((acc, t) => {
       return (
@@ -198,9 +206,7 @@ export default function ParteProduccionForm({
         especieId={formData.especie_id}
         entera={formData.entera}
         transportes={formData.transportes}
-        onChangeEspecie={(val) =>
-          setFormData((p) => ({ ...p, especie_id: val }))
-        }
+        onChangeEspecie={handleChangeEspecie}
         onChangeEntera={(val) => setFormData((p) => ({ ...p, entera: val }))}
         onChangeTransportes={(val) =>
           setFormData((p) => ({ ...p, transportes: val }))
@@ -211,6 +217,7 @@ export default function ParteProduccionForm({
       <PackedProductSection
         productos={formData.productos}
         variantes={variantes}
+        especieId={formData.especie_id}
         onChangeProductos={(val) =>
           setFormData((p) => ({ ...p, productos: val }))
         }

@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import { IngresosList, ImportMasivoIngresos } from "@/components/ingresos";
 import { Loading, Alert, Button, Modal } from "@/components/common";
-import { obtenerVariantesCompletas, obtenerTiposIngreso } from "@/services";
+import {
+  obtenerEspecies,
+  obtenerVariantesCompletas,
+  obtenerTiposIngreso,
+} from "@/services";
 import { Upload } from "lucide-react";
 
 export default function IngresosPage() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [especies, setEspecies] = useState([]);
   const [variantes, setVariantes] = useState([]);
   const [tiposIngreso, setTiposIngreso] = useState([]);
   const [mostrarImport, setMostrarImport] = useState(false);
@@ -19,11 +24,13 @@ export default function IngresosPage() {
     setCargando(true);
     setError(null);
     try {
-      const [variantesData, tiposData] = await Promise.all([
+      const [especiesData, variantesData, tiposData] = await Promise.all([
+        obtenerEspecies(),
         obtenerVariantesCompletas(),
         obtenerTiposIngreso(),
       ]);
 
+      setEspecies(especiesData);
       setVariantes(variantesData);
       setTiposIngreso(tiposData);
     } catch (err) {
@@ -64,7 +71,11 @@ export default function IngresosPage() {
         </Button>
       </div>
 
-      <IngresosList variantes={variantes} tiposIngreso={tiposIngreso} />
+      <IngresosList
+        especies={especies}
+        variantes={variantes}
+        tiposIngreso={tiposIngreso}
+      />
 
       <Modal
         isOpen={mostrarImport}

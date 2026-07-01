@@ -18,7 +18,11 @@ import {
 } from "@/services";
 import { usePagination } from "@/hooks";
 
-export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
+export default function IngresosList({
+  especies = [],
+  variantes = [],
+  tiposIngreso = [],
+}) {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [alerta, setAlerta] = useState(null);
 
@@ -283,6 +287,7 @@ export default function IngresosList({ variantes = [], tiposIngreso = [] }) {
         <IngresoForm
           onSubmit={handleCrear}
           onCancel={cerrarModal}
+          especies={especies}
           variantes={variantes}
           tiposIngreso={tiposIngreso}
         />
