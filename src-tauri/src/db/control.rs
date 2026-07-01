@@ -57,7 +57,7 @@ pub async fn crear_control_salida(
             "INSERT INTO control_salida_items
              (control_salida_id, numero_item, descripcion, codigo_trazabilidad, cantidad,
               peso_unidad, total_kg, observaciones)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             vec![
                 Value::from(control_id),
                 Value::from(item.numero_item as i64),

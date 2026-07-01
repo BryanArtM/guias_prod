@@ -274,7 +274,9 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     conn.execute(CREATE_TIPOS_SALIDA, ()).await?;
 
     conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('MUESTREO', 'Salida por muestreo de calidad')", ()).await?;
-    conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('ORDEN_EMBARQUE', 'Salida por orden de embarque')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('EMBARQUE', 'Salida por embarque')", ()).await?;
+    conn.execute("UPDATE salidas SET tipo_salida_id = (SELECT id FROM tipos_salida WHERE codigo = 'EMBARQUE') WHERE tipo_salida_id = (SELECT id FROM tipos_salida WHERE codigo = 'ORDEN_EMBARQUE')", ()).await?;
+    conn.execute("DELETE FROM tipos_salida WHERE codigo = 'ORDEN_EMBARQUE'", ()).await?;
     
     conn.execute(CREATE_SALIDAS, ()).await?;
     conn.execute(CREATE_CONTROLES_SALIDA, ()).await?;
