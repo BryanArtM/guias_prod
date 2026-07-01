@@ -14,21 +14,12 @@ export default function SalidaForm({
     fecha: new Date().toISOString().split("T")[0],
     kg: "",
     cajas: "",
-    numero_orden: "",
     observaciones: "",
   });
 
   const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(false);
   const [stockDisponible, setStockDisponible] = useState(null);
-
-  // Determinar si es ORDEN_EMBARQUE
-  const tipoOrdenEmbarque = tiposSalida.find(
-    (t) => t.codigo === "ORDEN_EMBARQUE",
-  );
-  const mostrarNumeroOrden =
-    tipoOrdenEmbarque &&
-    formData.tipo_salida_id === tipoOrdenEmbarque.id.toString();
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
@@ -76,11 +67,6 @@ export default function SalidaForm({
       nuevosErrores.kg = `Stock insuficiente. Disponible: ${stockDisponible.kg_stock.toFixed(2)} kg`;
     }
 
-    // Validar número de orden si es requerido
-    if (mostrarNumeroOrden && !formData.numero_orden?.trim()) {
-      nuevosErrores.numero_orden = "El número de orden es requerido";
-    }
-
     setErrores(nuevosErrores);
     return Object.keys(nuevosErrores).length === 0;
   };
@@ -100,7 +86,6 @@ export default function SalidaForm({
         fecha: formData.fecha,
         kg: parseFloat(formData.kg),
         cajas: formData.cajas ? parseInt(formData.cajas) : null,
-        numero_orden: formData.numero_orden?.trim() || null,
         observaciones: formData.observaciones?.trim() || null,
       };
 
@@ -196,19 +181,6 @@ export default function SalidaForm({
         placeholder="Opcional"
       />
 
-      {/* Número de Orden (Condicional) */}
-      {mostrarNumeroOrden && (
-        <Input
-          label="Número de Orden de Embarque"
-          name="numero_orden"
-          type="text"
-          value={formData.numero_orden}
-          onChange={handleChange}
-          error={errores.numero_orden}
-          required
-        />
-      )}
-
       {/* Observaciones */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -236,3 +208,4 @@ export default function SalidaForm({
     </form>
   );
 }
+   

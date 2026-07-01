@@ -140,15 +140,35 @@ export const Layout = ({ children }) => {
           </div>
 
           <Link
-            to="/partes/nuevo" 
+            to="/partes/nuevo"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 
-              ${location.pathname === "/partes/nuevo" 
+              ${
+                location.pathname === "/partes/nuevo"
+                  ? "bg-blue-900 text-white shadow-sm"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+          >
+            <FileText size={18} />
+            <span className="font-medium text-sm">Nuevo Ingreso</span>
+          </Link>
+
+          <div className="mt-5 mb-2 px-3">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              Documentos de Salida
+            </h3>
+            <div className="mt-2 h-px bg-gray-200" />
+          </div>
+
+          <Link
+            to="/control/nuevo"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
+              isActive("/control/nuevo")
                 ? "bg-blue-900 text-white shadow-sm"
                 : "text-gray-700 hover:bg-gray-100"
             }`}
           >
             <FileText size={18} />
-            <span className="font-medium text-sm">Generar Documento</span>
+            <span className="font-medium text-sm">Nueva Salida</span>
           </Link>
 
           <div className="mt-5 mb-2 px-3">

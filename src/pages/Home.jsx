@@ -83,7 +83,7 @@ export const Home = () => {
                 </h3>
                 <ul className="mt-2 space-y-1 text-sm text-gray-600 ml-7">
                   <li>• Por Muestreo de Calidad</li>
-                  <li>• Por Orden de Embarque</li>
+                  <li>• Por Embarque</li>
                 </ul>
               </div>
             </div>
