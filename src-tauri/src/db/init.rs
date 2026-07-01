@@ -118,13 +118,14 @@ const CREATE_CONTROL_SALIDA_ITEMS: &str = "CREATE TABLE IF NOT EXISTS control_sa
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     control_salida_id INTEGER NOT NULL,
     numero_item INTEGER NOT NULL,
-    descripcion TEXT NOT NULL,
+    variante_id INTEGER NOT NULL,
     codigo_trazabilidad TEXT,
     cantidad INTEGER NOT NULL,
     peso_unidad REAL NOT NULL,
     total_kg REAL NOT NULL,
     observaciones TEXT,
     FOREIGN KEY (control_salida_id) REFERENCES controles_salida(id) ON DELETE CASCADE,
+    FOREIGN KEY (variante_id) REFERENCES variantes_presentaciones(id),
     UNIQUE (control_salida_id, numero_item)
 )";
 
@@ -275,8 +276,7 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
 
     conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('MUESTREO', 'Salida por muestreo de calidad')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('EMBARQUE', 'Salida por embarque')", ()).await?;
-    conn.execute("UPDATE salidas SET tipo_salida_id = (SELECT id FROM tipos_salida WHERE codigo = 'EMBARQUE') WHERE tipo_salida_id = (SELECT id FROM tipos_salida WHERE codigo = 'ORDEN_EMBARQUE')", ()).await?;
-    conn.execute("DELETE FROM tipos_salida WHERE codigo = 'ORDEN_EMBARQUE'", ()).await?;
+
     
     conn.execute(CREATE_SALIDAS, ()).await?;
     conn.execute(CREATE_CONTROLES_SALIDA, ()).await?;

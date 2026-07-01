@@ -112,7 +112,7 @@ pub struct ControlSalidaItem {
     pub id: Option<i64>,
     pub control_salida_id: Option<i64>,
     pub numero_item: i32,
-    pub descripcion: String,
+    pub variante_id: i64,
     pub codigo_trazabilidad: Option<String>,
     pub cantidad: i32,
     pub peso_unidad: f64,

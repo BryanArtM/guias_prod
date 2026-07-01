@@ -55,13 +55,12 @@ pub async fn crear_control_salida(
     for item in &control.items {
         if let Err(error) = conn.execute(
             "INSERT INTO control_salida_items
-             (control_salida_id, numero_item, descripcion, codigo_trazabilidad, cantidad,
-              peso_unidad, total_kg, observaciones)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            (control_salida_id, numero_item, variante_id, codigo_trazabilidad, cantidad, peso_unidad, total_kg, observaciones)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             vec![
                 Value::from(control_id),
                 Value::from(item.numero_item as i64),
-                Value::from(item.descripcion.clone()),
+                Value::from(item.variante_id),
                 option_string_to_value(item.codigo_trazabilidad.clone()),
                 Value::from(item.cantidad as i64),
                 Value::from(item.peso_unidad),
@@ -70,6 +69,34 @@ pub async fn crear_control_salida(
             ],
         )
         .await
+        {
+            conn.execute("ROLLBACK", ())
+                .await
+                .map_err(|rollback_error| rollback_error.to_string())?;
+            return Err(error.to_string());
+        }
+        
+        let tipo_salida_id: i64 = conn.query(
+            "SELECT id FROM tipos_salida WHERE codigo = ?1",
+            vec![Value::from(control.tipo_documento.clone())],
+        ).await.map_err(|e| e.to_string())?
+        .next().await.map_err(|e| e.to_string())?
+        .ok_or("tipo_documento no encontrado en tipos_salida")?
+        .get(0).map_err(|e| e.to_string())?;
+
+        if let Err(error) = conn.execute(
+            "INSERT INTO salidas (variante_id, tipo_salida_id, fecha, kg, cajas, observaciones)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            vec![
+                Value::from(item.variante_id),
+                Value::from(tipo_salida_id),
+                Value::from(control.fecha.clone()),
+                Value::from(item.total_kg),
+                Value::from(item.cantidad as i64),
+                option_string_to_value(control.observaciones.clone()),
+            ],
+        )
+        .await         
         {
             conn.execute("ROLLBACK", ())
                 .await
