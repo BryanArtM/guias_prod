@@ -152,7 +152,10 @@ export default function ParteProduccionForm({
       {/* HEADER SECTION */}
       <div className="bg-blue-900 text-white p-6 rounded-t-xl shadow-md mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
-          <h1 className="text-2xl font-bold">Registro de {tipo}</h1>
+          <h1 className="text-2xl font-bold">
+            Registro de{" "}
+            {tiposDocumento.find((t) => t.id === tipo)?.codigo || ""}
+          </h1>{" "}
           <div className="flex gap-4 items-center">
             <div className="text-right">
               <p className="text-xs text-blue-200">

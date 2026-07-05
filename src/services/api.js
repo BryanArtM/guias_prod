@@ -176,6 +176,14 @@ export const obtenerTiposIngreso = () => {
   return invokeWithAuth("obtener_tipos_ingreso_cmd");
 };
 
+export const obtenerTiposDocumentoProduccion = () => {
+  return invokeWithAuth("obtener_tipos_documento_produccion_cmd");
+};
+
+export const obtenerTiposDocumentoSalida = () => {
+  return invokeWithAuth("obtener_tipos_documento_salida_cmd");
+};
+
 // ==================== INGRESOS ====================
 
 export const crearIngreso = (ingreso) => {
@@ -212,6 +220,10 @@ export const eliminarIngreso = (id) => {
 
 export const obtenerTiposSalida = () => {
   return invokeWithAuth("obtener_tipos_salida_cmd");
+};
+
+export const obtenerMotivosSalida = () => {
+  return invokeWithAuth("obtener_motivos_salida_cmd");
 };
 
 // ==================== SALIDAS ====================

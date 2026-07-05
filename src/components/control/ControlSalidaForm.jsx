@@ -231,24 +231,6 @@ export default function ControlSalidaForm({
               <p className="text-xs text-blue-200">
                 Usuario: {formData.usuario_sistema}
               </p>
-              <p className="text-xs text-blue-200">Documento:</p>
-              <select
-                value={formData.tipo_documento_id || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    tipo_documento_id: parseInt(e.target.value, 10),
-                  }))
-                }
-                className="text-sm text-blue-200 bg-transparent border border-blue-200 rounded px-2 py-1"
-              >
-                <option value="">Seleccione documento</option>
-                {tiposDocumentoSalida.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.codigo}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <Button
