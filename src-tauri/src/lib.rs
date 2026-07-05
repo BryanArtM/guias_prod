@@ -356,9 +356,9 @@ async fn crear_parte_produccion_cmd(state: State<'_, AppState>, token: String, p
 }
 
 #[tauri::command]
-async fn obtener_partes_produccion_cmd(state: State<'_, AppState>, token: String, tipo: Option<String>) -> Result<Vec<ParteProduccion>, String> {
+async fn obtener_partes_produccion_cmd(state: State<'_, AppState>, token: String, tipo_documento_id: Option<i64>) -> Result<Vec<ParteProduccion>, String> {
     require_auth(&token)?;
-    obtener_partes_produccion(&state.db, tipo).await
+    obtener_partes_produccion(&state.db, tipo_documento_id).await
 }
 
 // ============ COMANDOS TAURI - CONSULTAS ============

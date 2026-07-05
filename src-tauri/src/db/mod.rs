@@ -8,7 +8,7 @@ mod formas;
 mod calidades;
 mod calibres;
 mod variantes;
-mod tipos_documento;
+mod tipos_documento_produccion;
 mod motivos_salida;
 mod tipos_documento_salida;
 mod ingresos;
@@ -96,7 +96,7 @@ pub use control::{
     crear_control_salida,
 };
 
-pub use tipos_documento::obtener_tipos_documento_produccion;
+pub use tipos_documento_produccion::obtener_tipos_documento_produccion;
 pub use motivos_salida::obtener_motivos_salida;
 pub use tipos_documento_salida::obtener_tipos_documento_salida;
 

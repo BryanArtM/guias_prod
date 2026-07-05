@@ -79,7 +79,7 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
         let total_cajas = producto.cajas_carro_1 + producto.cajas_carro_2 + producto.cajas_carro_3 + producto.cajas_carro_4;
         let peso_total = producto.peso_total_neto_kg.unwrap_or(0.0);
         
-        // Obtener el código del tipo de documento (tipos_documento_produccion)
+        // Resolver el tipo de documento
         let mut row_doc = conn.query(
             "SELECT codigo FROM tipos_documento_produccion WHERE id = ?1",
             vec![Value::from(parte.tipo_documento_id)],
@@ -88,7 +88,7 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
         let tipo_doc_codigo: String = if let Some(row) = row_doc.next().await.map_err(|e| e.to_string())? {
             row.get(0).map_err(|e| e.to_string())?
         } else {
-            "PRODUCCION".to_string()
+            return Err("tipo_documento_id no encontrado en tipos_documento_produccion".to_string());
         };
 
         // Mapear al tipo de ingreso
@@ -140,14 +140,14 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
     Ok(parte_id)
 }
 
-pub async fn obtener_partes_produccion(db: &Database, tipo: Option<String>) -> Result<Vec<ParteProduccion>, String> {
+pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<i64>) -> Result<Vec<ParteProduccion>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
     
-    let (query, params) = if let Some(t) = tipo {
+    let (query, params) = if let Some(tipo_id) = tipo_documento_id {
         (
             "SELECT p.id, p.codigo, p.revision, p.version, p.cliente, p.fecha, p.turno, p.codigo_trazabilidad, p.especie_id, p.entera, p.observaciones, p.tipo_documento_id 
-             FROM partes_produccion p JOIN tipos_documento_produccion t ON p.tipo_documento_id = t.id WHERE t.codigo = ?1 ORDER BY p.fecha DESC, p.id DESC",
-            vec![Value::from(t)]
+             FROM partes_produccion p WHERE p.tipo_documento_id = ?1 ORDER BY p.fecha DESC, p.id DESC",
+            vec![Value::from(tipo_id)]
         )
     } else {
         (

@@ -165,7 +165,8 @@ const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produc
     observaciones TEXT,
     tipo_documento_id INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (especie_id) REFERENCES especies(id)
+    FOREIGN KEY (especie_id) REFERENCES especies(id),
+    FOREIGN KEY (tipo_documento_id) REFERENCES tipos_documento_produccion(id) ON DELETE RESTRICT
 )";
 
 const CREATE_PARTE_PRODUCCION_TRANSPORTE: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_transporte (
