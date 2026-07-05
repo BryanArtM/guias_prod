@@ -225,6 +225,24 @@ async fn obtener_tipos_ingreso_cmd(state: State<'_, AppState>, token: String) ->
     obtener_tipos_ingreso(&state.db).await
 }
 
+#[tauri::command]
+async fn obtener_tipos_documento_produccion_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<TipoIngreso>, String> {
+    require_auth(&token)?;
+    obtener_tipos_documento_produccion(&state.db).await
+}
+
+#[tauri::command]
+async fn obtener_tipos_documento_salida_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<TipoIngreso>, String> {
+    require_auth(&token)?;
+    obtener_tipos_documento_salida(&state.db).await
+}
+
+#[tauri::command]
+async fn obtener_motivos_salida_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<TipoIngreso>, String> {
+    require_auth(&token)?;
+    obtener_motivos_salida(&state.db).await
+}
+
 // ============ COMANDOS TAURI - INGRESOS ============
 
 #[tauri::command]
@@ -434,6 +452,7 @@ pub fn run() {
             eliminar_variante_presentacion_cmd,
             // Tipos de ingreso
             obtener_tipos_ingreso_cmd,
+            obtener_tipos_documento_produccion_cmd,
             // Ingresos
             crear_ingreso_cmd,
             obtener_ingresos_cmd,
@@ -444,6 +463,8 @@ pub fn run() {
             eliminar_ingreso_cmd,
             // Tipos de salida
             obtener_tipos_salida_cmd,
+            obtener_motivos_salida_cmd,
+            obtener_tipos_documento_salida_cmd,
             // Salidas
             crear_salida_cmd,
             obtener_salidas_cmd,

@@ -123,10 +123,10 @@ pub struct ControlSalidaItem {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ControlSalida {
     pub id: Option<i64>,
-    pub tipo_documento: String,
+    pub tipo_documento_id: i64,
     pub numero_control: String,
     pub fecha: String,
-    pub usuario: String,
+    pub cliente: String,
     pub fecha_produccion: Option<String>,
     pub turno: Option<String>,
     pub numero_lote: Option<String>,
@@ -134,7 +134,7 @@ pub struct ControlSalida {
     pub especie_id: i64,
     pub suma_cantidad: i32,
     pub suma_total_kg: f64,
-    pub motivo_salida: String,
+    pub motivo_salida: i64,
     pub observaciones: Option<String>,
     pub items: Vec<ControlSalidaItem>,
 }
@@ -145,14 +145,14 @@ pub struct ParteProduccion {
     pub codigo: Option<String>,
     pub revision: Option<String>,
     pub version: Option<String>,
-    pub usuario: Option<String>,
+    pub cliente: Option<String>,
     pub fecha: String,
     pub turno: Option<String>,
     pub codigo_trazabilidad: Option<String>,
     pub especie_id: Option<i64>,
     pub entera: Option<f64>,
     pub observaciones: Option<String>,
-    pub tipo_documento: String, // 'PRODUCCION', 'DESEMBARQUE', 'DIRIMENCIA'
+    pub tipo_documento_id: i64, 
     pub transportes: Vec<ParteProduccionTransporte>,
     pub productos: Vec<ParteProduccionProducto>,
     pub insumos: Vec<ParteProduccionInsumo>,

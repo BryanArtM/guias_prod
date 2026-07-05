@@ -8,6 +8,9 @@ mod formas;
 mod calidades;
 mod calibres;
 mod variantes;
+mod tipos_documento;
+mod motivos_salida;
+mod tipos_documento_salida;
 mod ingresos;
 mod salidas;
 mod control;
@@ -92,6 +95,10 @@ pub use salidas::{
 pub use control::{
     crear_control_salida,
 };
+
+pub use tipos_documento::obtener_tipos_documento_produccion;
+pub use motivos_salida::obtener_motivos_salida;
+pub use tipos_documento_salida::obtener_tipos_documento_salida;
 
 pub use stock::obtener_stock_por_variante;
 
