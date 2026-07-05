@@ -4,6 +4,10 @@ import { useAuthStore } from "@/stores";
 import ControlHeaderSection from "./ControlHeaderSection";
 import ControlItemsSection from "./ControlItemsSection";
 import ControlObservacionesSection from "./ControlObservacionesSection";
+import {
+  obtenerMotivosSalida,
+  obtenerTiposDocumentoSalida,
+} from "@/services/api";
 
 export default function ControlSalidaForm({
   onSubmit,
@@ -18,7 +22,8 @@ export default function ControlSalidaForm({
     () => ({
       numero_control: "",
       fecha: new Date().toISOString().split("T")[0],
-      usuario: "",
+      cliente: "",
+      tipo_documento_id: null,
       usuario_sistema: user?.username || "",
       fecha_produccion: "",
       turno: "",
@@ -26,7 +31,7 @@ export default function ControlSalidaForm({
       numero_camara: "",
       especie_id: "",
       observaciones: "",
-      motivo_salida: "OTROS",
+      motivo_salida_id: null,
     }),
     [user?.username],
   );
@@ -44,6 +49,8 @@ export default function ControlSalidaForm({
   const [errors, setErrors] = useState({});
   const [cargando, setCargando] = useState(false);
   const [mensajeError, setMensajeError] = useState(null);
+  const [motivos, setMotivos] = useState([]);
+  const [tiposDocumentoSalida, setTiposDocumentoSalida] = useState([]);
 
   const variantesFiltradasPorEspecie = useMemo(() => {
     if (!formData.especie_id) {
@@ -60,6 +67,38 @@ export default function ControlSalidaForm({
       usuario_sistema: user?.username || prev.usuario_sistema,
     }));
   }, [user?.username]);
+
+  useEffect(() => {
+    // cuando el prop tipoDocumento cambia, intentar sincronizar tipo_documento_id si los tipos ya fueron cargados
+    if (!tipoDocumento || tiposDocumentoSalida.length === 0) return;
+    const match = tiposDocumentoSalida.find((t) => t.codigo === tipoDocumento);
+    if (match)
+      setFormData((prev) => ({ ...prev, tipo_documento_id: match.id }));
+  }, [tipoDocumento, tiposDocumentoSalida]);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([obtenerMotivosSalida(), obtenerTiposDocumentoSalida()])
+      .then((res) => {
+        if (!mounted) return;
+        const motivosRes = res[0] || [];
+        const tiposRes = res[1] || [];
+        setMotivos(motivosRes);
+        setTiposDocumentoSalida(tiposRes);
+        // set default motivo (OTROS) if exists
+        const otros = (motivosRes || []).find((m) => m.codigo === "OTROS");
+        if (otros)
+          setFormData((prev) => ({ ...prev, motivo_salida_id: otros.id }));
+        // set default tipo_documento_id: try match prop tipoDocumento code
+        const match = tiposRes.find((t) => t.codigo === tipoDocumento);
+        if (match)
+          setFormData((prev) => ({ ...prev, tipo_documento_id: match.id }));
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     setItems((prevItems) =>
@@ -91,7 +130,7 @@ export default function ControlSalidaForm({
     if (!formData.numero_control.trim())
       nextErrors.numero_control = "Requerido";
     if (!formData.fecha) nextErrors.fecha = "Requerido";
-    if (!formData.usuario.trim()) nextErrors.usuario = "Requerido";
+    if (!formData.cliente?.trim()) nextErrors.cliente = "Requerido";
     if (!formData.turno) nextErrors.turno = "Seleccione un turno";
     if (!formData.numero_lote.trim()) nextErrors.numero_lote = "Requerido";
     if (!formData.numero_camara.trim()) nextErrors.numero_camara = "Requerido";
@@ -150,10 +189,10 @@ export default function ControlSalidaForm({
       );
 
       await onSubmit({
-        tipo_documento: tipoDocumento,
+        tipo_documento_id: formData.tipo_documento_id,
         numero_control: formData.numero_control.trim(),
         fecha: formData.fecha,
-        usuario: formData.usuario.trim(),
+        cliente: formData.cliente.trim(),
         fecha_produccion: formData.fecha_produccion || null,
         turno: formData.turno,
         numero_lote: formData.numero_lote.trim(),
@@ -162,7 +201,7 @@ export default function ControlSalidaForm({
         suma_cantidad: sumaCantidad,
         suma_total_kg: sumaTotalKg,
         observaciones: formData.observaciones?.trim() || null,
-        motivo_salida: formData.motivo_salida,
+        motivo_salida: formData.motivo_salida_id,
         items: itemsConTotales,
       });
     } catch (error) {
@@ -192,9 +231,24 @@ export default function ControlSalidaForm({
               <p className="text-xs text-blue-200">
                 Usuario: {formData.usuario_sistema}
               </p>
-              <p className="text-xs text-blue-200">
-                Documento: {tipoDocumento}
-              </p>
+              <p className="text-xs text-blue-200">Documento:</p>
+              <select
+                value={formData.tipo_documento_id || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    tipo_documento_id: parseInt(e.target.value, 10),
+                  }))
+                }
+                className="text-sm text-blue-200 bg-transparent border border-blue-200 rounded px-2 py-1"
+              >
+                <option value="">Seleccione documento</option>
+                {tiposDocumentoSalida.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.codigo}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <Button
@@ -229,10 +283,11 @@ export default function ControlSalidaForm({
       <ControlItemsSection
         items={items}
         onChangeItems={setItems}
-        motivoSalida={formData.motivo_salida}
+        motivoSalida={formData.motivo_salida_id}
+        motivos={motivos}
         variantes={variantesFiltradasPorEspecie}
         onChangeMotivoSalida={(val) =>
-          setFormData((prev) => ({ ...prev, motivo_salida: val }))
+          setFormData((prev) => ({ ...prev, motivo_salida_id: val }))
         }
         error={errors.items}
       />

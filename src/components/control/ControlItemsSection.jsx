@@ -1,13 +1,14 @@
 import { Button } from "@/components/common";
 import { Plus, Trash2 } from "lucide-react";
 
-const MOTIVOS_SALIDA = ["ALMACENAJE", "REEMPAQUE", "DESPACHO", "OTROS"];
+// Los motivos ahora se provienen desde el backend (prop `motivos`)
 
 export default function ControlItemsSection({
   items,
   onChangeItems,
   motivoSalida,
   onChangeMotivoSalida,
+  motivos = [],
   variantes = [],
   error,
 }) {
@@ -189,18 +190,18 @@ export default function ControlItemsSection({
           Motivo de Salida:
         </span>
         <div className="flex gap-2">
-          {MOTIVOS_SALIDA.map((m) => (
+          {motivos.map((m) => (
             <button
-              key={m}
+              key={m.id}
               type="button"
-              onClick={() => onChangeMotivoSalida(m)}
+              onClick={() => onChangeMotivoSalida(m.id)}
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                motivoSalida === m
+                motivoSalida === m.id
                   ? "bg-blue-900 text-white border-blue-900"
                   : "text-gray-600 border-gray-300 hover:border-blue-400"
               }`}
             >
-              {m}
+              {m.codigo}
             </button>
           ))}
         </div>

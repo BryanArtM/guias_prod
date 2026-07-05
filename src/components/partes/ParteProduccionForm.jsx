@@ -3,7 +3,11 @@ import { Input, Button, Loading, Select } from "@/components/common";
 import ReceptionSection from "./ReceptionSection";
 import PackedProductSection from "./PackedProductSection";
 import InsumosSection from "./InsumosSection";
-import { obtenerEspecies, obtenerVariantesCompletas } from "@/services";
+import {
+  obtenerEspecies,
+  obtenerVariantesCompletas,
+  obtenerTiposDocumentoProduccion,
+} from "@/services";
 import { useAuthStore } from "@/stores";
 
 export default function ParteProduccionForm({
@@ -18,14 +22,14 @@ export default function ParteProduccionForm({
       codigo: "",
       revision: new Date().toLocaleDateString(),
       version: "1.0",
-      usuario: user?.username || "",
+      cliente: user?.username || "",
       fecha: new Date().toISOString().split("T")[0],
       turno: "DIA",
       codigo_trazabilidad: "",
       especie_id: "",
       entera: 0,
       observaciones: "",
-      tipo_documento: tipo,
+      tipo_documento_id: tipo || null,
       transportes: [
         {
           num_guia: "",
@@ -45,22 +49,25 @@ export default function ParteProduccionForm({
     },
   );
   useEffect(() => {
-    setFormData((prev) => ({ ...prev, tipo_documento: tipo }));
+    setFormData((prev) => ({ ...prev, tipo_documento_id: tipo }));
   }, [tipo]);
 
   const [especies, setEspecies] = useState([]);
   const [variantes, setVariantes] = useState([]);
+  const [tiposDocumento, setTiposDocumento] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [espRes, varRes] = await Promise.all([
+        const [espRes, varRes, tiposRes] = await Promise.all([
           obtenerEspecies(),
           obtenerVariantesCompletas(),
+          obtenerTiposDocumentoProduccion(),
         ]);
         setEspecies(espRes);
         setVariantes(varRes);
+        setTiposDocumento(tiposRes || []);
       } catch (error) {
         console.error("Error cargando catálogos:", error);
       } finally {
@@ -149,10 +156,16 @@ export default function ParteProduccionForm({
           <div className="flex gap-4 items-center">
             <div className="text-right">
               <p className="text-xs text-blue-200">
-                Usuario: {formData.usuario}
+                Cliente: {formData.cliente}
               </p>
               <p className="text-xs text-blue-200">
-                Documento: {formData.tipo_documento}
+                Documento:{" "}
+                {(() => {
+                  const t = tiposDocumento.find(
+                    (x) => x.id === formData.tipo_documento_id,
+                  );
+                  return t ? t.codigo : formData.tipo_documento_id || "";
+                })()}
               </p>
             </div>
             <Button

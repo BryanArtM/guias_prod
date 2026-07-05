@@ -34,11 +34,11 @@ export default function ControlHeaderSection({
           required
         />
         <Input
-          label="Usuario"
-          name="usuario"
-          value={formData.usuario}
+          label="Cliente"
+          name="cliente"
+          value={formData.cliente}
           onChange={onChange}
-          error={errors.usuario}
+          error={errors.cliente}
           required
         />
         <Input
