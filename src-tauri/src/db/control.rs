@@ -21,25 +21,25 @@ pub async fn crear_control_salida(
 
     let insert_result = conn
         .execute(
-            "INSERT INTO controles_salida
-            (tipo_documento, numero_control, fecha, usuario, fecha_produccion, turno,
-              numero_lote, numero_camara, especie_id, motivo_salida, suma_cantidad, suma_total_kg, observaciones)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
-            vec![
-                Value::from(control.tipo_documento.clone()),
-                Value::from(control.numero_control.clone()),
-                Value::from(control.fecha.clone()),
-                Value::from(control.usuario.clone()),
-                option_string_to_value(control.fecha_produccion.clone()),
-                option_string_to_value(control.turno.clone()),
-                option_string_to_value(control.numero_lote.clone()),
-                option_string_to_value(control.numero_camara.clone()),
-                Value::from(control.especie_id),
-                Value::from(control.motivo_salida.clone()),
-                Value::from(total_cantidad as i64),
-                Value::from(total_kg),
-                option_string_to_value(control.observaciones.clone()),
-            ],
+                        "INSERT INTO controles_salida
+                        (tipo_documento_id, numero_control, fecha, cliente, fecha_produccion, turno,
+                            numero_lote, numero_camara, especie_id, motivo_salida_id, suma_cantidad, suma_total_kg, observaciones)
+                        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+                        vec![
+                                Value::from(control.tipo_documento_id),
+                                Value::from(control.numero_control.clone()),
+                                Value::from(control.fecha.clone()),
+                                Value::from(control.cliente.clone()),
+                                option_string_to_value(control.fecha_produccion.clone()),
+                                option_string_to_value(control.turno.clone()),
+                                option_string_to_value(control.numero_lote.clone()),
+                                option_string_to_value(control.numero_camara.clone()),
+                                Value::from(control.especie_id),
+                                Value::from(control.motivo_salida),
+                                Value::from(total_cantidad as i64),
+                                Value::from(total_kg),
+                                option_string_to_value(control.observaciones.clone()),
+                        ],
         )
         .await;
 
@@ -76,9 +76,20 @@ pub async fn crear_control_salida(
             return Err(error.to_string());
         }
         
+        // Resolver tipo_salida_id a partir del tipo_documento_id: buscar el codigo en tipos_documento_salida y mapear a tipos_salida por codigo
+        let mut codigo_rows = conn.query(
+            "SELECT codigo FROM tipos_documento_salida WHERE id = ?1",
+            vec![Value::from(control.tipo_documento_id)],
+        ).await.map_err(|e| e.to_string())?;
+
+        let tipo_documento_codigo = codigo_rows
+            .next().await.map_err(|e| e.to_string())?
+            .ok_or("tipo_documento_id no encontrado en tipos_documento_salida")?
+            .get::<String>(0).map_err(|e| e.to_string())?;
+
         let tipo_salida_id: i64 = conn.query(
             "SELECT id FROM tipos_salida WHERE codigo = ?1",
-            vec![Value::from(control.tipo_documento.clone())],
+            vec![Value::from(tipo_documento_codigo.clone())],
         ).await.map_err(|e| e.to_string())?
         .next().await.map_err(|e| e.to_string())?
         .ok_or("tipo_documento no encontrado en tipos_salida")?

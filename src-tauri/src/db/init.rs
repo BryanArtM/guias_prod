@@ -64,11 +64,30 @@ const CREATE_TIPOS_INGRESO: &str = "CREATE TABLE IF NOT EXISTS tipos_ingreso (
     descripcion TEXT
 )";
 
+const CREATE_TIPOS_DOCUMENTO_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS tipos_documento_produccion (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,
+    descripcion TEXT
+)";
+
+const CREATE_TIPOS_DOCUMENTO_SALIDA: &str = "CREATE TABLE IF NOT EXISTS tipos_documento_salida (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,
+    descripcion TEXT
+)";
+
+const CREATE_MOTIVOS_SALIDA: &str = "CREATE TABLE IF NOT EXISTS motivos_salida (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,
+    descripcion TEXT
+)";
+
 const CREATE_INGRESOS: &str = "CREATE TABLE IF NOT EXISTS ingresos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     variante_id INTEGER NOT NULL,
     tipo_ingreso_id INTEGER NOT NULL,
     fecha TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
     peso_total_lote REAL,
     kg REAL NOT NULL,
     cajas INTEGER NOT NULL,
@@ -88,6 +107,7 @@ const CREATE_SALIDAS: &str = "CREATE TABLE IF NOT EXISTS salidas (
     variante_id INTEGER NOT NULL,
     tipo_salida_id INTEGER NOT NULL,
     fecha TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
     kg REAL NOT NULL,
     cajas INTEGER NOT NULL,
     observaciones TEXT,
@@ -97,21 +117,22 @@ const CREATE_SALIDAS: &str = "CREATE TABLE IF NOT EXISTS salidas (
 
 const CREATE_CONTROLES_SALIDA: &str = "CREATE TABLE IF NOT EXISTS controles_salida (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tipo_documento TEXT NOT NULL,
+    tipo_documento_id INTEGER NOT NULL,
     numero_control TEXT NOT NULL UNIQUE,
     fecha TEXT NOT NULL,
-    usuario TEXT NOT NULL,
+    cliente TEXT NOT NULL,
     fecha_produccion TEXT,
     turno TEXT,
     numero_lote TEXT,
     numero_camara TEXT,
     especie_id INTEGER NOT NULL,
-    motivo_salida TEXT NOT NULL,
+    motivo_salida_id INTEGER NOT NULL,
     suma_cantidad INTEGER NOT NULL DEFAULT 0,
     suma_total_kg REAL NOT NULL DEFAULT 0,
     observaciones TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (especie_id) REFERENCES especies(id) ON DELETE RESTRICT
+    FOREIGN KEY (especie_id) REFERENCES especies(id) ON DELETE RESTRICT,
+    FOREIGN KEY (tipo_documento_id) REFERENCES tipos_documento_salida(id) ON DELETE RESTRICT
 )";
 
 const CREATE_CONTROL_SALIDA_ITEMS: &str = "CREATE TABLE IF NOT EXISTS control_salida_items (
@@ -124,6 +145,7 @@ const CREATE_CONTROL_SALIDA_ITEMS: &str = "CREATE TABLE IF NOT EXISTS control_sa
     peso_unidad REAL NOT NULL,
     total_kg REAL NOT NULL,
     observaciones TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (control_salida_id) REFERENCES controles_salida(id) ON DELETE CASCADE,
     FOREIGN KEY (variante_id) REFERENCES variantes_presentaciones(id),
     UNIQUE (control_salida_id, numero_item)
@@ -134,14 +156,15 @@ const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produc
     codigo TEXT,
     revision TEXT,
     version TEXT,
-    usuario TEXT,
+    cliente TEXT,
     fecha TEXT NOT NULL,
     turno TEXT,
     codigo_trazabilidad TEXT,
     especie_id INTEGER,
     entera REAL DEFAULT 0,
     observaciones TEXT,
-    tipo_documento TEXT,
+    tipo_documento_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (especie_id) REFERENCES especies(id)
 )";
 
@@ -272,15 +295,34 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     
     conn.execute(CREATE_INGRESOS, ()).await?;
     
+    // Tipos de documento para partes de producción
+    conn.execute(CREATE_TIPOS_DOCUMENTO_PRODUCCION, ()).await?;
+    conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('PRODUCCION', 'Documento de producción')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('DESEMBARQUE', 'Documento de desembarque')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('DIRIMENCIA', 'Documento por dirimencia')", ()).await?;
+    
     conn.execute(CREATE_TIPOS_SALIDA, ()).await?;
 
     conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('MUESTREO', 'Salida por muestreo de calidad')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('EMBARQUE', 'Salida por embarque')", ()).await?;
+    
+    // Tipos de documento para controles de salida
+    conn.execute(CREATE_TIPOS_DOCUMENTO_SALIDA, ()).await?;
+    conn.execute("INSERT OR IGNORE INTO tipos_documento_salida (codigo, descripcion) VALUES ('SALIDA', 'Documento de salida')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO tipos_documento_salida (codigo, descripcion) VALUES ('MUESTREO', 'Documento por muestreo')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO tipos_documento_salida (codigo, descripcion) VALUES ('EMBARQUE', 'Documento por embarque')", ()).await?;
 
     
     conn.execute(CREATE_SALIDAS, ()).await?;
     conn.execute(CREATE_CONTROLES_SALIDA, ()).await?;
     conn.execute(CREATE_CONTROL_SALIDA_ITEMS, ()).await?;
+    
+    // Motivos de salida
+    conn.execute(CREATE_MOTIVOS_SALIDA, ()).await?;
+    conn.execute("INSERT OR IGNORE INTO motivos_salida (codigo, descripcion) VALUES ('ALMACENAJE', 'Almacenaje')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO motivos_salida (codigo, descripcion) VALUES ('REEMPAQUE', 'Reempaque')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO motivos_salida (codigo, descripcion) VALUES ('DESPACHO', 'Despacho')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO motivos_salida (codigo, descripcion) VALUES ('OTROS', 'Otros')", ()).await?;
     
     conn.execute(CREATE_PARTES_PRODUCCION, ()).await?;
     conn.execute(CREATE_PARTE_PRODUCCION_TRANSPORTE, ()).await?;
@@ -335,6 +377,27 @@ async fn create_indexes(conn: &Connection) -> Result<(), Box<dyn std::error::Err
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_presentaciones_especie_id ON presentaciones(especie_id)", ()).await?;
     println!(" Índice idx_presentaciones_especie_id");
+    
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_producto_parte_id ON parte_produccion_producto(parte_id)", ()).await?;
+    println!(" Índice idx_parte_produccion_producto_parte_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_producto_variante_id ON parte_produccion_producto(variante_id)", ()).await?;
+    println!(" Índice idx_parte_produccion_producto_variante_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_transporte_parte_id ON parte_produccion_transporte(parte_id)", ()).await?;
+    println!(" Índice idx_parte_produccion_transporte_parte_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_embarcacion_transporte_id ON parte_produccion_embarcacion(transporte_id)", ()).await?;
+    println!(" Índice idx_parte_produccion_embarcacion_transporte_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_insumo_parte_id ON parte_produccion_insumo(parte_id)", ()).await?;
+    println!(" Índice idx_parte_produccion_insumo_parte_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_partes_produccion_especie_id ON partes_produccion(especie_id)", ()).await?;
+    println!(" Índice idx_partes_produccion_especie_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_partes_produccion_tipo_documento_id ON partes_produccion(tipo_documento_id)", ()).await?;
+    println!(" Índice idx_partes_produccion_tipo_documento_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_control_salida_items_variante_id ON control_salida_items(variante_id)", ()).await?;
+    println!(" Índice idx_control_salida_items_variante_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_motivo_salida_id ON controles_salida(motivo_salida_id)", ()).await?;
+    println!(" Índice idx_controles_salida_motivo_salida_id");
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_tipo_documento_id ON controles_salida(tipo_documento_id)", ()).await?;
+    println!(" Índice idx_controles_salida_tipo_documento_id");
     
     Ok(())
 }
