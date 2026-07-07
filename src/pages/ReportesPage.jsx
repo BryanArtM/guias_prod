@@ -4,7 +4,7 @@ import { Button, Select, Alert } from "@/components/common";
 import {
   obtenerIngresos,
   obtenerSalidas,
-  obtenerStockPorVariante,
+  obtenerStockActual,
   obtenerVariantesCompletas,
   obtenerEspecies,
 } from "@/services";
@@ -92,11 +92,11 @@ export default function ReportesPage() {
         ...salidasFiltradas.map((s) => ({
           fecha: s.fecha,
           tipo: "SALIDA",
-          variante_id: s.variante_id,
-          codigo: variantesMap[s.variante_id]?.codigo_completo || "N/A",
-          especie: variantesMap[s.variante_id]?.especie_nombre || "N/A",
-          kg: s.kg,
-          cajas: s.cajas || 0,
+          variante_id: s.variante_id || null,
+          codigo: s.numero_control || s.tipo_documento_codigo || "N/A",
+          especie: s.especie_nombre || "N/A",
+          kg: s.suma_total_kg ?? s.kg ?? 0,
+          cajas: s.suma_cantidad ?? s.cajas ?? 0,
           observaciones: s.observaciones || "",
         })),
       ].sort((a, b) => b.fecha.localeCompare(a.fecha));
@@ -152,11 +152,23 @@ export default function ReportesPage() {
   const exportarStock = async () => {
     setLoading(true);
     try {
-      const stock = await obtenerStockPorVariante();
+      const [stock, variantes] = await Promise.all([
+        obtenerStockActual(),
+        obtenerVariantesCompletas(),
+      ]);
+
+      const variantesMap = {};
+      variantes.forEach((v) => {
+        variantesMap[v.variante_id] = v;
+      });
 
       // Filtrar por especie si está seleccionada
       const stockFiltrado = filtros.especieId
-        ? stock.filter((s) => s.especie_id === parseInt(filtros.especieId))
+        ? stock.filter(
+            (s) =>
+              variantesMap[s.variante_id]?.especie_id ===
+              parseInt(filtros.especieId),
+          )
         : stock;
 
       // Generar CSV
@@ -177,14 +189,14 @@ export default function ReportesPage() {
         ...stockFiltrado.map((s) =>
           [
             `"${s.codigo_completo}"`,
-            `"${s.especie}"`,
-            `"${s.presentacion}"`,
-            s.kg_ingresados,
-            s.kg_salidos,
-            s.kg_stock,
-            s.cajas_ingresadas,
-            s.cajas_salidas,
-            s.cajas_stock,
+            `"${variantesMap[s.variante_id]?.especie_nombre || "N/A"}"`,
+            `"${variantesMap[s.variante_id]?.presentacion_nombre || "N/A"}"`,
+            s.stock_kg,
+            0,
+            s.stock_kg,
+            s.stock_cajas,
+            0,
+            s.stock_cajas,
           ].join(","),
         ),
       ].join("\n");
@@ -205,18 +217,25 @@ export default function ReportesPage() {
   const exportarConsolidado = async () => {
     setLoading(true);
     try {
-      const [stock, especiesList] = await Promise.all([
-        obtenerStockPorVariante(),
+      const [stock, especiesList, variantes] = await Promise.all([
+        obtenerStockActual(),
         obtenerEspecies(),
+        obtenerVariantesCompletas(),
       ]);
+
+      const variantesMap = {};
+      variantes.forEach((v) => {
+        variantesMap[v.variante_id] = v;
+      });
 
       // Agrupar stock por especie
       const consolidado = {};
 
       stock.forEach((item) => {
-        if (!consolidado[item.especie]) {
-          consolidado[item.especie] = {
-            especie: item.especie,
+        const especie = variantesMap[item.variante_id]?.especie_nombre || "N/A";
+        if (!consolidado[especie]) {
+          consolidado[especie] = {
+            especie,
             kg_ingresados: 0,
             kg_salidos: 0,
             kg_stock: 0,
@@ -227,13 +246,13 @@ export default function ReportesPage() {
           };
         }
 
-        consolidado[item.especie].kg_ingresados += item.kg_ingresados;
-        consolidado[item.especie].kg_salidos += item.kg_salidos;
-        consolidado[item.especie].kg_stock += item.kg_stock;
-        consolidado[item.especie].cajas_ingresadas += item.cajas_ingresadas;
-        consolidado[item.especie].cajas_salidas += item.cajas_salidas;
-        consolidado[item.especie].cajas_stock += item.cajas_stock;
-        consolidado[item.especie].variantes_count += 1;
+        consolidado[especie].kg_ingresados += item.stock_kg;
+        consolidado[especie].kg_salidos += 0;
+        consolidado[especie].kg_stock += item.stock_kg;
+        consolidado[especie].cajas_ingresadas += item.stock_cajas;
+        consolidado[especie].cajas_salidas += 0;
+        consolidado[especie].cajas_stock += item.stock_cajas;
+        consolidado[especie].variantes_count += 1;
       });
 
       const datosConsolidados = Object.values(consolidado);

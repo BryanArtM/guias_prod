@@ -110,9 +110,9 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3 mb-4">
           <div className="h-10 w-1 bg-blue-900 rounded-full" />
           <div>
-            <h1 
+            <h1
               className="text-3xl font-bold text-gray-900"
-              style={{ fontFamily: 'Outfit, sans-serif' }}
+              style={{ fontFamily: "Outfit, sans-serif" }}
             >
               Panel de Control
             </h1>
@@ -184,10 +184,15 @@ export default function DashboardPage() {
             <BarChart3 className="w-5 h-5 text-blue-900" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
+            <h2
+              className="text-lg font-bold text-gray-900"
+              style={{ fontFamily: "Outfit, sans-serif" }}
+            >
               Top 10 Variantes con Mayor Stock
             </h2>
-            <p className="text-xs text-gray-500">Productos con mayor inventario disponible</p>
+            <p className="text-xs text-gray-500">
+              Productos con mayor inventario disponible
+            </p>
           </div>
         </div>
 
@@ -199,24 +204,30 @@ export default function DashboardPage() {
                 className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all duration-200"
               >
                 <div className="flex items-center gap-4">
-                  <div 
+                  <div
                     className={`flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold ${
-                      index < 3 
-                        ? 'bg-blue-900 text-white' 
-                        : 'bg-gray-200 text-gray-700'
+                      index < 3
+                        ? "bg-blue-900 text-white"
+                        : "bg-gray-200 text-gray-700"
                     }`}
-                    style={{ fontFamily: 'Outfit, sans-serif' }}
+                    style={{ fontFamily: "Outfit, sans-serif" }}
                   >
                     {index + 1}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-blue-900" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    <p
+                      className="text-sm font-bold text-blue-900"
+                      style={{ fontFamily: "Roboto Mono, monospace" }}
+                    >
                       {variante.codigo_completo}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                  <p
+                    className="text-lg font-bold text-gray-900"
+                    style={{ fontFamily: "Outfit, sans-serif" }}
+                  >
                     {variante.kg_stock.toFixed(2)} kg
                   </p>
                   <p className="text-xs text-gray-500">
@@ -242,10 +253,15 @@ export default function DashboardPage() {
               <TrendingUp className="w-5 h-5 text-green-700" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              <h2
+                className="text-lg font-bold text-gray-900"
+                style={{ fontFamily: "Outfit, sans-serif" }}
+              >
                 Últimos 5 Ingresos
               </h2>
-              <p className="text-xs text-gray-500">Entradas recientes al inventario</p>
+              <p className="text-xs text-gray-500">
+                Entradas recientes al inventario
+              </p>
             </div>
           </div>
 
@@ -257,7 +273,10 @@ export default function DashboardPage() {
                   className="flex justify-between items-center py-3 px-3 rounded-lg border border-gray-100 hover:bg-green-50 transition-colors"
                 >
                   <div>
-                    <p className="text-sm font-medium text-gray-700" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    <p
+                      className="text-sm font-medium text-gray-700"
+                      style={{ fontFamily: "Roboto Mono, monospace" }}
+                    >
                       {ingreso.fecha}
                     </p>
                   </div>
@@ -286,10 +305,15 @@ export default function DashboardPage() {
               <TrendingDown className="w-5 h-5 text-red-700" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              <h2
+                className="text-lg font-bold text-gray-900"
+                style={{ fontFamily: "Outfit, sans-serif" }}
+              >
                 Últimas 5 Salidas
               </h2>
-              <p className="text-xs text-gray-500">Despachos recientes de inventario</p>
+              <p className="text-xs text-gray-500">
+                Despachos recientes de inventario
+              </p>
             </div>
           </div>
 
@@ -301,16 +325,19 @@ export default function DashboardPage() {
                   className="flex justify-between items-center py-3 px-3 rounded-lg border border-gray-100 hover:bg-red-50 transition-colors"
                 >
                   <div>
-                    <p className="text-sm font-medium text-gray-700" style={{ fontFamily: 'Roboto Mono, monospace' }}>
+                    <p
+                      className="text-sm font-medium text-gray-700"
+                      style={{ fontFamily: "Roboto Mono, monospace" }}
+                    >
                       {salida.fecha}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-red-700">
-                      -{salida.kg} kg
+                      -{salida.suma_total_kg ?? salida.kg ?? 0} kg
                     </p>
                     <p className="text-xs text-gray-500">
-                      {salida.cajas || 0} cajas
+                      {salida.suma_cantidad ?? salida.cajas ?? 0} cajas
                     </p>
                   </div>
                 </div>
