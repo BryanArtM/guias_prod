@@ -76,44 +76,6 @@ pub async fn crear_control_salida(
             return Err(error.to_string());
         }
         
-        // Resolver tipo_salida_id a partir del tipo_documento_id: buscar el codigo en tipos_documento_salida y mapear a tipos_salida por codigo
-        let mut codigo_rows = conn.query(
-            "SELECT codigo FROM tipos_documento_salida WHERE id = ?1",
-            vec![Value::from(control.tipo_documento_id)],
-        ).await.map_err(|e| e.to_string())?;
-
-        let tipo_documento_codigo = codigo_rows
-            .next().await.map_err(|e| e.to_string())?
-            .ok_or("tipo_documento_id no encontrado en tipos_documento_salida")?
-            .get::<String>(0).map_err(|e| e.to_string())?;
-
-        let tipo_salida_id: i64 = conn.query(
-            "SELECT id FROM tipos_salida WHERE codigo = ?1",
-            vec![Value::from(tipo_documento_codigo.clone())],
-        ).await.map_err(|e| e.to_string())?
-        .next().await.map_err(|e| e.to_string())?
-        .ok_or("tipo_documento no encontrado en tipos_salida")?
-        .get(0).map_err(|e| e.to_string())?;
-
-        if let Err(error) = conn.execute(
-            "INSERT INTO salidas (variante_id, tipo_salida_id, fecha, kg, cajas, observaciones)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            vec![
-                Value::from(item.variante_id),
-                Value::from(tipo_salida_id),
-                Value::from(control.fecha.clone()),
-                Value::from(item.total_kg),
-                Value::from(item.cantidad as i64),
-                option_string_to_value(control.observaciones.clone()),
-            ],
-        )
-        .await         
-        {
-            conn.execute("ROLLBACK", ())
-                .await
-                .map_err(|rollback_error| rollback_error.to_string())?;
-            return Err(error.to_string());
-        }
     }
 
     conn.execute("COMMIT", ())

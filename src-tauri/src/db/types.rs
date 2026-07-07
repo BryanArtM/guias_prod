@@ -209,3 +209,27 @@ pub struct StockVariante {
     pub cajas_salidas: i32,
     pub cajas_stock: i32,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct StockActual {
+    pub variante_id: i64,
+    pub codigo_completo: String,
+    pub stock_kg: f64,
+    pub stock_cajas: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ControlSalidaResumen {
+    pub id: Option<i64>,
+    pub numero_control: String,
+    pub fecha: String,
+    pub cliente: String,
+    pub tipo_documento_id: i64,
+    pub tipo_documento_codigo: String,
+    pub tipo_documento_descripcion: Option<String>,
+    pub especie_id: i64,
+    pub especie_nombre: String,
+    pub suma_cantidad: i32,
+    pub suma_total_kg: f64,
+    pub observaciones: Option<String>,
+}

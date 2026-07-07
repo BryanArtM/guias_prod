@@ -72,24 +72,16 @@ pub use variantes::{
 
 pub use ingresos::{
     obtener_tipos_ingreso,
-    crear_ingreso,
     obtener_ingresos,
     obtener_ingresos_paginados,
     contar_ingresos,
-    actualizar_ingreso,
-    eliminar_ingreso,
-    crear_ingresos_batch,
 };
 
 pub use salidas::{
     obtener_tipos_salida,
-    crear_salida,
     obtener_salidas,
     obtener_salidas_paginadas,
     contar_salidas,
-    actualizar_salida,
-    eliminar_salida,
-    crear_salidas_batch,
 };
 
 pub use control::{
@@ -100,7 +92,7 @@ pub use tipos_documento_produccion::obtener_tipos_documento_produccion;
 pub use motivos_salida::obtener_motivos_salida;
 pub use tipos_documento_salida::obtener_tipos_documento_salida;
 
-pub use stock::obtener_stock_por_variante;
+pub use stock::{obtener_stock_por_variante, obtener_stock_actual};
 
 pub use partes::{
     crear_parte_produccion,

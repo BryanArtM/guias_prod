@@ -58,12 +58,6 @@ const CREATE_VARIANTES: &str = "CREATE TABLE IF NOT EXISTS variantes_presentacio
     UNIQUE (presentacion_id, forma_envasado_id, forma_empacado_id, ensunchado, calidad_id, calibre_id)
 )";
 
-const CREATE_TIPOS_INGRESO: &str = "CREATE TABLE IF NOT EXISTS tipos_ingreso (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    codigo TEXT NOT NULL UNIQUE,
-    descripcion TEXT
-)";
-
 const CREATE_TIPOS_DOCUMENTO_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS tipos_documento_produccion (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     codigo TEXT NOT NULL UNIQUE,
@@ -80,39 +74,6 @@ const CREATE_MOTIVOS_SALIDA: &str = "CREATE TABLE IF NOT EXISTS motivos_salida (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     codigo TEXT NOT NULL UNIQUE,
     descripcion TEXT
-)";
-
-const CREATE_INGRESOS: &str = "CREATE TABLE IF NOT EXISTS ingresos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    variante_id INTEGER NOT NULL,
-    tipo_ingreso_id INTEGER NOT NULL,
-    fecha TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    peso_total_lote REAL,
-    kg REAL NOT NULL,
-    cajas INTEGER NOT NULL,
-    observaciones TEXT,
-    FOREIGN KEY (variante_id) REFERENCES variantes_presentaciones(id) ON DELETE RESTRICT,
-    FOREIGN KEY (tipo_ingreso_id) REFERENCES tipos_ingreso(id) ON DELETE RESTRICT
-)";
-
-const CREATE_TIPOS_SALIDA: &str = "CREATE TABLE IF NOT EXISTS tipos_salida (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    codigo TEXT NOT NULL UNIQUE,
-    descripcion TEXT
-)";
-
-const CREATE_SALIDAS: &str = "CREATE TABLE IF NOT EXISTS salidas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    variante_id INTEGER NOT NULL,
-    tipo_salida_id INTEGER NOT NULL,
-    fecha TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    kg REAL NOT NULL,
-    cajas INTEGER NOT NULL,
-    observaciones TEXT,
-    FOREIGN KEY (variante_id) REFERENCES variantes_presentaciones(id) ON DELETE RESTRICT,
-    FOREIGN KEY (tipo_salida_id) REFERENCES tipos_salida(id) ON DELETE RESTRICT
 )";
 
 const CREATE_CONTROLES_SALIDA: &str = "CREATE TABLE IF NOT EXISTS controles_salida (
@@ -132,7 +93,8 @@ const CREATE_CONTROLES_SALIDA: &str = "CREATE TABLE IF NOT EXISTS controles_sali
     observaciones TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (especie_id) REFERENCES especies(id) ON DELETE RESTRICT,
-    FOREIGN KEY (tipo_documento_id) REFERENCES tipos_documento_salida(id) ON DELETE RESTRICT
+    FOREIGN KEY (tipo_documento_id) REFERENCES tipos_documento_salida(id) ON DELETE RESTRICT,
+    FOREIGN KEY (motivo_salida_id) REFERENCES motivos_salida(id) ON DELETE RESTRICT
 )";
 
 const CREATE_CONTROL_SALIDA_ITEMS: &str = "CREATE TABLE IF NOT EXISTS control_salida_items (
@@ -265,6 +227,26 @@ LEFT JOIN formas_empacado fem ON v.forma_empacado_id = fem.id
 LEFT JOIN calidades c ON v.calidad_id = c.id
 LEFT JOIN calibres cal ON v.calibre_id = cal.id";
 
+const CREATE_STOCK_ACTUAL_VIEW: &str = "CREATE VIEW IF NOT EXISTS stock_actual_view AS
+SELECT
+    vc.variante_id,
+    vc.codigo_completo,
+    COALESCE(ing.kg, 0) - COALESCE(sal.kg, 0) AS stock_kg,
+    COALESCE(ing.cajas, 0) - COALESCE(sal.cajas, 0) AS stock_cajas
+FROM variantes_completas_view vc
+LEFT JOIN (
+    SELECT variante_id,
+                 SUM(peso_total_neto_kg) AS kg,
+                 SUM(cajas_carro_1 + cajas_carro_2 + cajas_carro_3 + cajas_carro_4) AS cajas
+    FROM parte_produccion_producto
+    GROUP BY variante_id
+) ing ON ing.variante_id = vc.variante_id
+LEFT JOIN (
+    SELECT variante_id, SUM(total_kg) AS kg, SUM(cantidad) AS cajas
+    FROM control_salida_items
+    GROUP BY variante_id
+) sal ON sal.variante_id = vc.variante_id";
+
 async fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     println!("Creando tablas...");
     
@@ -289,23 +271,11 @@ async fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Erro
 async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     println!("Creando tablas de transacciones...");
     
-    conn.execute(CREATE_TIPOS_INGRESO, ()).await?;
-    conn.execute("INSERT OR IGNORE INTO tipos_ingreso (codigo, descripcion) VALUES ('PRODUCCION', 'Ingreso por producción')", ()).await?;
-    conn.execute("INSERT OR IGNORE INTO tipos_ingreso (codigo, descripcion) VALUES ('ORDEN_DESEMBARQUE', 'Ingreso por orden de desembarque')", ()).await?;
-    conn.execute("INSERT OR IGNORE INTO tipos_ingreso (codigo, descripcion) VALUES ('DIRIMENCIA', 'Ingreso por dirimencia')", ()).await?;
-    
-    conn.execute(CREATE_INGRESOS, ()).await?;
-    
     // Tipos de documento para partes de producción
     conn.execute(CREATE_TIPOS_DOCUMENTO_PRODUCCION, ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('PRODUCCION', 'Documento de producción')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('DESEMBARQUE', 'Documento de desembarque')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('DIRIMENCIA', 'Documento por dirimencia')", ()).await?;
-    
-    conn.execute(CREATE_TIPOS_SALIDA, ()).await?;
-
-    conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('MUESTREO', 'Salida por muestreo de calidad')", ()).await?;
-    conn.execute("INSERT OR IGNORE INTO tipos_salida (codigo, descripcion) VALUES ('EMBARQUE', 'Salida por embarque')", ()).await?;
     
     // Tipos de documento para controles de salida
     conn.execute(CREATE_TIPOS_DOCUMENTO_SALIDA, ()).await?;
@@ -314,7 +284,6 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     conn.execute("INSERT OR IGNORE INTO tipos_documento_salida (codigo, descripcion) VALUES ('EMBARQUE', 'Documento por embarque')", ()).await?;
 
     
-    conn.execute(CREATE_SALIDAS, ()).await?;
     conn.execute(CREATE_CONTROLES_SALIDA, ()).await?;
     conn.execute(CREATE_CONTROL_SALIDA_ITEMS, ()).await?;
     
@@ -343,30 +312,13 @@ async fn create_users_table(conn: &Connection) -> Result<(), Box<dyn std::error:
 async fn create_views(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     println!("Creando vistas...");
     conn.execute(CREATE_VIEW, ()).await?;
+    conn.execute(CREATE_STOCK_ACTUAL_VIEW, ()).await?;
     Ok(())
 }
 
 async fn create_indexes(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     println!("Creando índices de optimización...");
     
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_ingresos_variante_id ON ingresos(variante_id)", ()).await?;
-    println!(" Índice idx_ingresos_variante_id");
-    
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_salidas_variante_id ON salidas(variante_id)", ()).await?;
-    println!(" Índice idx_salidas_variante_id");
-    
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_ingresos_fecha ON ingresos(fecha DESC)", ()).await?;
-    println!(" Índice idx_ingresos_fecha");
-    
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_salidas_fecha ON salidas(fecha DESC)", ()).await?;
-    println!(" Índice idx_salidas_fecha");
-    
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_ingresos_variante_fecha ON ingresos(variante_id, fecha DESC)", ()).await?;
-    println!(" Índice idx_ingresos_variante_fecha");
-    
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_salidas_variante_fecha ON salidas(variante_id, fecha DESC)", ()).await?;
-    println!(" Índice idx_salidas_variante_fecha");
-
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_fecha ON controles_salida(fecha DESC)", ()).await?;
     println!(" Índice idx_controles_salida_fecha");
 

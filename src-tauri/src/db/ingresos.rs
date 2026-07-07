@@ -4,7 +4,7 @@ use crate::db::helpers::*;
 
 pub async fn obtener_tipos_ingreso(db: &Database) -> Result<Vec<TipoIngreso>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
-    let mut result = conn.query("SELECT id, codigo, descripcion FROM tipos_ingreso ORDER BY codigo", ())
+    let mut result = conn.query("SELECT id, codigo, descripcion FROM tipos_documento_produccion ORDER BY codigo", ())
         .await.map_err(|e| e.to_string())?;
 
     let mut tipos = Vec::new();
@@ -18,32 +18,21 @@ pub async fn obtener_tipos_ingreso(db: &Database) -> Result<Vec<TipoIngreso>, St
     Ok(tipos)
 }
 
-pub async fn crear_ingreso(db: &Database, ingreso: &Ingreso) -> Result<i64, String> {
-    let conn = db.connect().map_err(|e| e.to_string())?;
-    conn.execute(
-        "INSERT INTO ingresos 
-         (variante_id, tipo_ingreso_id, fecha, peso_total_lote, kg, cajas, observaciones)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-        [
-            ingreso.variante_id.into(),
-            ingreso.tipo_ingreso_id.into(),
-            ingreso.fecha.clone().into(),
-            option_f64_to_value(ingreso.peso_total_lote),
-            ingreso.kg.into(),
-            ingreso.cajas.into(),
-            option_string_to_value(ingreso.observaciones.clone()),
-        ],
-    ).await.map_err(|e| e.to_string())?;
-    Ok(conn.last_insert_rowid())
-}
-
 pub async fn obtener_ingresos(db: &Database) -> Result<Vec<Ingreso>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
     let mut result = conn.query(
-        "SELECT id, variante_id, tipo_ingreso_id, fecha, peso_total_lote, kg, cajas, 
-                observaciones
-         FROM ingresos 
-         ORDER BY fecha DESC, id DESC",
+        "SELECT
+            p.id,
+            ppp.variante_id,
+            p.tipo_documento_id,
+            p.fecha,
+            ppp.peso_total_neto_kg,
+            COALESCE(ppp.peso_total_neto_kg, 0),
+            COALESCE(ppp.cajas_carro_1, 0) + COALESCE(ppp.cajas_carro_2, 0) + COALESCE(ppp.cajas_carro_3, 0) + COALESCE(ppp.cajas_carro_4, 0),
+            p.observaciones
+         FROM partes_produccion p
+         JOIN parte_produccion_producto ppp ON ppp.parte_id = p.id
+         ORDER BY p.fecha DESC, p.id DESC",
         (),
     ).await.map_err(|e| e.to_string())?;
 
@@ -74,10 +63,18 @@ pub async fn obtener_ingresos_paginados(
     let params: Vec<Value> = vec![limite.into(), offset.into()];
     
     let mut result = conn.query(
-        "SELECT id, variante_id, tipo_ingreso_id, fecha, peso_total_lote, kg, cajas, 
-                observaciones
-         FROM ingresos 
-         ORDER BY fecha DESC, id DESC
+        "SELECT
+            p.id,
+            ppp.variante_id,
+            p.tipo_documento_id,
+            p.fecha,
+            ppp.peso_total_neto_kg,
+            COALESCE(ppp.peso_total_neto_kg, 0),
+            COALESCE(ppp.cajas_carro_1, 0) + COALESCE(ppp.cajas_carro_2, 0) + COALESCE(ppp.cajas_carro_3, 0) + COALESCE(ppp.cajas_carro_4, 0),
+            p.observaciones
+         FROM partes_produccion p
+         JOIN parte_produccion_producto ppp ON ppp.parte_id = p.id
+         ORDER BY p.fecha DESC, p.id DESC
          LIMIT ?1 OFFSET ?2",
         params,
     ).await.map_err(|e| e.to_string())?;
@@ -100,76 +97,10 @@ pub async fn obtener_ingresos_paginados(
 
 pub async fn contar_ingresos(db: &Database) -> Result<i64, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
-    let mut result = conn.query("SELECT COUNT(*) FROM ingresos", ()).await.map_err(|e| e.to_string())?;
+    let mut result = conn.query("SELECT COUNT(*) FROM parte_produccion_producto", ()).await.map_err(|e| e.to_string())?;
     
     match result.next().await.map_err(|e| e.to_string())? {
         Some(row) => row.get(0).map_err(|e| e.to_string()),
         None => Ok(0),
     }
-}
-
-pub async fn actualizar_ingreso(db: &Database, id: i64, ingreso: &Ingreso) -> Result<(), String> {
-    let conn = db.connect().map_err(|e| e.to_string())?;
-    conn.execute(
-        "UPDATE ingresos 
-         SET variante_id = ?1, tipo_ingreso_id = ?2, fecha = ?3, peso_total_lote = ?4, 
-             kg = ?5, cajas = ?6, observaciones = ?7
-         WHERE id = ?8",
-        [
-            ingreso.variante_id.into(),
-            ingreso.tipo_ingreso_id.into(),
-            ingreso.fecha.clone().into(),
-            option_f64_to_value(ingreso.peso_total_lote),
-            ingreso.kg.into(),
-            ingreso.cajas.into(),
-            option_string_to_value(ingreso.observaciones.clone()),
-            id.into(),
-        ],
-    ).await.map_err(|e| e.to_string())?;
-    Ok(())
-}
-
-pub async fn eliminar_ingreso(db: &Database, id: i64) -> Result<(), String> {
-    let conn = db.connect().map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM ingresos WHERE id = ?1", [id])
-        .await.map_err(|e| e.to_string())?;
-    Ok(())
-}
-
-pub async fn crear_ingresos_batch(db: &Database, ingresos: &[Ingreso]) -> Result<Vec<i64>, String> {
-    if ingresos.is_empty() {
-        return Ok(Vec::new());
-    }
-
-    let conn = db.connect().map_err(|e| e.to_string())?;
-    
-    conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| e.to_string())?;
-    
-    let mut ids = Vec::with_capacity(ingresos.len());
-    
-    for ingreso in ingresos {
-        match conn.execute(
-            "INSERT INTO ingresos 
-             (variante_id, tipo_ingreso_id, fecha, peso_total_lote, kg, cajas, observaciones)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            [
-                ingreso.variante_id.into(),
-                ingreso.tipo_ingreso_id.into(),
-                ingreso.fecha.clone().into(),
-                option_f64_to_value(ingreso.peso_total_lote),
-                ingreso.kg.into(),
-                ingreso.cajas.into(),
-                option_string_to_value(ingreso.observaciones.clone()),
-            ],
-        ).await {
-            Ok(_) => ids.push(conn.last_insert_rowid()),
-            Err(e) => {
-                conn.execute("ROLLBACK", ()).await.map_err(|e| e.to_string())?;
-                return Err(e.to_string());
-            }
-        }
-    }
-    
-    conn.execute("COMMIT", ()).await.map_err(|e| e.to_string())?;
-    Ok(ids)
 }

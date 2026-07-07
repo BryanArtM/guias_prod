@@ -55,7 +55,7 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
         }
     }
 
-    // 3. Insertar productos y generar ingresos para el stock
+    // 3. Insertar productos; el stock se calcula desde la vista en tiempo real.
     for producto in &parte.productos {
         conn.execute(
             "INSERT INTO parte_produccion_producto 
@@ -75,54 +75,6 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
             ],
         ).await.map_err(|e| e.to_string())?;
 
-        // Registrar en la tabla ingresos para que aparezca en el stock
-        let total_cajas = producto.cajas_carro_1 + producto.cajas_carro_2 + producto.cajas_carro_3 + producto.cajas_carro_4;
-        let peso_total = producto.peso_total_neto_kg.unwrap_or(0.0);
-        
-        // Resolver el tipo de documento
-        let mut row_doc = conn.query(
-            "SELECT codigo FROM tipos_documento_produccion WHERE id = ?1",
-            vec![Value::from(parte.tipo_documento_id)],
-        ).await.map_err(|e| e.to_string())?;
-
-        let tipo_doc_codigo: String = if let Some(row) = row_doc.next().await.map_err(|e| e.to_string())? {
-            row.get(0).map_err(|e| e.to_string())?
-        } else {
-            return Err("tipo_documento_id no encontrado en tipos_documento_produccion".to_string());
-        };
-
-        // Mapear al tipo de ingreso
-        let tipo_ingreso_codigo = match tipo_doc_codigo.as_str() {
-            "PRODUCCION" => "PRODUCCION",
-            "DESEMBARQUE" => "ORDEN_DESEMBARQUE",
-            "DIRIMENCIA" => "DIRIMENCIA",
-            _ => "PRODUCCION",
-        };
-
-        // Buscamos el ID del tipo de ingreso
-        let mut row_tipo = conn.query(
-            "SELECT id FROM tipos_ingreso WHERE codigo = ?1", 
-            vec![Value::from(tipo_ingreso_codigo)]
-        ).await.map_err(|e| e.to_string())?;
-        
-        let tipo_ingreso_id: i64 = if let Some(row) = row_tipo.next().await.map_err(|e| e.to_string())? {
-            row.get(0).map_err(|e| e.to_string())?
-        } else {
-            1 // Default
-        };
-
-        conn.execute(
-            "INSERT INTO ingresos (variante_id, tipo_ingreso_id, fecha, kg, cajas, observaciones)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            vec![
-                Value::from(producto.variante_id),
-                Value::from(tipo_ingreso_id),
-                Value::from(parte.fecha.clone()),
-                Value::from(peso_total),
-                Value::from(total_cajas as i64),
-                Value::from(format!("Generado desde parte {} - {}", parte_id, tipo_doc_codigo)),
-            ],
-        ).await.map_err(|e| e.to_string())?;
     }
 
     // 4. Insertar insumos
@@ -163,8 +115,7 @@ pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<
     while let Some(row) = result.next().await.map_err(|e| e.to_string())? {
         let id: i64 = row.get(0).map_err(|e| e.to_string())?;
         
-        // Aquí faltaría cargar los detalles (transportes, productos, insumos) si se necesitan para el listado
-        // Por ahora cargamos lo básico para el listado
+
         partes.push(ParteProduccion {
             id: Some(id),
             codigo: get_optional_string(&row, 1).map_err(|e| e.to_string())?,

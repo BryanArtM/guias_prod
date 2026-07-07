@@ -246,12 +246,6 @@ async fn obtener_motivos_salida_cmd(state: State<'_, AppState>, token: String) -
 // ============ COMANDOS TAURI - INGRESOS ============
 
 #[tauri::command]
-async fn crear_ingreso_cmd(state: State<'_, AppState>, token: String, ingreso: Ingreso) -> Result<i64, String> {
-    require_auth(&token)?;
-    crear_ingreso(&state.db, &ingreso).await
-}
-
-#[tauri::command]
 async fn obtener_ingresos_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Ingreso>, String> {
     require_auth(&token)?;
     obtener_ingresos(&state.db).await
@@ -269,24 +263,6 @@ async fn contar_ingresos_cmd(state: State<'_, AppState>, token: String) -> Resul
     contar_ingresos(&state.db).await
 }
 
-#[tauri::command]
-async fn crear_ingresos_batch_cmd(state: State<'_, AppState>, token: String, ingresos: Vec<Ingreso>) -> Result<Vec<i64>, String> {
-    require_auth(&token)?;
-    crear_ingresos_batch(&state.db, &ingresos).await
-}
-
-#[tauri::command]
-async fn actualizar_ingreso_cmd(state: State<'_, AppState>, token: String, id: i64, ingreso: Ingreso) -> Result<(), String> {
-    require_auth(&token)?;
-    actualizar_ingreso(&state.db, id, &ingreso).await
-}
-
-#[tauri::command]
-async fn eliminar_ingreso_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
-    require_auth(&token)?;
-    eliminar_ingreso(&state.db, id).await
-}
-
 // ============ COMANDOS TAURI - TIPOS DE SALIDA ============
 
 #[tauri::command]
@@ -297,20 +273,15 @@ async fn obtener_tipos_salida_cmd(state: State<'_, AppState>, token: String) -> 
 
 // ============ COMANDOS TAURI - SALIDAS ============
 
-#[tauri::command]
-async fn crear_salida_cmd(state: State<'_, AppState>, token: String, salida: Salida) -> Result<i64, String> {
-    require_auth(&token)?;
-    crear_salida(&state.db, &salida).await
-}
 
 #[tauri::command]
-async fn obtener_salidas_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Salida>, String> {
+async fn obtener_salidas_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<ControlSalidaResumen>, String> {
     require_auth(&token)?;
     obtener_salidas(&state.db).await
 }
 
 #[tauri::command]
-async fn obtener_salidas_paginadas_cmd(state: State<'_, AppState>, token: String, limite: i64, offset: i64) -> Result<Vec<Salida>, String> {
+async fn obtener_salidas_paginadas_cmd(state: State<'_, AppState>, token: String, limite: i64, offset: i64) -> Result<Vec<ControlSalidaResumen>, String> {
     require_auth(&token)?;
     obtener_salidas_paginadas(&state.db, limite, offset).await
 }
@@ -321,23 +292,6 @@ async fn contar_salidas_cmd(state: State<'_, AppState>, token: String) -> Result
     contar_salidas(&state.db).await
 }
 
-#[tauri::command]
-async fn crear_salidas_batch_cmd(state: State<'_, AppState>, token: String, salidas: Vec<Salida>) -> Result<Vec<i64>, String> {
-    require_auth(&token)?;
-    crear_salidas_batch(&state.db, &salidas).await
-}
-
-#[tauri::command]
-async fn actualizar_salida_cmd(state: State<'_, AppState>, token: String, id: i64, salida: Salida) -> Result<(), String> {
-    require_auth(&token)?;
-    actualizar_salida(&state.db, id, &salida).await
-}
-
-#[tauri::command]
-async fn eliminar_salida_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
-    require_auth(&token)?;
-    eliminar_salida(&state.db, id).await
-}
 
 // ============ COMANDOS TAURI - CONTROL DE SALIDA ============
 
@@ -367,6 +321,12 @@ async fn obtener_partes_produccion_cmd(state: State<'_, AppState>, token: String
 async fn obtener_stock_por_variante_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<StockVariante>, String> {
     require_auth(&token)?;
     obtener_stock_por_variante(&state.db).await
+}
+
+#[tauri::command]
+async fn obtener_stock_actual_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<StockActual>, String> {
+    require_auth(&token)?;
+    obtener_stock_actual(&state.db).await
 }
 
 // ============ COMANDOS TAURI - AUTENTICACIÓN ============
@@ -454,25 +414,17 @@ pub fn run() {
             obtener_tipos_ingreso_cmd,
             obtener_tipos_documento_produccion_cmd,
             // Ingresos
-            crear_ingreso_cmd,
             obtener_ingresos_cmd,
             obtener_ingresos_paginados_cmd,
             contar_ingresos_cmd,
-            crear_ingresos_batch_cmd,
-            actualizar_ingreso_cmd,
-            eliminar_ingreso_cmd,
             // Tipos de salida
             obtener_tipos_salida_cmd,
             obtener_motivos_salida_cmd,
             obtener_tipos_documento_salida_cmd,
             // Salidas
-            crear_salida_cmd,
             obtener_salidas_cmd,
             obtener_salidas_paginadas_cmd,
             contar_salidas_cmd,
-            crear_salidas_batch_cmd,
-            actualizar_salida_cmd,
-            eliminar_salida_cmd,
             // Control de salida
             crear_control_salida_cmd,
             // Partes de producción
@@ -480,6 +432,7 @@ pub fn run() {
             obtener_partes_produccion_cmd,
             // Consultas
             obtener_stock_por_variante_cmd,
+            obtener_stock_actual_cmd,
             // Autenticación
             register_cmd,
             login_cmd,
