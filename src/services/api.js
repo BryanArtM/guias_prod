@@ -173,7 +173,7 @@ export const eliminarVariantePresentacion = (id) => {
 // ==================== TIPOS DE INGRESO ====================
 
 export const obtenerTiposIngreso = () => {
-  return invokeWithAuth("obtener_tipos_ingreso_cmd");
+  return invokeWithAuth("obtener_tipos_documento_produccion_cmd");
 };
 
 export const obtenerTiposDocumentoProduccion = () => {
@@ -186,9 +186,6 @@ export const obtenerTiposDocumentoSalida = () => {
 
 // ==================== INGRESOS ====================
 
-export const crearIngreso = (ingreso) => {
-  return invokeWithAuth("crear_ingreso_cmd", { ingreso });
-};
 
 export const obtenerIngresos = () => {
   return invokeWithAuth("obtener_ingresos_cmd");
@@ -203,23 +200,11 @@ export const contarIngresos = () => {
   return invokeWithAuth("contar_ingresos_cmd");
 };
 
-// Batch insert para importación masiva
-export const crearIngresosBatch = (ingresos) => {
-  return invokeWithAuth("crear_ingresos_batch_cmd", { ingresos });
-};
-
-export const actualizarIngreso = (id, ingreso) => {
-  return invokeWithAuth("actualizar_ingreso_cmd", { id, ingreso });
-};
-
-export const eliminarIngreso = (id) => {
-  return invokeWithAuth("eliminar_ingreso_cmd", { id });
-};
 
 // ==================== TIPOS DE SALIDA ====================
 
 export const obtenerTiposSalida = () => {
-  return invokeWithAuth("obtener_tipos_salida_cmd");
+  return invokeWithAuth("obtener_tipos_documento_salida_cmd");
 };
 
 export const obtenerMotivosSalida = () => {
@@ -228,9 +213,6 @@ export const obtenerMotivosSalida = () => {
 
 // ==================== SALIDAS ====================
 
-export const crearSalida = (salida) => {
-  return invokeWithAuth("crear_salida_cmd", { salida });
-};
 
 export const obtenerSalidas = () => {
   return invokeWithAuth("obtener_salidas_cmd");
@@ -245,23 +227,15 @@ export const contarSalidas = () => {
   return invokeWithAuth("contar_salidas_cmd");
 };
 
-// Batch insert para importación masiva
-export const crearSalidasBatch = (salidas) => {
-  return invokeWithAuth("crear_salidas_batch_cmd", { salidas });
-};
-
-export const actualizarSalida = (id, salida) => {
-  return invokeWithAuth("actualizar_salida_cmd", { id, salida });
-};
-
-export const eliminarSalida = (id) => {
-  return invokeWithAuth("eliminar_salida_cmd", { id });
-};
 
 // ==================== CONSULTAS ====================
 
 export const obtenerStockPorVariante = () => {
   return invokeWithAuth("obtener_stock_por_variante_cmd");
+};
+
+export const obtenerStockActual = () => {
+  return invokeWithAuth("obtener_stock_actual_cmd");
 };
 
 // ==================== DIAGNÓSTICO ====================

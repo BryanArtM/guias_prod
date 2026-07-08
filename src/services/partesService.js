@@ -7,8 +7,11 @@ export const partesService = {
     return await invoke("crear_parte_produccion_cmd", { token, parte });
   },
 
-  async obtenerPartes(tipo = null) {
+  async obtenerPartes(tipoDocumentoId = null) {
     const token = useAuthStore.getState().token;
-    return await invoke("obtener_partes_produccion_cmd", { token, tipo });
+    return await invoke("obtener_partes_produccion_cmd", {
+      token,
+      tipo_documento_id: tipoDocumentoId,
+    });
   },
 };
