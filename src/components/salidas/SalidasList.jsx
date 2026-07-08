@@ -1,35 +1,27 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import {
   TableModular as Table,
   TableHeader,
   TableBody,
   TableRow,
   TableHead,
-  TableCell,
 } from "@/components/common/Table";
 import { Button, Modal, Alert, Select, Pagination } from "@/components/common";
-import SalidaForm from "./SalidaForm";
-import { Trash2, Plus, Filter } from "lucide-react";
-import {
-  obtenerSalidasPaginadas,
-  contarSalidas,
-  crearSalida,
-  eliminarSalida,
-} from "@/services";
+import { Plus } from "lucide-react";
+import { obtenerSalidasPaginadas, contarSalidas } from "@/services";
+import { controlService } from "@/services";
 import { usePagination } from "@/hooks";
 
-export default function SalidasList({ variantes = [], tiposSalida = [] }) {
+export default function SalidasList({
+  variantes = [],
+  tiposDocumentoSalida = [],
+}) {
   const [modalAbierto, setModalAbierto] = useState(false);
   const [alerta, setAlerta] = useState(null);
-
-  // Filtros
   const [filtroTipo, setFiltroTipo] = useState("");
-  const [filtroVariante, setFiltroVariante] = useState("");
-
-  // Control de items por página
+  const [filtroEspecie, setFiltroEspecie] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  // OPTIMIZADO: Usar hook de paginación
   const pagination = usePagination(
     obtenerSalidasPaginadas,
     contarSalidas,
@@ -51,71 +43,32 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
     refrescar,
   } = pagination;
 
-  // Aplicar filtros localmente
-  const salidasFiltradas = salidas.filter((salida) => {
-    if (filtroTipo && salida.tipo_salida_id !== parseInt(filtroTipo)) {
-      return false;
-    }
-    if (filtroVariante && salida.variante_id !== parseInt(filtroVariante)) {
-      return false;
-    }
-    return true;
-  });
+  const salidasFiltradas = useMemo(() => {
+    return salidas.filter((salida) => {
+      if (filtroTipo && salida.tipo_documento_id !== parseInt(filtroTipo, 10)) {
+        return false;
+      }
+      if (filtroEspecie && salida.especie_id !== parseInt(filtroEspecie, 10)) {
+        return false;
+      }
+      return true;
+    });
+  }, [salidas, filtroTipo, filtroEspecie]);
 
   const mostrarAlerta = (mensaje, tipo = "success") => {
     setAlerta({ mensaje, tipo });
     setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
   };
 
-  const abrirModal = () => {
-    setModalAbierto(true);
-  };
-
-  const cerrarModal = () => {
-    setModalAbierto(false);
-  };
-
-  const handleCrear = async (data) => {
-    try {
-      await crearSalida(data);
-      mostrarAlerta("Salida registrada exitosamente");
-      cerrarModal();
-      refrescar(); // OPTIMIZADO: Refrescar datos paginados
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const handleEliminar = async (id, fecha) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la salida del ${fecha}?`)) {
-      return;
-    }
-
-    try {
-      await eliminarSalida(id);
-      mostrarAlerta("Salida eliminada exitosamente");
-      refrescar(); // OPTIMIZADO: Refrescar datos paginados
-    } catch (error) {
-      mostrarAlerta("Error al eliminar salida: " + error.message, "error");
-    }
-  };
-
-  const obtenerCodigoVariante = (varianteId) => {
-    const variante = variantes.find((v) => v.variante_id === varianteId);
-    return variante ? variante.codigo_completo : `ID: ${varianteId}`;
-  };
-
-  const obtenerNombreTipo = (tipoId) => {
-    const tipo = tiposSalida.find((t) => t.id === tipoId);
-    return tipo ? tipo.codigo : "-";
-  };
+  const abrirModal = () => setModalAbierto(true);
+  const cerrarModal = () => setModalAbierto(false);
 
   const limpiarFiltros = () => {
     setFiltroTipo("");
-    setFiltroVariante("");
+    setFiltroEspecie("");
   };
 
-  const hayFiltrosActivos = filtroTipo || filtroVariante;
+  const hayFiltrosActivos = filtroTipo || filtroEspecie;
 
   if (cargando) {
     return (
@@ -133,57 +86,46 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
         </Alert>
       )}
 
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Registro de Salidas
-        </h2>
-        <Button
-          onClick={abrirModal}
-          icon={<Plus className="w-4 h-4" />}
-          iconPosition="left"
-        >
-          Registrar Salida
-        </Button>
-      </div>
-
-      {/* Filtros */}
       <div className="bg-white p-4 rounded-lg shadow mb-4">
-        <div className="flex items-center gap-4">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
-              label="Filtrar por Tipo"
-              value={filtroTipo}
-              onChange={(e) => setFiltroTipo(e.target.value)}
-            >
-              <option value="">Todos los tipos</option>
-              {tiposSalida.map((tipo) => (
-                <option key={tipo.id} value={tipo.id}>
-                  {tipo.codigo}
-                </option>
-              ))}
-            </Select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Select
+            label="Filtrar por tipo"
+            value={filtroTipo}
+            onChange={(e) => setFiltroTipo(e.target.value)}
+          >
+            <option value="">Todos los tipos</option>
+            {tiposDocumentoSalida.map((tipo) => (
+              <option key={tipo.id} value={tipo.id}>
+                {tipo.codigo}
+              </option>
+            ))}
+          </Select>
 
-            <Select
-              label="Filtrar por Variante"
-              value={filtroVariante}
-              onChange={(e) => setFiltroVariante(e.target.value)}
-            >
-              <option value="">Todas las variantes</option>
-              {variantes.map((variante) => (
-                <option key={variante.variante_id} value={variante.variante_id}>
-                  {variante.codigo_completo}
-                </option>
-              ))}
-            </Select>
-          </div>
+          <Select
+            label="Filtrar por especie"
+            value={filtroEspecie}
+            onChange={(e) => setFiltroEspecie(e.target.value)}
+          >
+            <option value="">Todas las especies</option>
+            {[
+              ...new Map(
+                salidas.map((s) => [s.especie_id, s.especie_nombre]),
+              ).entries(),
+            ].map(([id, nombre]) => (
+              <option key={id} value={id}>
+                {nombre}
+              </option>
+            ))}
+          </Select>
+        </div>
 
-          {hayFiltrosActivos && (
+        {hayFiltrosActivos && (
+          <div className="mt-4 flex justify-end">
             <Button variant="secondary" onClick={limpiarFiltros}>
               Limpiar filtros
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         <p className="text-sm text-gray-600 mt-2">
           {hayFiltrosActivos
@@ -192,7 +134,6 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
         </p>
       </div>
 
-      {/* Selector de items por página */}
       <div className="mb-4">
         <Select
           label="Elementos por página"
@@ -208,9 +149,7 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
 
       {salidasFiltradas.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          {salidas.length === 0
-            ? "No hay salidas registradas en esta página"
-            : "No se encontraron salidas con los filtros aplicados"}
+          No hay controles de salida registrados
         </div>
       ) : (
         <>
@@ -218,45 +157,38 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>N° Control</TableHead>
                   <TableHead>Fecha</TableHead>
-                  <TableHead>Código Variante</TableHead>
+                  <TableHead>Cliente</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Kg</TableHead>
-                  <TableHead>Cajas</TableHead>
-                  <TableHead>Acciones</TableHead>
+                  <TableHead>Especie</TableHead>
+                  <TableHead className="text-right">Cantidad</TableHead>
+                  <TableHead className="text-right">Kg</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {salidasFiltradas.map((salida) => (
                   <TableRow key={salida.id}>
-                    <TableCell>{salida.fecha}</TableCell>
-                    <TableCell>
-                      <span className="font-mono text-sm text-blue-700">
-                        {obtenerCodigoVariante(salida.variante_id)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
+                    <td className="font-mono text-sm text-blue-700">
+                      {salida.numero_control}
+                    </td>
+                    <td>{salida.fecha}</td>
+                    <td>{salida.cliente}</td>
+                    <td>
                       <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
-                        {obtenerNombreTipo(salida.tipo_salida_id)}
+                        {salida.tipo_documento_codigo}
                       </span>
-                    </TableCell>
-                    <TableCell>{salida.kg.toFixed(2)}</TableCell>
-                    <TableCell>{salida.cajas || "-"}</TableCell>
-                    <TableCell className="text-center">
-                      <button
-                        onClick={() => handleEliminar(salida.id, salida.fecha)}
-                        className="text-red-600 hover:text-red-800"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </TableCell>
+                    </td>
+                    <td>{salida.especie_nombre}</td>
+                    <td className="text-right">{salida.suma_cantidad}</td>
+                    <td className="text-right">
+                      {Number(salida.suma_total_kg || 0).toFixed(2)}
+                    </td>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
-          {/* OPTIMIZADO: Componente de paginación */}
           <Pagination
             paginaActual={paginaActual}
             totalPaginas={totalPaginas}
@@ -272,19 +204,6 @@ export default function SalidasList({ variantes = [], tiposSalida = [] }) {
         </>
       )}
 
-      <Modal
-        isOpen={modalAbierto}
-        onClose={cerrarModal}
-        title="Registrar Salida"
-        size="large"
-      >
-        <SalidaForm
-          onSubmit={handleCrear}
-          onCancel={cerrarModal}
-          variantes={variantes}
-          tiposSalida={tiposSalida}
-        />
-      </Modal>
     </div>
   );
 }
