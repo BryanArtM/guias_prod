@@ -150,6 +150,7 @@ pub struct ParteProduccion {
     pub turno: Option<String>,
     pub codigo_trazabilidad: Option<String>,
     pub especie_id: Option<i64>,
+    pub especie_nombre: Option<String>,
     pub entera: Option<f64>,
     pub observaciones: Option<String>,
     pub tipo_documento_id: i64, 

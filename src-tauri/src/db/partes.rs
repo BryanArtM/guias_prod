@@ -127,6 +127,7 @@ pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<
             turno: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
             codigo_trazabilidad: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
             especie_id: get_optional_i64(&row, 8).map_err(|e| e.to_string())?,
+            especie_nombre: None,
             entera: get_optional_f64(&row, 9).map_err(|e| e.to_string())?,
             observaciones: get_optional_string(&row, 10).map_err(|e| e.to_string())?,
             tipo_documento_id: row.get(11).map_err(|e| e.to_string())?,
@@ -143,8 +144,12 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
 
     // Cabecera
     let mut result = conn.query(
-        "SELECT id, codigo, revision, version, cliente, fecha, turno, codigo_trazabilidad, especie_id, entera, observaciones, tipo_documento_id
-         FROM partes_produccion WHERE id = ?1",
+        "SELECT pp.id, pp.codigo, pp.revision, pp.version, pp.cliente, pp.fecha, pp.turno, 
+            pp.codigo_trazabilidad, pp.especie_id, pp.entera, pp.observaciones, pp.tipo_documento_id,
+            e.nombre as especie_nombre
+        FROM partes_produccion pp
+        LEFT JOIN especies e ON pp.especie_id = e.id
+        WHERE pp.id = ?1",
         vec![Value::from(id)],
     ).await.map_err(|e| e.to_string())?;
 
@@ -162,6 +167,7 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         turno: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
         codigo_trazabilidad: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
         especie_id: get_optional_i64(&row, 8).map_err(|e| e.to_string())?,
+        especie_nombre: get_optional_string(&row, 12).map_err(|e| e.to_string())?,
         entera: get_optional_f64(&row, 9).map_err(|e| e.to_string())?,
         observaciones: get_optional_string(&row, 10).map_err(|e| e.to_string())?,
         tipo_documento_id: row.get(11).map_err(|e| e.to_string())?,

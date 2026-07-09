@@ -65,15 +65,15 @@ pub async fn obtener_ingresos_paginados(
     let mut result = conn.query(
         "SELECT
             p.id,
-            ppp.variante_id,
             p.tipo_documento_id,
             p.fecha,
-            ppp.peso_total_neto_kg,
-            COALESCE(ppp.peso_total_neto_kg, 0),
-            COALESCE(ppp.cajas_carro_1, 0) + COALESCE(ppp.cajas_carro_2, 0) + COALESCE(ppp.cajas_carro_3, 0) + COALESCE(ppp.cajas_carro_4, 0),
+            SUM(COALESCE(ppp.peso_total_neto_kg, 0)) as kg_total,
+            SUM(COALESCE(ppp.cajas_carro_1,0) + COALESCE(ppp.cajas_carro_2,0) + 
+                COALESCE(ppp.cajas_carro_3,0) + COALESCE(ppp.cajas_carro_4,0)) as cajas_total,
             p.observaciones
          FROM partes_produccion p
-         JOIN parte_produccion_producto ppp ON ppp.parte_id = p.id
+         LEFT JOIN parte_produccion_producto ppp ON ppp.parte_id = p.id
+         GROUP BY p.id
          ORDER BY p.fecha DESC, p.id DESC
          LIMIT ?1 OFFSET ?2",
         params,
@@ -83,13 +83,13 @@ pub async fn obtener_ingresos_paginados(
     while let Some(row) = result.next().await.map_err(|e| e.to_string())? {
         ingresos.push(Ingreso {
             id: Some(row.get(0).map_err(|e| e.to_string())?),
-            variante_id: row.get(1).map_err(|e| e.to_string())?,
-            tipo_ingreso_id: row.get(2).map_err(|e| e.to_string())?,
-            fecha: row.get(3).map_err(|e| e.to_string())?,
-            peso_total_lote: get_optional_f64(&row, 4).map_err(|e| e.to_string())?,
-            kg: row.get(5).map_err(|e| e.to_string())?,
-            cajas: row.get(6).map_err(|e| e.to_string())?,
-            observaciones: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
+            variante_id: 0, // ya no aplica en lista, puedes usar Option<i64> = None
+            tipo_ingreso_id: row.get(1).map_err(|e| e.to_string())?,
+            fecha: row.get(2).map_err(|e| e.to_string())?,
+            peso_total_lote: None,
+            kg: row.get(3).map_err(|e| e.to_string())?,
+            cajas: row.get(4).map_err(|e| e.to_string())?,
+            observaciones: get_optional_string(&row, 5).map_err(|e| e.to_string())?,
         });
     }
     Ok(ingresos)
