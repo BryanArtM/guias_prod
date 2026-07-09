@@ -2,28 +2,38 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ParteProduccionForm } from "@/components/partes";
 import { Alert, Loading } from "@/components/common";
-import { partesService, obtenerTiposDocumentoProduccion } from "@/services";
+import { partesService, obtenerTiposIngreso } from "@/services";
 
 export default function NewPartePage() {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [tipos, setTipos] = useState([]);
-  const [tipo, setTipo] = useState(null);
+  const [tipoSeleccionado, setTipoSeleccionado] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    obtenerTiposDocumentoProduccion()
-      .then((data) => {
-        setTipos(data || []);
-        if (data?.length > 0) setTipo(data[0].id);
-      })
-      .catch((err) => setError("Error al cargar tipos de documento: " + err));
+    const cargarTipos = async () => {
+      try {
+        const data = await obtenerTiposIngreso();
+        setTipos(data);
+        if (data.length > 0) setTipoSeleccionado(data[0]);
+      } catch (err) {
+        setError("Error al cargar tipos de documento: " + err.message);
+      } finally {
+        setCargando(false);
+      }
+    };
+    cargarTipos();
   }, []);
 
   const handleSubmit = async (data) => {
     try {
       setError(null);
-      await partesService.crearParte(data);
+      await partesService.crearParte({
+        ...data,
+        tipo_documento_id: tipoSeleccionado?.id,
+      });
       setSuccess(true);
       setTimeout(() => navigate("/ingresos"), 2000);
     } catch (err) {
@@ -41,6 +51,7 @@ export default function NewPartePage() {
       </div>
     );
   }
+  if (cargando) return <Loading />;
 
   return (
     <div className="container mx-auto px-4 py-10">
@@ -49,25 +60,27 @@ export default function NewPartePage() {
           {error}
         </Alert>
       )}
-
-      <div className="flex mb-6 justify-center gap-20">
-        {tipos.map((t) => (
+      <div className="flex mb-6 justify-center gap-4 flex-wrap">
+        {tipos.map((tipo) => (
           <button
-            key={t.id}
+            key={tipo.id}
             type="button"
-            onClick={() => setTipo(t.id)}
+            onClick={() => setTipoSeleccionado(tipo)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
-              tipo === t.id
+              tipoSeleccionado?.id === tipo.id
                 ? "bg-blue-900 text-white border-blue-900"
                 : "text-gray-600 border-gray-300 hover:border-blue-400"
             }`}
           >
-            {t.codigo}
+            {tipo.codigo}
           </button>
         ))}
       </div>
-
-      <ParteProduccionForm tipo={tipo} onSubmit={handleSubmit} />
+      <ParteProduccionForm
+        tipo={tipoSeleccionado?.id}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate("/ingresos")}
+      />
     </div>
   );
 }

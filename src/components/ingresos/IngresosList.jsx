@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   TableModular as Table,
   TableHeader,
@@ -7,15 +8,9 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Modal, Alert, Select, Pagination } from "@/components/common";
-import IngresoForm from "./IngresoForm";
-import { Trash2, Plus, Filter } from "lucide-react";
-import {
-  obtenerIngresosPaginados,
-  contarIngresos,
-  crearIngreso,
-  eliminarIngreso,
-} from "@/services";
+import { Button, Alert, Select, Pagination } from "@/components/common";
+import { Trash2, Filter, Plus, Eye } from "lucide-react";
+import { obtenerIngresosPaginados, contarIngresos } from "@/services";
 import { usePagination } from "@/hooks";
 
 export default function IngresosList({
@@ -23,6 +18,8 @@ export default function IngresosList({
   variantes = [],
   tiposIngreso = [],
 }) {
+  const navigate = useNavigate();
+
   const [modalAbierto, setModalAbierto] = useState(false);
   const [alerta, setAlerta] = useState(null);
 
@@ -79,17 +76,6 @@ export default function IngresosList({
     setModalAbierto(false);
   };
 
-  const handleCrear = async (data) => {
-    try {
-      await crearIngreso(data);
-      mostrarAlerta("Ingreso registrado exitosamente");
-      cerrarModal();
-      refrescar();
-    } catch (error) {
-      throw error;
-    }
-  };
-
   const handleEliminar = async (id, fecha) => {
     if (!window.confirm(`¿Estás seguro de eliminar el ingreso del ${fecha}?`)) {
       return;
@@ -136,19 +122,6 @@ export default function IngresosList({
           {alerta.mensaje}
         </Alert>
       )}
-
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Registro de Ingresos
-        </h2>
-        <Button
-          onClick={abrirModal}
-          icon={<Plus className="w-4 h-4" />}
-          iconPosition="left"
-        >
-          Registrar Ingreso
-        </Button>
-      </div>
 
       {/* Filtros */}
       <div className="bg-white p-4 rounded-lg shadow mb-4">
@@ -246,7 +219,7 @@ export default function IngresosList({
                     </TableCell>
                     <TableCell>{ingreso.kg.toFixed(2)}</TableCell>
                     <TableCell>{ingreso.cajas || "-"}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center gap-5 flex justify-center">
                       <button
                         onClick={() =>
                           handleEliminar(ingreso.id, ingreso.fecha)
@@ -255,6 +228,13 @@ export default function IngresosList({
                         title="Eliminar"
                       >
                         <Trash2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => navigate(`/ingresos/${ingreso.id}`)}
+                        className="text-blue-600 hover:text-blue-800 mr-2"
+                        title="Ver detalle"
+                      >
+                        <Eye className="w-4 h-4" />
                       </button>
                     </TableCell>
                   </TableRow>
@@ -277,21 +257,6 @@ export default function IngresosList({
           />
         </>
       )}
-
-      <Modal
-        isOpen={modalAbierto}
-        onClose={cerrarModal}
-        title="Registrar Ingreso"
-        size="large"
-      >
-        <IngresoForm
-          onSubmit={handleCrear}
-          onCancel={cerrarModal}
-          especies={especies}
-          variantes={variantes}
-          tiposIngreso={tiposIngreso}
-        />
-      </Modal>
     </div>
   );
 }

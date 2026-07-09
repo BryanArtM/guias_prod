@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Input, Button, Loading, Select } from "@/components/common";
 import ReceptionSection from "./ReceptionSection";
 import PackedProductSection from "./PackedProductSection";
@@ -29,7 +29,7 @@ export default function ParteProduccionForm({
       especie_id: "",
       entera: 0,
       observaciones: "",
-      tipo_documento_id: tipo || null,
+      tipo_documento_id: tipo || "",
       transportes: [
         {
           num_guia: "",
@@ -48,8 +48,17 @@ export default function ParteProduccionForm({
       insumos: [],
     },
   );
+
   useEffect(() => {
-    setFormData((prev) => ({ ...prev, tipo_documento_id: tipo }));
+    if (tipo === undefined || tipo === null || tipo === "") {
+      return;
+    }
+
+    setFormData((prev) =>
+      prev.tipo_documento_id === tipo
+        ? prev
+        : { ...prev, tipo_documento_id: tipo },
+    );
   }, [tipo]);
 
   const [especies, setEspecies] = useState([]);
@@ -105,14 +114,16 @@ export default function ParteProduccionForm({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validaciones básicas
     if (!formData.especie_id) return alert("Debe seleccionar una especie");
+    if (!formData.tipo_documento_id)
+      return alert("Debe seleccionar un tipo de documento");
     if (formData.productos.length === 0)
       return alert("Debe añadir al menos un producto");
 
     const dataToSend = {
       ...formData,
       especie_id: parseInt(formData.especie_id),
+      tipo_documento_id: parseInt(formData.tipo_documento_id, 10),
       entera: parseFloat(formData.entera) || 0,
       transportes: formData.transportes.map((t) => ({
         ...t,
@@ -138,38 +149,31 @@ export default function ParteProduccionForm({
         cantidad: parseInt(i.cantidad) || 0,
       })),
     };
-    console.log("PARTE A ENVIAR");
-    console.log(JSON.stringify(dataToSend, null, 2));
+
     onSubmit(dataToSend);
   };
 
   if (cargando) return <Loading />;
 
   const totalRecepcion = calculateTotalRecepcion();
+  const tipoDocumentoSeleccionado = tiposDocumento.find(
+    (tipoDocumentoItem) =>
+      String(tipoDocumentoItem.id) === String(formData.tipo_documento_id),
+  );
 
   return (
     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12">
-      {/* HEADER SECTION */}
       <div className="bg-blue-900 text-white p-6 rounded-t-xl shadow-md mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <h1 className="text-2xl font-bold">
-            Registro de{" "}
-            {tiposDocumento.find((t) => t.id === tipo)?.codigo || ""}
-          </h1>{" "}
+            Registro de {tipoDocumentoSeleccionado?.codigo || ""}
+          </h1>
           <div className="flex gap-4 items-center">
             <div className="text-right">
               <p className="text-xs text-blue-200">
-                Cliente: {formData.cliente}
+                Usuario: {formData.username || user?.username || ""}
               </p>
-              <p className="text-xs text-blue-200">
-                Documento:{" "}
-                {(() => {
-                  const t = tiposDocumento.find(
-                    (x) => x.id === formData.tipo_documento_id,
-                  );
-                  return t ? t.codigo : formData.tipo_documento_id || "";
-                })()}
-              </p>
+
             </div>
             <Button
               type="submit"
