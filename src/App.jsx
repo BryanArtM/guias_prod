@@ -8,6 +8,7 @@ import {
   CatalogosPage,
   VariantesPage,
   IngresosPage,
+  IngresoDetallePage,
   SalidasPage,
   StockPage,
   ReportesPage,
@@ -111,6 +112,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <IngresosPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ingresos/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <IngresoDetallePage />
               </Layout>
             </ProtectedRoute>
           }

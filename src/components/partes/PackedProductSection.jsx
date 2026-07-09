@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { Button, Input, Select } from "@/components/common";
+import { Button, Select } from "@/components/common";
 import { Plus, Trash2 } from "lucide-react";
 
 export default function PackedProductSection({
