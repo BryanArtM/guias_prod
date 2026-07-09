@@ -14,4 +14,12 @@ export const partesService = {
       tipo_documento_id: tipoDocumentoId,
     });
   },
+
+  async obtenerParte(id) {
+    const token = useAuthStore.getState().token;
+    return await invoke("obtener_parte_produccion_por_id_cmd", {
+      token,
+      id: Number(id),
+    });
+  },
 };

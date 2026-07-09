@@ -217,7 +217,7 @@ async fn eliminar_variante_presentacion_cmd(state: State<'_, AppState>, token: S
     eliminar_variante_presentacion(&state.db, id).await
 }
 
-// ============ COMANDOS TAURI - TIPOS DE INGRESO ============
+// ============ COMANDOS TAURI - TIPOS DE INGRESO / SALIDA ============
 
 #[tauri::command]
 async fn obtener_tipos_ingreso_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<TipoIngreso>, String> {
@@ -255,6 +255,12 @@ async fn obtener_ingresos_cmd(state: State<'_, AppState>, token: String) -> Resu
 async fn obtener_ingresos_paginados_cmd(state: State<'_, AppState>, token: String, limite: i64, offset: i64) -> Result<Vec<Ingreso>, String> {
     require_auth(&token)?;
     obtener_ingresos_paginados(&state.db, limite, offset).await
+}
+
+#[tauri::command]
+async fn obtener_parte_produccion_por_id_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<ParteProduccion, String> {
+    require_auth(&token)?;
+    obtener_parte_produccion_por_id(&state.db, id).await
 }
 
 #[tauri::command]
@@ -429,6 +435,7 @@ pub fn run() {
             crear_control_salida_cmd,
             // Partes de producción
             crear_parte_produccion_cmd,
+            obtener_parte_produccion_por_id_cmd,
             obtener_partes_produccion_cmd,
             // Consultas
             obtener_stock_por_variante_cmd,

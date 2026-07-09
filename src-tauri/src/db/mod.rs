@@ -97,5 +97,6 @@ pub use stock::{obtener_stock_por_variante, obtener_stock_actual};
 pub use partes::{
     crear_parte_produccion,
     obtener_partes_produccion,
+    obtener_parte_produccion_por_id,
 };
 

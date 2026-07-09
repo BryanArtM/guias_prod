@@ -1,6 +1,7 @@
 use libsql::{Database, Value};
 use crate::db::types::ParteProduccion;
 use crate::db::helpers::*;
+use crate::{ParteProduccionEmbarcacion, ParteProduccionTransporte, ParteProduccionProducto, ParteProduccionInsumo};
 
 pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> Result<i64, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
@@ -135,4 +136,110 @@ pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<
         });
     }
     Ok(partes)
+}
+
+pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<ParteProduccion, String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+
+    // Cabecera
+    let mut result = conn.query(
+        "SELECT id, codigo, revision, version, cliente, fecha, turno, codigo_trazabilidad, especie_id, entera, observaciones, tipo_documento_id
+         FROM partes_produccion WHERE id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    let row = result.next().await.map_err(|e| e.to_string())?
+        .ok_or_else(|| "Parte de producción no encontrada".to_string())?;
+
+    let parte_id: i64 = row.get(0).map_err(|e| e.to_string())?;
+    let mut parte = ParteProduccion {
+        id: Some(parte_id),
+        codigo: get_optional_string(&row, 1).map_err(|e| e.to_string())?,
+        revision: get_optional_string(&row, 2).map_err(|e| e.to_string())?,
+        version: get_optional_string(&row, 3).map_err(|e| e.to_string())?,
+        cliente: get_optional_string(&row, 4).map_err(|e| e.to_string())?,
+        fecha: row.get(5).map_err(|e| e.to_string())?,
+        turno: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
+        codigo_trazabilidad: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
+        especie_id: get_optional_i64(&row, 8).map_err(|e| e.to_string())?,
+        entera: get_optional_f64(&row, 9).map_err(|e| e.to_string())?,
+        observaciones: get_optional_string(&row, 10).map_err(|e| e.to_string())?,
+        tipo_documento_id: row.get(11).map_err(|e| e.to_string())?,
+        transportes: Vec::new(),
+        productos: Vec::new(),
+        insumos: Vec::new(),
+    };
+
+    // Transportes + embarcaciones
+    let mut res_t = conn.query(
+        "SELECT id, num_guia, num_carro, placa FROM parte_produccion_transporte WHERE parte_id = ?1",
+        vec![Value::from(parte_id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    while let Some(row_t) = res_t.next().await.map_err(|e| e.to_string())? {
+        let transporte_id: i64 = row_t.get(0).map_err(|e| e.to_string())?;
+
+        let mut embarcaciones = Vec::new();
+        let mut res_e = conn.query(
+            "SELECT id, nombre_embarcacion_pesquera, matricula_embarcacion_pesquera, peso_total_kg
+             FROM parte_produccion_embarcacion WHERE transporte_id = ?1",
+            vec![Value::from(transporte_id)],
+        ).await.map_err(|e| e.to_string())?;
+
+        while let Some(row_e) = res_e.next().await.map_err(|e| e.to_string())? {
+            embarcaciones.push(ParteProduccionEmbarcacion {
+                id: Some(row_e.get(0).map_err(|e| e.to_string())?),
+                nombre_embarcacion_pesquera: get_optional_string(&row_e, 1).map_err(|e| e.to_string())?,
+                matricula_embarcacion_pesquera: get_optional_string(&row_e, 2).map_err(|e| e.to_string())?,
+                peso_total_kg: get_optional_f64(&row_e, 3).map_err(|e| e.to_string())?,
+            });
+        }
+
+        parte.transportes.push(ParteProduccionTransporte {
+            id: Some(transporte_id),
+            num_guia: get_optional_string(&row_t, 1).map_err(|e| e.to_string())?,
+            num_carro: get_optional_string(&row_t, 2).map_err(|e| e.to_string())?,
+            placa: get_optional_string(&row_t, 3).map_err(|e| e.to_string())?,
+            embarcaciones,
+        });
+    }
+
+    // Productos
+    let mut res_p = conn.query(
+        "SELECT id, variante_id, peso_unidad, cajas_carro_1, cajas_carro_2,
+                cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento
+        FROM parte_produccion_producto WHERE parte_id = ?1",
+        vec![Value::from(parte_id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    while let Some(row_p) = res_p.next().await.map_err(|e| e.to_string())? {
+        parte.productos.push(ParteProduccionProducto {
+            id: Some(row_p.get(0).map_err(|e| e.to_string())?),
+            variante_id: row_p.get(1).map_err(|e| e.to_string())?,
+            peso_unidad: get_optional_f64(&row_p, 2).map_err(|e| e.to_string())?,
+            cajas_carro_1: row_p.get::<i32>(3).unwrap_or(0),
+            cajas_carro_2: row_p.get::<i32>(4).unwrap_or(0),
+            cajas_carro_3: row_p.get::<i32>(5).unwrap_or(0),
+            cajas_carro_4: row_p.get::<i32>(6).unwrap_or(0),
+            peso_total_neto_kg: get_optional_f64(&row_p, 7).map_err(|e| e.to_string())?,
+            acumulado_presentacion: get_optional_f64(&row_p, 8).map_err(|e| e.to_string())?,
+            rendimiento: get_optional_f64(&row_p, 9).map_err(|e| e.to_string())?,
+        });
+    }
+
+    // Insumos
+    let mut res_i = conn.query(
+        "SELECT id, nombre, cantidad FROM parte_produccion_insumo WHERE parte_id = ?1",
+        vec![Value::from(parte_id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    while let Some(row_i) = res_i.next().await.map_err(|e| e.to_string())? {
+        parte.insumos.push(ParteProduccionInsumo {
+            id: Some(row_i.get(0).map_err(|e| e.to_string())?),
+            nombre: get_optional_string(&row_i, 1).map_err(|e| e.to_string())?,
+            cantidad: get_optional_i64(&row_i, 2).map_err(|e| e.to_string())?.map(|v| v as i32),
+        });
+    }
+
+    Ok(parte)
 }

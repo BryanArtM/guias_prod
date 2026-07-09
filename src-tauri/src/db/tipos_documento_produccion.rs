@@ -25,3 +25,4 @@ pub async fn obtener_tipos_documento_produccion(db: &Database) -> Result<Vec<Tip
     }
     Ok(result)
 }
+
