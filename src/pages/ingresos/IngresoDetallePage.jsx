@@ -95,7 +95,7 @@ export default function IngresoDetallePage() {
     fecha,
     turno,
     codigo_trazabilidad,
-    especie,
+    especie_nombre: especie,
     entera,
     observaciones,
     tipo_documento,
