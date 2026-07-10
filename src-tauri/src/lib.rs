@@ -316,6 +316,12 @@ async fn crear_parte_produccion_cmd(state: State<'_, AppState>, token: String, p
 }
 
 #[tauri::command]
+async fn actualizar_parte_produccion_cmd(state: State<'_, AppState>, token: String, id: i64, parte: ParteProduccion) -> Result<(), String> {
+    require_auth(&token)?;
+    actualizar_parte_produccion(&state.db, id, &parte).await
+}
+
+#[tauri::command]
 async fn obtener_partes_produccion_cmd(state: State<'_, AppState>, token: String, tipo_documento_id: Option<i64>) -> Result<Vec<ParteProduccion>, String> {
     require_auth(&token)?;
     obtener_partes_produccion(&state.db, tipo_documento_id).await
@@ -435,6 +441,7 @@ pub fn run() {
             crear_control_salida_cmd,
             // Partes de producción
             crear_parte_produccion_cmd,
+            actualizar_parte_produccion_cmd,
             obtener_parte_produccion_por_id_cmd,
             obtener_partes_produccion_cmd,
             // Consultas

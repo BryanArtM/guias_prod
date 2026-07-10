@@ -6,6 +6,14 @@ export const partesService = {
     const token = useAuthStore.getState().token;
     return await invoke("crear_parte_produccion_cmd", { token, parte });
   },
+  async actualizarParte(id, parte) {
+    const token = useAuthStore.getState().token;
+    return await invoke("actualizar_parte_produccion_cmd", {
+      token,
+      id: Number(id),
+      parte,
+    });
+  },
 
   async obtenerPartes(tipoDocumentoId = null) {
     const token = useAuthStore.getState().token;

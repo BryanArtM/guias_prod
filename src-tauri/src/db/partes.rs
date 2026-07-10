@@ -93,6 +93,112 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
     Ok(parte_id)
 }
 
+pub async fn actualizar_parte_produccion(db: &Database, id: i64, parte: &ParteProduccion) -> Result<(), String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+
+    // 1. Actualizar encabezado
+    conn.execute(
+        "UPDATE partes_produccion SET
+         codigo = ?1, revision = ?2, version = ?3, cliente = ?4, fecha = ?5,
+         turno = ?6, codigo_trazabilidad = ?7, especie_id = ?8, entera = ?9,
+         observaciones = ?10, tipo_documento_id = ?11
+         WHERE id = ?12",
+        vec![
+            option_string_to_value(parte.codigo.clone()),
+            option_string_to_value(parte.revision.clone()),
+            option_string_to_value(parte.version.clone()),
+            option_string_to_value(parte.cliente.clone()),
+            Value::from(parte.fecha.clone()),
+            option_string_to_value(parte.turno.clone()),
+            option_string_to_value(parte.codigo_trazabilidad.clone()),
+            option_i64_to_value(parte.especie_id),
+            option_f64_to_value(parte.entera),
+            option_string_to_value(parte.observaciones.clone()),
+            Value::from(parte.tipo_documento_id),
+            Value::from(id),
+        ],
+    ).await.map_err(|e| e.to_string())?;
+
+    // 2. Eliminar relaciones (CASCADE elimina embarcaciones al borrar transportes)
+    conn.execute(
+        "DELETE FROM parte_produccion_transporte WHERE parte_id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM parte_produccion_producto WHERE parte_id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM parte_produccion_insumo WHERE parte_id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    // 3. Re-insertar transportes y embarcaciones
+    for transporte in &parte.transportes {
+        conn.execute(
+            "INSERT INTO parte_produccion_transporte (parte_id, num_guia, num_carro, placa) VALUES (?1, ?2, ?3, ?4)",
+            vec![
+                Value::from(id),
+                option_string_to_value(transporte.num_guia.clone()),
+                option_string_to_value(transporte.num_carro.clone()),
+                option_string_to_value(transporte.placa.clone()),
+            ],
+        ).await.map_err(|e| e.to_string())?;
+
+        let transporte_id = conn.last_insert_rowid();
+
+        for ep in &transporte.embarcaciones {
+            conn.execute(
+                "INSERT INTO parte_produccion_embarcacion (transporte_id, nombre_embarcacion_pesquera, matricula_embarcacion_pesquera, peso_total_kg)
+                 VALUES (?1, ?2, ?3, ?4)",
+                vec![
+                    Value::from(transporte_id),
+                    option_string_to_value(ep.nombre_embarcacion_pesquera.clone()),
+                    option_string_to_value(ep.matricula_embarcacion_pesquera.clone()),
+                    option_f64_to_value(ep.peso_total_kg),
+                ],
+            ).await.map_err(|e| e.to_string())?;
+        }
+    }
+
+    // 4. Re-insertar productos
+    for producto in &parte.productos {
+        conn.execute(
+            "INSERT INTO parte_produccion_producto
+             (parte_id, variante_id, peso_unidad, cajas_carro_1, cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            vec![
+                Value::from(id),
+                Value::from(producto.variante_id),
+                option_f64_to_value(producto.peso_unidad),
+                Value::from(producto.cajas_carro_1 as i64),
+                Value::from(producto.cajas_carro_2 as i64),
+                Value::from(producto.cajas_carro_3 as i64),
+                Value::from(producto.cajas_carro_4 as i64),
+                option_f64_to_value(producto.peso_total_neto_kg),
+                option_f64_to_value(producto.acumulado_presentacion),
+                option_f64_to_value(producto.rendimiento),
+            ],
+        ).await.map_err(|e| e.to_string())?;
+    }
+
+    // 5. Re-insertar insumos
+    for insumo in &parte.insumos {
+        conn.execute(
+            "INSERT INTO parte_produccion_insumo (parte_id, nombre, cantidad) VALUES (?1, ?2, ?3)",
+            vec![
+                Value::from(id),
+                option_string_to_value(insumo.nombre.clone()),
+                option_i32_to_value(insumo.cantidad),
+            ],
+        ).await.map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
+}
+
 pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<i64>) -> Result<Vec<ParteProduccion>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
     
