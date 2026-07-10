@@ -3,6 +3,8 @@ import { Input, Button, Loading, Select } from "@/components/common";
 import ReceptionSection from "./ReceptionSection";
 import PackedProductSection from "./PackedProductSection";
 import InsumosSection from "./InsumosSection";
+import HeaderSection from "./HeaderSection";
+
 import {
   obtenerEspecies,
   obtenerVariantesCompletas,
@@ -20,9 +22,10 @@ export default function ParteProduccionForm({
   const [formData, setFormData] = useState(
     initialData || {
       codigo: "",
-      revision: new Date().toLocaleDateString(),
-      version: "1.0",
-      cliente: user?.username || "",
+      revision: "",
+      version: "",
+      usuario: user?.username || "",
+      cliente: "",
       fecha: new Date().toISOString().split("T")[0],
       turno: "DIA",
       codigo_trazabilidad: "",
@@ -173,7 +176,6 @@ export default function ParteProduccionForm({
               <p className="text-xs text-blue-200">
                 Usuario: {formData.username || user?.username || ""}
               </p>
-
             </div>
             <Button
               type="submit"
@@ -193,34 +195,25 @@ export default function ParteProduccionForm({
             onChange={handleChange}
             className="bg-blue-800 border-blue-700 text-white placeholder-blue-300"
           />
+
           <Input
-            label="Fecha"
-            name="fecha"
-            type="date"
-            value={formData.fecha}
-            onChange={handleChange}
-            className="bg-blue-800 border-blue-700 text-white"
-          />
-          <Select
-            label="Turno"
-            name="turno"
-            value={formData.turno}
-            onChange={handleChange}
-            className="bg-blue-800 border-blue-700 text-white"
-          >
-            <option value="DIA">DÍA</option>
-            <option value="TARDE">TARDE</option>
-            <option value="NOCHE">NOCHE</option>
-          </Select>
-          <Input
-            label="Código Trazabilidad"
-            name="codigo_trazabilidad"
-            value={formData.codigo_trazabilidad}
+            label="Revisión"
+            name="revision"
+            value={formData.revision}
             onChange={handleChange}
             className="bg-blue-800 border-blue-700 text-white placeholder-blue-300"
           />
+          <Input
+            label="Versión"
+            name="version"
+            value={formData.version}
+            onChange={handleChange}
+            className="bg-blue-800 border-blue-700 text-white"
+          />
         </div>
       </div>
+
+      <HeaderSection formData={formData} onChange={handleChange} />
 
       <ReceptionSection
         especieId={formData.especie_id}

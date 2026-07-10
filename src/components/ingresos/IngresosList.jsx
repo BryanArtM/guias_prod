@@ -15,7 +15,6 @@ import { usePagination } from "@/hooks";
 
 export default function IngresosList({
   especies = [],
-  variantes = [],
   tiposIngreso = [],
 }) {
   const navigate = useNavigate();
@@ -25,7 +24,6 @@ export default function IngresosList({
 
   // Filtros
   const [filtroTipo, setFiltroTipo] = useState("");
-  const [filtroVariante, setFiltroVariante] = useState("");
 
   // Control de items por página
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -55,9 +53,6 @@ export default function IngresosList({
   // Aplicar filtros localmente
   const ingresosFiltrados = ingresos.filter((ingreso) => {
     if (filtroTipo && ingreso.tipo_ingreso_id !== parseInt(filtroTipo)) {
-      return false;
-    }
-    if (filtroVariante && ingreso.variante_id !== parseInt(filtroVariante)) {
       return false;
     }
     return true;
@@ -90,10 +85,7 @@ export default function IngresosList({
     }
   };
 
-  const obtenerCodigoVariante = (varianteId) => {
-    const variante = variantes.find((v) => v.variante_id === varianteId);
-    return variante ? variante.codigo_completo : `ID: ${varianteId}`;
-  };
+
 
   const obtenerNombreTipo = (tipoId) => {
     const tipo = tiposIngreso.find((t) => t.id === tipoId);
@@ -102,10 +94,9 @@ export default function IngresosList({
 
   const limpiarFiltros = () => {
     setFiltroTipo("");
-    setFiltroVariante("");
   };
 
-  const hayFiltrosActivos = filtroTipo || filtroVariante;
+  const hayFiltrosActivos = filtroTipo ;
 
   if (cargando) {
     return (
@@ -141,18 +132,6 @@ export default function IngresosList({
               ))}
             </Select>
 
-            <Select
-              label="Filtrar por Variante"
-              value={filtroVariante}
-              onChange={(e) => setFiltroVariante(e.target.value)}
-            >
-              <option value="">Todas las variantes</option>
-              {variantes.map((variante) => (
-                <option key={variante.variante_id} value={variante.variante_id}>
-                  {variante.codigo_completo}
-                </option>
-              ))}
-            </Select>
           </div>
 
           {hayFiltrosActivos && (
@@ -196,7 +175,6 @@ export default function IngresosList({
               <TableHeader>
                 <TableRow>
                   <TableHead>Fecha</TableHead>
-                  <TableHead>Código Variante</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Kg</TableHead>
                   <TableHead>Cajas</TableHead>
@@ -207,11 +185,7 @@ export default function IngresosList({
                 {ingresosFiltrados.map((ingreso) => (
                   <TableRow key={ingreso.id}>
                     <TableCell>{ingreso.fecha}</TableCell>
-                    <TableCell>
-                      <span className="font-mono text-sm text-blue-700">
-                        {obtenerCodigoVariante(ingreso.variante_id)}
-                      </span>
-                    </TableCell>
+
                     <TableCell>
                       <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
                         {obtenerNombreTipo(ingreso.tipo_ingreso_id)}

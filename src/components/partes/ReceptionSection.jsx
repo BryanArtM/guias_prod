@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Input, Button, Select } from "@/components/common";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -79,7 +78,7 @@ export default function ReceptionSection({
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
       <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
-        Sección 1 — Recepción de materia prima
+        Recepción de materia prima
       </h2>
 
       <div className="flex my-6">
@@ -228,7 +227,7 @@ export default function ReceptionSection({
           iconPosition="left"
           onClick={addTransporte}
         >
-          Añadir Embarcación
+          Añadir Transporte
         </Button>
       </div>
       <div className="flex my-6">
