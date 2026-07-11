@@ -136,7 +136,7 @@ export default function PackedProductSection({
         </thead>
         <tbody>
           {productos.map((p, index) => (
-            <tr key={index} className="hover:bg-gray-50 transition-colors">
+            <tr key={p.id ?? index} className="hover:bg-gray-50 transition-colors">
               <td className="p-1 border">
                 <Select
                   value={p.variante_id}

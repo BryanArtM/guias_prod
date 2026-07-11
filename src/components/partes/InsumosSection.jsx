@@ -24,7 +24,7 @@ export default function InsumosSection({ insumos, onChangeInsumos }) {
 
       <div className="space-y-3">
         {insumos.map((ins, index) => (
-          <div key={index} className="flex gap-4 items-end">
+          <div key={ins.id ?? index} className="flex gap-4 items-end">
             <div className="flex-1">
               <Input
                 label={index === 0 ? "Nombre del Insumo" : ""}

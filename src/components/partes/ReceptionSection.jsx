@@ -99,7 +99,7 @@ export default function ReceptionSection({
       <div className="space-y-6">
         {transportes.map((t, tIndex) => (
           <div
-            key={tIndex}
+            key={t.id ?? tIndex}
             className="p-4 bg-gray-50 rounded-lg border border-gray-200"
           >
             <div className="flex justify-between items-center mb-4">
@@ -146,7 +146,7 @@ export default function ReceptionSection({
               </h4>
               {t.embarcaciones.map((e, eIndex) => (
                 <div
-                  key={eIndex}
+                  key={e.id ?? eIndex}
                   className="flex flex-wrap items-end gap-3 p-3 bg-white rounded border border-gray-100"
                 >
                   <div className="flex-1 min-w-[200px]">

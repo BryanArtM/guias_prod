@@ -165,7 +165,7 @@ export default function ParteProduccionForm({
   );
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12">
+    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
       <div className="bg-blue-900 text-white p-6 rounded-t-xl shadow-md mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <h1 className="text-2xl font-bold">

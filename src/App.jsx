@@ -9,6 +9,7 @@ import {
   VariantesPage,
   IngresosPage,
   IngresoDetallePage,
+  EditarIngresosPage,
   SalidasPage,
   StockPage,
   ReportesPage,
@@ -122,6 +123,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <IngresoDetallePage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ingresos/:id/editar"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <EditarIngresosPage />
               </Layout>
             </ProtectedRoute>
           }
