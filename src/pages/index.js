@@ -6,6 +6,7 @@ export { default as CatalogosPage } from "./CatalogosPage";
 export { default as VariantesPage } from "./VariantesPage";
 export { default as IngresosPage } from "./ingresos/IngresosPage";
 export { default as IngresoDetallePage } from "./ingresos/IngresoDetallePage";
+export { default as EditarIngresosPage } from "./ingresos/EditarIngresosPage";
 export { default as SalidasPage } from "./SalidasPage";
 export { default as StockPage } from "./StockPage";
 export { default as ReportesPage } from "./ReportesPage";

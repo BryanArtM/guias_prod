@@ -9,14 +9,11 @@ import {
   TableCell,
 } from "@/components/common/Table";
 import { Button, Alert, Select, Pagination } from "@/components/common";
-import { Trash2, Filter, Plus, Eye } from "lucide-react";
+import { Trash2, Filter, Pencil, Eye } from "lucide-react";
 import { obtenerIngresosPaginados, contarIngresos } from "@/services";
 import { usePagination } from "@/hooks";
 
-export default function IngresosList({
-  especies = [],
-  tiposIngreso = [],
-}) {
+export default function IngresosList({ especies = [], tiposIngreso = [] }) {
   const navigate = useNavigate();
 
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -85,8 +82,6 @@ export default function IngresosList({
     }
   };
 
-
-
   const obtenerNombreTipo = (tipoId) => {
     const tipo = tiposIngreso.find((t) => t.id === tipoId);
     return tipo ? tipo.codigo : "-";
@@ -96,7 +91,7 @@ export default function IngresosList({
     setFiltroTipo("");
   };
 
-  const hayFiltrosActivos = filtroTipo ;
+  const hayFiltrosActivos = filtroTipo;
 
   if (cargando) {
     return (
@@ -131,7 +126,6 @@ export default function IngresosList({
                 </option>
               ))}
             </Select>
-
           </div>
 
           {hayFiltrosActivos && (
@@ -195,6 +189,21 @@ export default function IngresosList({
                     <TableCell>{ingreso.cajas || "-"}</TableCell>
                     <TableCell className="text-center gap-5 flex justify-center">
                       <button
+                        onClick={() => navigate(`/ingresos/${ingreso.id}`)}
+                        className="text-blue-600 hover:text-blue-800 mr-2"
+                        title="Ver detalle"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          navigate(`/ingresos/${ingreso.id}/editar`)
+                        }
+                        className="text-green-600 hover:text-green-800 mr-2"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() =>
                           handleEliminar(ingreso.id, ingreso.fecha)
                         }
@@ -202,13 +211,6 @@ export default function IngresosList({
                         title="Eliminar"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => navigate(`/ingresos/${ingreso.id}`)}
-                        className="text-blue-600 hover:text-blue-800 mr-2"
-                        title="Ver detalle"
-                      >
-                        <Eye className="w-4 h-4" />
                       </button>
                     </TableCell>
                   </TableRow>

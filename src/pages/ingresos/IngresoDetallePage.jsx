@@ -9,7 +9,15 @@ import {
   TableCell,
 } from "@/components/common/Table";
 import { Button, Alert } from "@/components/common";
-import { ArrowLeft, Truck, Ship, Package, Wrench } from "lucide-react";
+import {
+  ArrowLeft,
+  Truck,
+  Ship,
+  Package,
+  Pencil,
+  Wrench,
+  Dice1,
+} from "lucide-react";
 import { partesService } from "@/services";
 
 function SeccionTitulo({ icono, titulo }) {
@@ -107,21 +115,29 @@ export default function IngresoDetallePage() {
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-6">
       {/* Encabezado */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-gray-500 hover:text-gray-700 transition-colors"
-          title="Volver"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Parte de Producción
-            {codigo && <span className="ml-2 text-blue-600">#{codigo}</span>}
-          </h1>
-          <p className="text-sm text-gray-500">{fecha}</p>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+            title="Volver"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Parte de Producción
+              {codigo && <span className="ml-2 text-blue-600">#{codigo}</span>}
+            </h1>
+            <p className="text-sm text-gray-500">{fecha}</p>
+          </div>
         </div>
+        <button
+          onClick={() => navigate(`/ingresos/${id}/editar`)}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          <Pencil className="w-4 h-4" /> Editar
+        </button>
       </div>
 
       {/* Datos generales */}
