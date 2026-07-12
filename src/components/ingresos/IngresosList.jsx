@@ -177,11 +177,11 @@ export default function IngresosList({ especies = [], tiposIngreso = [] }) {
               </TableHeader>
               <TableBody>
                 {ingresosFiltrados.map((ingreso) => (
-                  <TableRow key={ingreso.id}>
+                  <TableRow key={ingreso.id} className="text-center">
                     <TableCell>{ingreso.fecha}</TableCell>
 
                     <TableCell>
-                      <span className="inline-block px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
+                      <span className="inline-block px-2 py-1 text-xs  text-green-800 ">
                         {obtenerNombreTipo(ingreso.tipo_ingreso_id)}
                       </span>
                     </TableCell>

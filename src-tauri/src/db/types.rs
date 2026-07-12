@@ -154,6 +154,7 @@ pub struct ParteProduccion {
     pub entera: Option<f64>,
     pub observaciones: Option<String>,
     pub tipo_documento_id: i64, 
+    pub tipo_documento_codigo: Option<String>,
     pub transportes: Vec<ParteProduccionTransporte>,
     pub productos: Vec<ParteProduccionProducto>,
     pub insumos: Vec<ParteProduccionInsumo>,

@@ -8,16 +8,8 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Alert } from "@/components/common";
-import {
-  ArrowLeft,
-  Truck,
-  Ship,
-  Package,
-  Pencil,
-  Wrench,
-  Dice1,
-} from "lucide-react";
+import { Button, Alert, Card } from "@/components/common";
+import { ArrowLeft, Truck, Ship, Package, Pencil, Wrench } from "lucide-react";
 import { partesService } from "@/services";
 
 function SeccionTitulo({ icono, titulo }) {
@@ -36,14 +28,6 @@ function Campo({ etiqueta, valor, className = "" }) {
         {etiqueta}
       </p>
       <p className="text-sm text-gray-800 font-medium">{valor ?? "-"}</p>
-    </div>
-  );
-}
-
-function Tarjeta({ children, className = "" }) {
-  return (
-    <div className={`bg-white rounded-lg shadow p-5 ${className}`}>
-      {children}
     </div>
   );
 }
@@ -106,7 +90,7 @@ export default function IngresoDetallePage() {
     especie_nombre: especie,
     entera,
     observaciones,
-    tipo_documento,
+    tipo_documento_codigo,
     transportes = [],
     productos = [],
     insumos = [],
@@ -139,17 +123,18 @@ export default function IngresoDetallePage() {
           <Pencil className="w-4 h-4" /> Editar
         </button>
       </div>
-
+      <div className="flex flex-wrap gap-4 justify-around py-4">
+        <Campo etiqueta="Código" valor={codigo} />
+        <Campo etiqueta="Revisión" valor={revision} />
+        <Campo etiqueta="Versión" valor={version} />
+        <Campo etiqueta="Tipo Documento" valor={tipo_documento_codigo} />
+      </div>
       {/* Datos generales */}
-      <Tarjeta>
+      <Card>
         <h3 className="text-base font-semibold text-gray-700 mb-4">
           Datos Generales
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Campo etiqueta="Código" valor={codigo} />
-          <Campo etiqueta="Revisión" valor={revision} />
-          <Campo etiqueta="Versión" valor={version} />
-          <Campo etiqueta="Tipo Documento" valor={tipo_documento} />
           <Campo etiqueta="Cliente" valor={cliente} />
           <Campo etiqueta="Fecha" valor={fecha} />
           <Campo etiqueta="Turno" valor={turno} />
@@ -162,14 +147,14 @@ export default function IngresoDetallePage() {
           <Campo
             etiqueta="Observaciones"
             valor={observaciones}
-            className="col-span-2"
+            className="col-span-2 whitespace-pre-wrap"
           />
         </div>
-      </Tarjeta>
+      </Card>
 
       {/* Transportes y embarcaciones */}
       {transportes.length > 0 && (
-        <Tarjeta>
+        <Card>
           <SeccionTitulo
             icono={<Truck className="w-4 h-4" />}
             titulo="Transportes"
@@ -230,12 +215,12 @@ export default function IngresoDetallePage() {
               </div>
             ))}
           </div>
-        </Tarjeta>
+        </Card>
       )}
 
       {/* Productos */}
       {productos.length > 0 && (
-        <Tarjeta>
+        <Card>
           <SeccionTitulo
             icono={<Package className="w-4 h-4" />}
             titulo="Productos"
@@ -288,12 +273,12 @@ export default function IngresoDetallePage() {
               </TableBody>
             </Table>
           </div>
-        </Tarjeta>
+        </Card>
       )}
 
       {/* Insumos */}
       {insumos.length > 0 && (
-        <Tarjeta>
+        <Card>
           <SeccionTitulo
             icono={<Wrench className="w-4 h-4" />}
             titulo="Insumos"
@@ -316,7 +301,7 @@ export default function IngresoDetallePage() {
               </TableBody>
             </Table>
           </div>
-        </Tarjeta>
+        </Card>
       )}
     </div>
   );

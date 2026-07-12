@@ -237,6 +237,7 @@ pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<
             entera: get_optional_f64(&row, 9).map_err(|e| e.to_string())?,
             observaciones: get_optional_string(&row, 10).map_err(|e| e.to_string())?,
             tipo_documento_id: row.get(11).map_err(|e| e.to_string())?,
+            tipo_documento_codigo: None,
             transportes: Vec::new(),
             productos: Vec::new(),
             insumos: Vec::new(),
@@ -250,12 +251,12 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
 
     // Cabecera
     let mut result = conn.query(
-        "SELECT pp.id, pp.codigo, pp.revision, pp.version, pp.cliente, pp.fecha, pp.turno, 
-            pp.codigo_trazabilidad, pp.especie_id, pp.entera, pp.observaciones, pp.tipo_documento_id,
-            e.nombre as especie_nombre
-        FROM partes_produccion pp
-        LEFT JOIN especies e ON pp.especie_id = e.id
-        WHERE pp.id = ?1",
+        "SELECT p.id, p.codigo, p.revision, p.version, p.cliente, p.fecha, p.turno, 
+                p.codigo_trazabilidad, p.especie_id, p.entera, p.observaciones, 
+                p.tipo_documento_id, t.codigo as tipo_documento_codigo
+         FROM partes_produccion p
+         LEFT JOIN tipos_documento_produccion t ON t.id = p.tipo_documento_id
+         WHERE p.id = ?1",
         vec![Value::from(id)],
     ).await.map_err(|e| e.to_string())?;
 
@@ -277,6 +278,7 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         entera: get_optional_f64(&row, 9).map_err(|e| e.to_string())?,
         observaciones: get_optional_string(&row, 10).map_err(|e| e.to_string())?,
         tipo_documento_id: row.get(11).map_err(|e| e.to_string())?,
+        tipo_documento_codigo: get_optional_string(&row, 12).map_err(|e| e.to_string())?,
         transportes: Vec::new(),
         productos: Vec::new(),
         insumos: Vec::new(),
