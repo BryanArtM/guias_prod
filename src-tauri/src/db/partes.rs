@@ -319,12 +319,16 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
     }
 
     // Productos
-    let mut res_p = conn.query(
-        "SELECT id, variante_id, peso_unidad, cajas_carro_1, cajas_carro_2,
-                cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento
-        FROM parte_produccion_producto WHERE parte_id = ?1",
-        vec![Value::from(parte_id)],
-    ).await.map_err(|e| e.to_string())?;
+        let mut res_p = conn.query(
+            "SELECT pp.id, pp.variante_id, pp.peso_unidad, pp.cajas_carro_1, pp.cajas_carro_2,
+                    pp.cajas_carro_3, pp.cajas_carro_4, pp.peso_total_neto_kg, 
+                    pp.acumulado_presentacion, pp.rendimiento,
+                    vc.codigo_completo
+            FROM parte_produccion_producto pp
+            LEFT JOIN variantes_completas_view vc ON vc.variante_id = pp.variante_id
+            WHERE pp.parte_id = ?1",
+            vec![Value::from(parte_id)],
+        ).await.map_err(|e| e.to_string())?;
 
     while let Some(row_p) = res_p.next().await.map_err(|e| e.to_string())? {
         parte.productos.push(ParteProduccionProducto {
@@ -336,6 +340,7 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
             cajas_carro_3: row_p.get::<i32>(5).unwrap_or(0),
             cajas_carro_4: row_p.get::<i32>(6).unwrap_or(0),
             peso_total_neto_kg: get_optional_f64(&row_p, 7).map_err(|e| e.to_string())?,
+            codigo_completo: get_optional_string(&row_p, 10).map_err(|e| e.to_string())?,
             acumulado_presentacion: get_optional_f64(&row_p, 8).map_err(|e| e.to_string())?,
             rendimiento: get_optional_f64(&row_p, 9).map_err(|e| e.to_string())?,
         });

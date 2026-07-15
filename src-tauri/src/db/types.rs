@@ -187,6 +187,7 @@ pub struct ParteProduccionProducto {
     pub cajas_carro_3: i32,
     pub cajas_carro_4: i32,
     pub peso_total_neto_kg: Option<f64>,
+    pub codigo_completo: Option<String>,
     pub acumulado_presentacion: Option<f64>,
     pub rendimiento: Option<f64>,
 }
