@@ -253,10 +253,12 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
     let mut result = conn.query(
         "SELECT p.id, p.codigo, p.revision, p.version, p.cliente, p.fecha, p.turno, 
                 p.codigo_trazabilidad, p.especie_id, p.entera, p.observaciones, 
-                p.tipo_documento_id, t.codigo as tipo_documento_codigo
-         FROM partes_produccion p
-         LEFT JOIN tipos_documento_produccion t ON t.id = p.tipo_documento_id
-         WHERE p.id = ?1",
+                p.tipo_documento_id, t.codigo as tipo_documento_codigo,
+                e.nombre as especie_nombre
+        FROM partes_produccion p
+        LEFT JOIN tipos_documento_produccion t ON t.id = p.tipo_documento_id
+        LEFT JOIN especies e ON e.id = p.especie_id
+        WHERE p.id = ?1",
         vec![Value::from(id)],
     ).await.map_err(|e| e.to_string())?;
 
@@ -274,7 +276,7 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         turno: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
         codigo_trazabilidad: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
         especie_id: get_optional_i64(&row, 8).map_err(|e| e.to_string())?,
-        especie_nombre: get_optional_string(&row, 12).map_err(|e| e.to_string())?,
+        especie_nombre: get_optional_string(&row, 13).map_err(|e| e.to_string())?,
         entera: get_optional_f64(&row, 9).map_err(|e| e.to_string())?,
         observaciones: get_optional_string(&row, 10).map_err(|e| e.to_string())?,
         tipo_documento_id: row.get(11).map_err(|e| e.to_string())?,
