@@ -220,6 +220,12 @@ async fn eliminar_variante_presentacion_cmd(state: State<'_, AppState>, token: S
 // ============ COMANDOS TAURI - TIPOS DE INGRESO / SALIDA ============
 
 #[tauri::command]
+async fn obtener_motivos_ingreso_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<TipoIngreso>, String> {
+    require_auth(&token)?;
+    obtener_motivos_ingreso(&state.db).await
+}
+
+#[tauri::command]
 async fn obtener_tipos_ingreso_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<TipoIngreso>, String> {
     require_auth(&token)?;
     obtener_tipos_ingreso(&state.db).await
@@ -427,6 +433,7 @@ pub fn run() {
             obtener_tipos_documento_produccion_cmd,
             // Ingresos
             obtener_ingresos_cmd,
+            obtener_motivos_ingreso_cmd,
             obtener_ingresos_paginados_cmd,
             contar_ingresos_cmd,
             // Tipos de salida

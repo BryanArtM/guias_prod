@@ -113,6 +113,12 @@ const CREATE_CONTROL_SALIDA_ITEMS: &str = "CREATE TABLE IF NOT EXISTS control_sa
     UNIQUE (control_salida_id, numero_item)
 )";
 
+const CREATE_MOTIVOS_INGRESO: &str = "CREATE TABLE IF NOT EXISTS motivos_ingreso (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,
+    descripcion TEXT
+)";
+
 const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produccion (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     codigo TEXT,
@@ -123,12 +129,14 @@ const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produc
     turno TEXT,
     codigo_trazabilidad TEXT,
     especie_id INTEGER,
+    motivo_ingreso_id INTEGER NOT NULL,
     entera REAL DEFAULT 0,
     observaciones TEXT,
     tipo_documento_id INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (especie_id) REFERENCES especies(id),
     FOREIGN KEY (tipo_documento_id) REFERENCES tipos_documento_produccion(id) ON DELETE RESTRICT
+    FOREIGN KEY (motivo_ingreso_id) REFERENCES motivos_ingreso(id) ON DELETE RESTRICT
 )";
 
 const CREATE_PARTE_PRODUCCION_TRANSPORTE: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_transporte (
@@ -277,6 +285,13 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('DESEMBARQUE', 'Documento de desembarque')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('DIRIMENCIA', 'Documento por dirimencia')", ()).await?;
     
+        // Motivos de ingreso
+    conn.execute(CREATE_MOTIVOS_INGRESO, ()).await?;
+    conn.execute("INSERT OR IGNORE INTO motivos_ingreso (codigo, descripcion) VALUES ('PRODUCCION', 'Produccion')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO motivos_ingreso (codigo, descripcion) VALUES ('REEMPAQUE', 'Reempaque')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO motivos_ingreso (codigo, descripcion) VALUES ('DESPACHO', 'Despacho')", ()).await?;
+    conn.execute("INSERT OR IGNORE INTO motivos_ingreso (codigo, descripcion) VALUES ('OTROS', 'Otros')", ()).await?;
+
     // Tipos de documento para controles de salida
     conn.execute(CREATE_TIPOS_DOCUMENTO_SALIDA, ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_salida (codigo, descripcion) VALUES ('SALIDA', 'Documento de salida')", ()).await?;

@@ -9,8 +9,8 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
     // 1. Insertar encabezado
     conn.execute(
         "INSERT INTO partes_produccion 
-         (codigo, revision, version, cliente, fecha, turno, codigo_trazabilidad, especie_id, entera, observaciones, tipo_documento_id)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+         (codigo, revision, version, cliente, fecha, turno, codigo_trazabilidad, especie_id, motivo_ingreso_id, entera, observaciones, tipo_documento_id)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
         vec![
             option_string_to_value(parte.codigo.clone()),
             option_string_to_value(parte.revision.clone()),
@@ -20,6 +20,7 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
             option_string_to_value(parte.turno.clone()),
             option_string_to_value(parte.codigo_trazabilidad.clone()),
             option_i64_to_value(parte.especie_id),
+            option_i64_to_value(parte.motivo_ingreso_id),
             option_f64_to_value(parte.entera),
             option_string_to_value(parte.observaciones.clone()),
             Value::from(parte.tipo_documento_id),
@@ -100,9 +101,9 @@ pub async fn actualizar_parte_produccion(db: &Database, id: i64, parte: &PartePr
     conn.execute(
         "UPDATE partes_produccion SET
          codigo = ?1, revision = ?2, version = ?3, cliente = ?4, fecha = ?5,
-         turno = ?6, codigo_trazabilidad = ?7, especie_id = ?8, entera = ?9,
-         observaciones = ?10, tipo_documento_id = ?11
-         WHERE id = ?12",
+         turno = ?6, codigo_trazabilidad = ?7, especie_id = ?8, motivo_ingreso_id = ?9, entera = ?10,
+         observaciones = ?11, tipo_documento_id = ?12
+         WHERE id = ?13",
         vec![
             option_string_to_value(parte.codigo.clone()),
             option_string_to_value(parte.revision.clone()),
@@ -112,6 +113,7 @@ pub async fn actualizar_parte_produccion(db: &Database, id: i64, parte: &PartePr
             option_string_to_value(parte.turno.clone()),
             option_string_to_value(parte.codigo_trazabilidad.clone()),
             option_i64_to_value(parte.especie_id),
+            option_i64_to_value(parte.motivo_ingreso_id),
             option_f64_to_value(parte.entera),
             option_string_to_value(parte.observaciones.clone()),
             Value::from(parte.tipo_documento_id),
@@ -204,13 +206,13 @@ pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<
     
     let (query, params) = if let Some(tipo_id) = tipo_documento_id {
         (
-            "SELECT p.id, p.codigo, p.revision, p.version, p.cliente, p.fecha, p.turno, p.codigo_trazabilidad, p.especie_id, p.entera, p.observaciones, p.tipo_documento_id 
+            "SELECT p.id, p.codigo, p.revision, p.version, p.cliente, p.fecha, p.turno, p.codigo_trazabilidad, p.especie_id, p.motivo_ingreso_id, p.entera, p.observaciones, p.tipo_documento_id 
              FROM partes_produccion p WHERE p.tipo_documento_id = ?1 ORDER BY p.fecha DESC, p.id DESC",
             vec![Value::from(tipo_id)]
         )
     } else {
         (
-            "SELECT id, codigo, revision, version, cliente, fecha, turno, codigo_trazabilidad, especie_id, entera, observaciones, tipo_documento_id 
+            "SELECT id, codigo, revision, version, cliente, fecha, turno, codigo_trazabilidad, especie_id, motivo_ingreso_id, entera, observaciones, tipo_documento_id 
              FROM partes_produccion ORDER BY fecha DESC, id DESC",
             vec![]
         )
@@ -234,9 +236,11 @@ pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<
             codigo_trazabilidad: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
             especie_id: get_optional_i64(&row, 8).map_err(|e| e.to_string())?,
             especie_nombre: None,
-            entera: get_optional_f64(&row, 9).map_err(|e| e.to_string())?,
-            observaciones: get_optional_string(&row, 10).map_err(|e| e.to_string())?,
-            tipo_documento_id: row.get(11).map_err(|e| e.to_string())?,
+            motivo_ingreso_id: get_optional_i64(&row, 9).map_err(|e| e.to_string())?,
+            motivo_ingreso_codigo: None,
+            entera: get_optional_f64(&row, 10).map_err(|e| e.to_string())?,
+            observaciones: get_optional_string(&row, 11).map_err(|e| e.to_string())?,
+            tipo_documento_id: row.get(12).map_err(|e| e.to_string())?,
             tipo_documento_codigo: None,
             transportes: Vec::new(),
             productos: Vec::new(),
@@ -252,12 +256,13 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
     // Cabecera
     let mut result = conn.query(
         "SELECT p.id, p.codigo, p.revision, p.version, p.cliente, p.fecha, p.turno, 
-                p.codigo_trazabilidad, p.especie_id, p.entera, p.observaciones, 
+                p.codigo_trazabilidad, p.especie_id, p.motivo_ingreso_id, p.entera, p.observaciones, 
                 p.tipo_documento_id, t.codigo as tipo_documento_codigo,
-                e.nombre as especie_nombre
+                e.nombre as especie_nombre, mi.codigo as motivo_ingreso_codigo
         FROM partes_produccion p
         LEFT JOIN tipos_documento_produccion t ON t.id = p.tipo_documento_id
         LEFT JOIN especies e ON e.id = p.especie_id
+        LEFT JOIN motivos_ingreso mi ON mi.id = p.motivo_ingreso_id
         WHERE p.id = ?1",
         vec![Value::from(id)],
     ).await.map_err(|e| e.to_string())?;
@@ -276,11 +281,13 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         turno: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
         codigo_trazabilidad: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
         especie_id: get_optional_i64(&row, 8).map_err(|e| e.to_string())?,
-        especie_nombre: get_optional_string(&row, 13).map_err(|e| e.to_string())?,
-        entera: get_optional_f64(&row, 9).map_err(|e| e.to_string())?,
-        observaciones: get_optional_string(&row, 10).map_err(|e| e.to_string())?,
-        tipo_documento_id: row.get(11).map_err(|e| e.to_string())?,
-        tipo_documento_codigo: get_optional_string(&row, 12).map_err(|e| e.to_string())?,
+        especie_nombre: get_optional_string(&row, 14).map_err(|e| e.to_string())?,      // 13→14
+        motivo_ingreso_id: get_optional_i64(&row, 9).map_err(|e| e.to_string())?,
+        motivo_ingreso_codigo: get_optional_string(&row, 15).map_err(|e| e.to_string())?, // nuevo
+        entera: get_optional_f64(&row, 10).map_err(|e| e.to_string())?,
+        observaciones: get_optional_string(&row, 11).map_err(|e| e.to_string())?,
+        tipo_documento_id: row.get(12).map_err(|e| e.to_string())?,
+        tipo_documento_codigo: get_optional_string(&row, 13).map_err(|e| e.to_string())?, // correcto, se queda igual
         transportes: Vec::new(),
         productos: Vec::new(),
         insumos: Vec::new(),
