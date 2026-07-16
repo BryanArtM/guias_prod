@@ -1,7 +1,6 @@
 import { Button } from "@/components/common";
 import { Plus, Trash2 } from "lucide-react";
 
-// Los motivos ahora se provienen desde el backend (prop `motivos`)
 
 export default function ControlItemsSection({
   items,

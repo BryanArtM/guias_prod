@@ -91,6 +91,7 @@ export default function IngresoDetallePage() {
     especie_nombre: especie,
     entera,
     observaciones,
+    motivo_ingreso_codigo,
     tipo_documento_codigo,
     transportes = [],
     productos = [],
@@ -136,7 +137,7 @@ export default function IngresoDetallePage() {
         <h3 className="text-base font-semibold text-gray-700 mb-4">
           Datos Generales
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Campo etiqueta="Cliente" valor={cliente} />
           <Campo etiqueta="Fecha" valor={fecha} />
           <Campo etiqueta="Turno" valor={turno} />
@@ -151,6 +152,7 @@ export default function IngresoDetallePage() {
             valor={observaciones}
             className="col-span-2 whitespace-pre-wrap"
           />
+          <Campo etiqueta="Motivo Ingreso" valor={motivo_ingreso_codigo} />
         </div>
       </Card>
 
