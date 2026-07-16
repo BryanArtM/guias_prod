@@ -8,6 +8,7 @@ import HeaderSection from "./HeaderSection";
 import {
   obtenerEspecies,
   obtenerVariantesCompletas,
+  obtenerMotivosIngreso,
   obtenerTiposDocumentoProduccion,
 } from "@/services";
 import { useAuthStore } from "@/stores";
@@ -30,6 +31,7 @@ export default function ParteProduccionForm({
       turno: "DIA",
       codigo_trazabilidad: "",
       especie_id: "",
+      motivo_ingreso_id: "",
       entera: 0,
       observaciones: "",
       tipo_documento_id: tipo || "",
@@ -66,20 +68,23 @@ export default function ParteProduccionForm({
 
   const [especies, setEspecies] = useState([]);
   const [variantes, setVariantes] = useState([]);
+  const [motivosIngreso, setMotivosIngreso] = useState([]);
   const [tiposDocumento, setTiposDocumento] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [espRes, varRes, tiposRes] = await Promise.all([
+        const [espRes, varRes, tiposRes, motivosRes] = await Promise.all([
           obtenerEspecies(),
           obtenerVariantesCompletas(),
           obtenerTiposDocumentoProduccion(),
+          obtenerMotivosIngreso(),
         ]);
         setEspecies(espRes);
         setVariantes(varRes);
         setTiposDocumento(tiposRes || []);
+        setMotivosIngreso(motivosRes || []);
       } catch (error) {
         console.error("Error cargando catálogos:", error);
       } finally {
@@ -146,6 +151,7 @@ export default function ParteProduccionForm({
         peso_total_neto_kg: parseFloat(p.peso_total_neto_kg) || 0,
         acumulado_presentacion: parseFloat(p.acumulado_presentacion) || 0,
         rendimiento: parseFloat(p.rendimiento) || 0,
+        motivo_ingreso_id: formData.motivo_ingreso_id,
       })),
       insumos: formData.insumos.map((i) => ({
         ...i,
@@ -231,8 +237,13 @@ export default function ParteProduccionForm({
         productos={formData.productos}
         variantes={variantes}
         especieId={formData.especie_id}
+        motivoIngreso={formData.motivo_ingreso_id}
+        motivos={motivosIngreso}
         onChangeProductos={(val) =>
           setFormData((p) => ({ ...p, productos: val }))
+        }
+        onChangeMotivoIngreso={(val) =>
+          setFormData((prev) => ({ ...prev, motivo_ingreso_id: val }))
         }
         totalRecepcion={totalRecepcion}
       />

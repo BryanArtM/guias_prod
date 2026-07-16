@@ -6,6 +6,9 @@ export default function PackedProductSection({
   productos,
   variantes = [],
   especieId,
+  motivoIngreso,
+  onChangeMotivoIngreso,
+  motivos = [],
   onChangeProductos,
   totalRecepcion,
 }) {
@@ -66,6 +69,7 @@ export default function PackedProductSection({
         peso_total_neto_kg: 0,
         acumulado_presentacion: 0,
         rendimiento: 0,
+        motivo_salida: "OTROS",
       },
     ]);
   };
@@ -136,7 +140,10 @@ export default function PackedProductSection({
         </thead>
         <tbody>
           {productos.map((p, index) => (
-            <tr key={p.id ?? index} className="hover:bg-gray-50 transition-colors">
+            <tr
+              key={p.id ?? index}
+              className="hover:bg-gray-50 transition-colors"
+            >
               <td className="p-1 border">
                 <Select
                   value={p.variante_id}
@@ -259,6 +266,28 @@ export default function PackedProductSection({
       >
         Añadir Fila de Producción
       </Button>
+
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-sm font-medium text-gray-700">
+          Motivo de Ingreso:
+        </span>
+        <div className="flex gap-2">
+          {motivos.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => onChangeMotivoIngreso(m.id)}
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                motivoIngreso === m.id
+                  ? "bg-blue-900 text-white border-blue-900"
+                  : "text-gray-600 border-gray-300 hover:border-blue-400"
+              }`}
+            >
+              {m.codigo}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

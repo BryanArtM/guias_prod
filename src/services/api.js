@@ -176,6 +176,10 @@ export const obtenerTiposIngreso = () => {
   return invokeWithAuth("obtener_tipos_documento_produccion_cmd");
 };
 
+export const obtenerMotivosIngreso = () => {
+  return invokeWithAuth("obtener_motivos_ingreso_cmd");
+};
+
 export const obtenerTiposDocumentoProduccion = () => {
   return invokeWithAuth("obtener_tipos_documento_produccion_cmd");
 };
@@ -185,7 +189,6 @@ export const obtenerTiposDocumentoSalida = () => {
 };
 
 // ==================== INGRESOS ====================
-
 
 export const obtenerIngresos = () => {
   return invokeWithAuth("obtener_ingresos_cmd");
@@ -200,7 +203,6 @@ export const contarIngresos = () => {
   return invokeWithAuth("contar_ingresos_cmd");
 };
 
-
 // ==================== TIPOS DE SALIDA ====================
 
 export const obtenerTiposSalida = () => {
@@ -212,7 +214,6 @@ export const obtenerMotivosSalida = () => {
 };
 
 // ==================== SALIDAS ====================
-
 
 export const obtenerSalidas = () => {
   return invokeWithAuth("obtener_salidas_cmd");
@@ -226,7 +227,6 @@ export const obtenerSalidasPaginadas = (limite = 50, offset = 0) => {
 export const contarSalidas = () => {
   return invokeWithAuth("contar_salidas_cmd");
 };
-
 
 // ==================== CONSULTAS ====================
 
