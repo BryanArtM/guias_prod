@@ -9,6 +9,7 @@ import {
   TableCell,
 } from "@/components/common/Table";
 import { Button, Alert, Card } from "@/components/common";
+import { PrintButton } from "@/components/ingresos/ImpresionParteProduccion";
 import { ArrowLeft, Truck, Ship, Package, Pencil, Wrench } from "lucide-react";
 import { partesService } from "@/services";
 
@@ -122,6 +123,7 @@ export default function IngresoDetallePage() {
         >
           <Pencil className="w-4 h-4" /> Editar
         </button>
+        <PrintButton parte={ingreso} />
       </div>
       <div className="flex flex-wrap gap-4 justify-around py-4">
         <Campo etiqueta="Código" valor={codigo} />
