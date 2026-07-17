@@ -265,37 +265,32 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {stats.ingresosUltimos30.length > 0 ? (
-            <div className="space-y-2">
-              {stats.ingresosUltimos30.slice(0, 5).map((ingreso) => (
-                <div
-                  key={ingreso.id}
-                  className="flex justify-between items-center py-3 px-3 rounded-lg border border-gray-100 hover:bg-green-50 transition-colors"
+          {stats.ingresosUltimos30.slice(0, 5).map((ingreso) => (
+            <div
+              key={ingreso.id}
+              className="flex justify-between items-center py-3 px-3 rounded-lg border border-gray-100 hover:bg-green-50 transition-colors"
+            >
+              <div>
+                <p
+                  className="text-sm font-medium text-gray-700"
+                  style={{ fontFamily: "Roboto Mono, monospace" }}
                 >
-                  <div>
-                    <p
-                      className="text-sm font-medium text-gray-700"
-                      style={{ fontFamily: "Roboto Mono, monospace" }}
-                    >
-                      {ingreso.fecha}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-green-700">
-                      +{ingreso.kg} kg
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {ingreso.cajas || 0} cajas
-                    </p>
-                  </div>
-                </div>
-              ))}
+                  {ingreso.fecha}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {ingreso.codigo || "Sin código"}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold text-green-700">
+                  {ingreso.especie_nombre || "—"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {ingreso.cliente || "Sin cliente"}
+                </p>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-500 text-center py-8">
-              No hay ingresos recientes
-            </p>
-          )}
+          ))}
         </div>
 
         {/* Salidas recientes */}
@@ -317,37 +312,32 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {stats.salidasUltimas30.length > 0 ? (
-            <div className="space-y-2">
-              {stats.salidasUltimas30.slice(0, 5).map((salida) => (
-                <div
-                  key={salida.id}
-                  className="flex justify-between items-center py-3 px-3 rounded-lg border border-gray-100 hover:bg-red-50 transition-colors"
+          {stats.salidasUltimas30.slice(0, 5).map((salida) => (
+            <div
+              key={salida.id}
+              className="flex justify-between items-center py-3 px-3 rounded-lg border border-gray-100 hover:bg-red-50 transition-colors"
+            >
+              <div>
+                <p
+                  className="text-sm font-medium text-gray-700"
+                  style={{ fontFamily: "Roboto Mono, monospace" }}
                 >
-                  <div>
-                    <p
-                      className="text-sm font-medium text-gray-700"
-                      style={{ fontFamily: "Roboto Mono, monospace" }}
-                    >
-                      {salida.fecha}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-red-700">
-                      -{salida.suma_total_kg ?? salida.kg ?? 0} kg
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {salida.suma_cantidad ?? salida.cajas ?? 0} cajas
-                    </p>
-                  </div>
-                </div>
-              ))}
+                  {salida.fecha}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {salida.numero_control || "Sin código"}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold text-red-700">
+                  {salida.especie_nombre || "—"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {salida.cliente || "Sin cliente"}
+                </p>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-500 text-center py-8">
-              No hay salidas recientes
-            </p>
-          )}
+          ))}
         </div>
       </div>
     </div>
