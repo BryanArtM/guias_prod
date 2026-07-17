@@ -1,22 +1,8 @@
 use libsql::Database;
-use crate::db::types::{ControlSalidaResumen, TipoSalida};
+use crate::db::types::ControlSalidaResumen;
 use crate::db::helpers::*;
 
-pub async fn obtener_tipos_salida(db: &Database) -> Result<Vec<TipoSalida>, String> {
-    let conn = db.connect().map_err(|e| e.to_string())?;
-    let mut result = conn.query("SELECT id, codigo, descripcion FROM tipos_documento_salida ORDER BY codigo", ())
-        .await.map_err(|e| e.to_string())?;
 
-    let mut tipos = Vec::new();
-    while let Some(row) = result.next().await.map_err(|e| e.to_string())? {
-        tipos.push(TipoSalida {
-            id: Some(row.get(0).map_err(|e| e.to_string())?),
-            codigo: row.get(1).map_err(|e| e.to_string())?,
-            descripcion: get_optional_string(&row, 2).map_err(|e| e.to_string())?,
-        });
-    }
-    Ok(tipos)
-}
 
 pub async fn obtener_salidas(db: &Database) -> Result<Vec<ControlSalidaResumen>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;

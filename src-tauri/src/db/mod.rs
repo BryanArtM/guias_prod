@@ -72,14 +72,12 @@ pub use variantes::{
 };
 
 pub use ingresos::{
-    obtener_tipos_ingreso,
     obtener_ingresos,
     obtener_ingresos_paginados,
     contar_ingresos,
 };
 
 pub use salidas::{
-    obtener_tipos_salida,
     obtener_salidas,
     obtener_salidas_paginadas,
     contar_salidas,

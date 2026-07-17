@@ -172,9 +172,6 @@ export const eliminarVariantePresentacion = (id) => {
 
 // ==================== TIPOS DE INGRESO ====================
 
-export const obtenerTiposIngreso = () => {
-  return invokeWithAuth("obtener_tipos_documento_produccion_cmd");
-};
 
 export const obtenerMotivosIngreso = () => {
   return invokeWithAuth("obtener_motivos_ingreso_cmd");
@@ -204,10 +201,6 @@ export const contarIngresos = () => {
 };
 
 // ==================== TIPOS DE SALIDA ====================
-
-export const obtenerTiposSalida = () => {
-  return invokeWithAuth("obtener_tipos_documento_salida_cmd");
-};
 
 export const obtenerMotivosSalida = () => {
   return invokeWithAuth("obtener_motivos_salida_cmd");
