@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   TableModular as Table,
   TableHeader,
@@ -13,20 +13,28 @@ import { controlService } from "@/services";
 import { usePagination } from "@/hooks";
 
 export default function SalidasList({
-  variantes = [],
+  especies = [],
   tiposDocumentoSalida = [],
 }) {
-  const [modalAbierto, setModalAbierto] = useState(false);
   const [alerta, setAlerta] = useState(null);
   const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroEspecie, setFiltroEspecie] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  const pagination = usePagination(
-    obtenerSalidasPaginadas,
-    contarSalidas,
-    itemsPerPage,
+  const tipoId = filtroTipo ? parseInt(filtroTipo, 10) : null;
+  const especieId = filtroEspecie ? parseInt(filtroEspecie, 10) : null;
+
+  const fetchSalidas = useCallback(
+    (limite, offset) =>
+      obtenerSalidasPaginadas(limite, offset, tipoId, especieId),
+    [tipoId, especieId],
   );
+  const countSalidas = useCallback(
+    () => contarSalidas(tipoId, especieId),
+    [tipoId, especieId],
+  );
+
+  const pagination = usePagination(fetchSalidas, countSalidas, itemsPerPage);
 
   const {
     data: salidas,
@@ -42,18 +50,6 @@ export default function SalidasList({
     hayPaginaSiguiente,
     refrescar,
   } = pagination;
-
-  const salidasFiltradas = useMemo(() => {
-    return salidas.filter((salida) => {
-      if (filtroTipo && salida.tipo_documento_id !== parseInt(filtroTipo, 10)) {
-        return false;
-      }
-      if (filtroEspecie && salida.especie_id !== parseInt(filtroEspecie, 10)) {
-        return false;
-      }
-      return true;
-    });
-  }, [salidas, filtroTipo, filtroEspecie]);
 
   const mostrarAlerta = (mensaje, tipo = "success") => {
     setAlerta({ mensaje, tipo });
@@ -104,13 +100,9 @@ export default function SalidasList({
             onChange={(e) => setFiltroEspecie(e.target.value)}
           >
             <option value="">Todas las especies</option>
-            {[
-              ...new Map(
-                salidas.map((s) => [s.especie_id, s.especie_nombre]),
-              ).entries(),
-            ].map(([id, nombre]) => (
-              <option key={id} value={id}>
-                {nombre}
+            {especies.map((especie) => (
+              <option key={especie.id} value={especie.id}>
+                {especie.nombre}
               </option>
             ))}
           </Select>
@@ -125,9 +117,7 @@ export default function SalidasList({
         )}
 
         <p className="text-sm text-gray-600 mt-2">
-          {hayFiltrosActivos
-            ? `Mostrando ${salidasFiltradas.length} de ${salidas.length} en esta página`
-            : `Página ${paginaActual} de ${totalPaginas} - ${totalItems} total`}
+          {`Página ${paginaActual} de ${totalPaginas} - ${totalItems} total`}
         </p>
       </div>
 
@@ -144,7 +134,7 @@ export default function SalidasList({
         </Select>
       </div>
 
-      {salidasFiltradas.length === 0 ? (
+      {salidas.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           No hay controles de salida registrados
         </div>
@@ -162,7 +152,7 @@ export default function SalidasList({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {salidasFiltradas.map((salida) => (
+                {salidas.map((salida) => (
                   <TableRow key={salida.id} className="text-center">
                     <td className="font-mono text-sm text-blue-700">
                       {salida.numero_control}

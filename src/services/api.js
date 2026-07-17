@@ -191,12 +191,25 @@ export const obtenerIngresos = () => {
 };
 
 // Paginación de ingresos
-export const obtenerIngresosPaginados = (limite = 50, offset = 0) => {
-  return invokeWithAuth("obtener_ingresos_paginados_cmd", { limite, offset });
+export const obtenerIngresosPaginados = (
+  limite = 50,
+  offset = 0,
+  tipoDocumentoId = null,
+  especieId = null,
+) => {
+  return invokeWithAuth("obtener_ingresos_paginados_cmd", {
+    limite,
+    offset,
+    tipoDocumentoId,
+    especieId,
+  });
 };
 
-export const contarIngresos = () => {
-  return invokeWithAuth("contar_ingresos_cmd");
+export const contarIngresos = (tipoDocumentoId = null, especieId = null) => {
+  return invokeWithAuth("contar_ingresos_cmd", {
+    tipoDocumentoId,
+    especieId,
+  });
 };
 
 export const eliminarIngreso = (id) => {
@@ -216,12 +229,25 @@ export const obtenerSalidas = () => {
 };
 
 // Paginación de salidas
-export const obtenerSalidasPaginadas = (limite = 50, offset = 0) => {
-  return invokeWithAuth("obtener_salidas_paginadas_cmd", { limite, offset });
+export const obtenerSalidasPaginadas = (
+  limite = 50,
+  offset = 0,
+  tipoDocumentoId = null,
+  especieId = null,
+) => {
+  return invokeWithAuth("obtener_salidas_paginadas_cmd", {
+    limite,
+    offset,
+    tipoDocumentoId,
+    especieId,
+  });
 };
 
-export const contarSalidas = () => {
-  return invokeWithAuth("contar_salidas_cmd");
+export const contarSalidas = (tipoDocumentoId = null, especieId = null) => {
+  return invokeWithAuth("contar_salidas_cmd", {
+    tipoDocumentoId,
+    especieId,
+  });
 };
 
 // ==================== CONSULTAS ====================

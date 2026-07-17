@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   TableModular as Table,
@@ -11,26 +11,38 @@ import {
 import { Button, Alert, Select, Pagination } from "@/components/common";
 import { PrintButton } from "@/components/ingresos/ImpresionParteProduccion";
 import { Trash2, Filter, Pencil, Eye } from "lucide-react";
-import { obtenerIngresosPaginados, contarIngresos, eliminarIngreso } from "@/services";
+import {
+  obtenerIngresosPaginados,
+  contarIngresos,
+  eliminarIngreso,
+} from "@/services";
 import { usePagination } from "@/hooks";
 
-export default function IngresosList({ especies = [], tiposDocumentoIngreso = [] }) {
+export default function IngresosList({
+  especies = [],
+  tiposDocumentoIngreso = [],
+}) {
   const navigate = useNavigate();
-
   const [alerta, setAlerta] = useState(null);
-
-  // Filtros
   const [filtroTipo, setFiltroTipo] = useState("");
-
-  // Control de items por página
+  const [filtroEspecie, setFiltroEspecie] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
-  // OPTIMIZADO: Usar hook de paginación
-  const pagination = usePagination(
-    obtenerIngresosPaginados,
-    contarIngresos,
-    itemsPerPage,
+  const tipoId = filtroTipo ? parseInt(filtroTipo, 10) : null;
+  const especieId = filtroEspecie ? parseInt(filtroEspecie, 10) : null;
+
+  const fetchIngresos = useCallback(
+    (limite, offset) =>
+      obtenerIngresosPaginados(limite, offset, tipoId, especieId),
+    [tipoId, especieId],
   );
+
+  const countIngresos = useCallback(
+    () => contarIngresos(tipoId, especieId),
+    [tipoId, especieId],
+  );
+
+  const pagination = usePagination(fetchIngresos, countIngresos, itemsPerPage);
 
   const {
     data: ingresos,
@@ -47,25 +59,14 @@ export default function IngresosList({ especies = [], tiposDocumentoIngreso = []
     refrescar,
   } = pagination;
 
-  // Aplicar filtros localmente
-  const ingresosFiltrados = ingresos.filter((ingreso) => {
-    if (filtroTipo && ingreso.tipo_ingreso_id !== parseInt(filtroTipo)) {
-      return false;
-    }
-    return true;
-  });
-
   const mostrarAlerta = (mensaje, tipo = "success") => {
     setAlerta({ mensaje, tipo });
     setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
   };
 
-
   const handleEliminar = async (id, fecha) => {
-    if (!window.confirm(`¿Estás seguro de eliminar el ingreso del ${fecha}?`)) {
+    if (!window.confirm(`¿Estás seguro de eliminar el ingreso del ${fecha}?`))
       return;
-    }
-
     try {
       await eliminarIngreso(id);
       mostrarAlerta("Ingreso eliminado exitosamente");
@@ -75,16 +76,11 @@ export default function IngresosList({ especies = [], tiposDocumentoIngreso = []
     }
   };
 
-  const obtenerNombreTipo = (tipoId) => {
-    const tipo = tiposDocumentoIngreso.find((t) => t.id === tipoId);
-    return tipo ? tipo.codigo : "-";
-  };
-
   const limpiarFiltros = () => {
     setFiltroTipo("");
+    setFiltroEspecie("");
   };
-
-  const hayFiltrosActivos = filtroTipo;
+  const hayFiltrosActivos = filtroTipo || filtroEspecie;
 
   if (cargando) {
     return (
@@ -102,7 +98,6 @@ export default function IngresosList({ especies = [], tiposDocumentoIngreso = []
         </Alert>
       )}
 
-      {/* Filtros */}
       <div className="bg-white p-4 rounded-lg shadow mb-4">
         <div className="flex items-center gap-4">
           <Filter className="w-5 h-5 text-gray-600" />
@@ -119,23 +114,31 @@ export default function IngresosList({ especies = [], tiposDocumentoIngreso = []
                 </option>
               ))}
             </Select>
-          </div>
 
+            <Select
+              label="Filtrar por Especie"
+              value={filtroEspecie}
+              onChange={(e) => setFiltroEspecie(e.target.value)}
+            >
+              <option value="">Todas las especies</option>
+              {especies.map((especie) => (
+                <option key={especie.id} value={especie.id}>
+                  {especie.nombre}
+                </option>
+              ))}
+            </Select>
+          </div>
           {hayFiltrosActivos && (
             <Button variant="secondary" onClick={limpiarFiltros}>
               Limpiar filtros
             </Button>
           )}
         </div>
-
         <p className="text-sm text-gray-600 mt-2">
-          {hayFiltrosActivos
-            ? `Mostrando ${ingresosFiltrados.length} de ${ingresos.length} en esta página`
-            : `Página ${paginaActual} de ${totalPaginas} - ${totalItems} total`}
+          {`Página ${paginaActual} de ${totalPaginas} - ${totalItems} total`}
         </p>
       </div>
 
-      {/* Selector de items por página */}
       <div className="mb-4">
         <Select
           label="Elementos por página"
@@ -149,11 +152,11 @@ export default function IngresosList({ especies = [], tiposDocumentoIngreso = []
         </Select>
       </div>
 
-      {ingresosFiltrados.length === 0 ? (
+      {ingresos.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          {ingresos.length === 0
-            ? "No hay ingresos registrados en esta página"
-            : "No se encontraron ingresos con los filtros aplicados"}
+          {hayFiltrosActivos
+            ? "No se encontraron ingresos con los filtros aplicados"
+            : "No hay ingresos registrados"}
         </div>
       ) : (
         <>
@@ -161,25 +164,28 @@ export default function IngresosList({ especies = [], tiposDocumentoIngreso = []
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Código</TableHead>
                   <TableHead>Fecha</TableHead>
+                  <TableHead>Cliente</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Kg</TableHead>
-                  <TableHead>Cajas</TableHead>
+                  <TableHead>Especie</TableHead>
                   <TableHead>Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ingresosFiltrados.map((ingreso) => (
+                {ingresos.map((ingreso) => (
                   <TableRow key={ingreso.id} className="text-center">
+                    <TableCell className="font-mono text-sm text-blue-700">
+                      {ingreso.codigo || "-"}
+                    </TableCell>
                     <TableCell>{ingreso.fecha}</TableCell>
-
+                    <TableCell>{ingreso.cliente || "-"}</TableCell>
                     <TableCell>
-                      <span className="inline-block px-2 py-1 text-xs  text-green-800 ">
-                        {obtenerNombreTipo(ingreso.tipo_ingreso_id)}
+                      <span className="inline-block px-2 py-1 text-xs text-green-800">
+                        {ingreso.tipo_documento_codigo}
                       </span>
                     </TableCell>
-                    <TableCell>{ingreso.kg.toFixed(2)}</TableCell>
-                    <TableCell>{ingreso.cajas || "-"}</TableCell>
+                    <TableCell>{ingreso.especie_nombre || "-"}</TableCell>
                     <TableCell className="text-center gap-5 flex justify-center">
                       <button
                         onClick={() => navigate(`/ingresos/${ingreso.id}`)}
@@ -212,7 +218,6 @@ export default function IngresosList({ especies = [], tiposDocumentoIngreso = []
               </TableBody>
             </Table>
           </div>
-          {/* OPTIMIZADO: Componente de paginación */}
           <Pagination
             paginaActual={paginaActual}
             totalPaginas={totalPaginas}
