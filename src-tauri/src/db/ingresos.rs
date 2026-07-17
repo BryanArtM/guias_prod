@@ -1,89 +1,127 @@
-use libsql::Database;
-use crate::db::types::Ingreso;
+use libsql::{Database, Value};
+use crate::db::types::ParteProduccionResumen;
 use crate::db::helpers::*;
 
-
-pub async fn obtener_ingresos(db: &Database) -> Result<Vec<Ingreso>, String> {
+pub async fn obtener_ingresos(db: &Database) -> Result<Vec<ParteProduccionResumen>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
     let mut result = conn.query(
-        "SELECT
-            p.id,
-            p.tipo_documento_id,
-            p.fecha,
-            SUM(COALESCE(ppp.peso_total_neto_kg, 0)) as kg,
-            SUM(COALESCE(ppp.cajas_carro_1, 0) + COALESCE(ppp.cajas_carro_2, 0) +
-                COALESCE(ppp.cajas_carro_3, 0) + COALESCE(ppp.cajas_carro_4, 0)) as cajas,
-            p.observaciones
+        "SELECT p.id, p.codigo, p.fecha, p.cliente,
+                p.tipo_documento_id, td.codigo,
+                p.especie_id, e.nombre
          FROM partes_produccion p
-         LEFT JOIN parte_produccion_producto ppp ON ppp.parte_id = p.id
-         GROUP BY p.id
+         JOIN tipos_documento_produccion td ON td.id = p.tipo_documento_id
+         LEFT JOIN especies e ON e.id = p.especie_id
          ORDER BY p.fecha DESC, p.id DESC",
         (),
     ).await.map_err(|e| e.to_string())?;
 
     let mut ingresos = Vec::new();
     while let Some(row) = result.next().await.map_err(|e| e.to_string())? {
-        ingresos.push(Ingreso {
+        ingresos.push(ParteProduccionResumen {
             id: Some(row.get(0).map_err(|e| e.to_string())?),
-            variante_id: 0,
-            tipo_ingreso_id: row.get(1).map_err(|e| e.to_string())?,
+            codigo: get_optional_string(&row, 1).map_err(|e| e.to_string())?,
             fecha: row.get(2).map_err(|e| e.to_string())?,
-            peso_total_lote: None,
-            kg: row.get(3).map_err(|e| e.to_string())?,
-            cajas: row.get(4).map_err(|e| e.to_string())?,
-            observaciones: get_optional_string(&row, 5).map_err(|e| e.to_string())?,
+            cliente: get_optional_string(&row, 3).map_err(|e| e.to_string())?,
+            tipo_documento_id: row.get(4).map_err(|e| e.to_string())?,
+            tipo_documento_codigo: row.get(5).map_err(|e| e.to_string())?,
+            especie_id: get_optional_i64(&row, 6).map_err(|e| e.to_string())?,
+            especie_nombre: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
         });
     }
     Ok(ingresos)
 }
 
 pub async fn obtener_ingresos_paginados(
-    db: &Database, 
-    limite: i64, 
-    offset: i64
-) -> Result<Vec<Ingreso>, String> {
+    db: &Database,
+    limite: i64,
+    offset: i64,
+    tipo_documento_id: Option<i64>,
+    especie_id: Option<i64>,
+) -> Result<Vec<ParteProduccionResumen>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
-    
-    use libsql::Value;
-    let params: Vec<Value> = vec![limite.into(), offset.into()];
-    
-    let mut result = conn.query(
-        "SELECT
-            p.id,
-            p.tipo_documento_id,
-            p.fecha,
-            SUM(COALESCE(ppp.peso_total_neto_kg, 0)) as kg_total,
-            SUM(COALESCE(ppp.cajas_carro_1,0) + COALESCE(ppp.cajas_carro_2,0) + 
-                COALESCE(ppp.cajas_carro_3,0) + COALESCE(ppp.cajas_carro_4,0)) as cajas_total,
-            p.observaciones
+
+    let mut where_clauses = Vec::new();
+    let mut params: Vec<Value> = Vec::new();
+
+    if let Some(t) = tipo_documento_id {
+        where_clauses.push(format!("p.tipo_documento_id = ?{}", params.len() + 1));
+        params.push(Value::from(t));
+    }
+    if let Some(e) = especie_id {
+        where_clauses.push(format!("p.especie_id = ?{}", params.len() + 1));
+        params.push(Value::from(e));
+    }
+
+    let where_sql = if where_clauses.is_empty() {
+        String::new()
+    } else {
+        format!("WHERE {}", where_clauses.join(" AND "))
+    };
+
+    let limit_idx = params.len() + 1;
+    let offset_idx = params.len() + 2;
+    params.push(Value::from(limite));
+    params.push(Value::from(offset));
+
+    let query = format!(
+        "SELECT p.id, p.codigo, p.fecha, p.cliente,
+                p.tipo_documento_id, td.codigo,
+                p.especie_id, e.nombre
          FROM partes_produccion p
-         LEFT JOIN parte_produccion_producto ppp ON ppp.parte_id = p.id
-         GROUP BY p.id
+         JOIN tipos_documento_produccion td ON td.id = p.tipo_documento_id
+         LEFT JOIN especies e ON e.id = p.especie_id
+         {}
          ORDER BY p.fecha DESC, p.id DESC
-         LIMIT ?1 OFFSET ?2",
-        params,
-    ).await.map_err(|e| e.to_string())?;
+         LIMIT ?{} OFFSET ?{}",
+        where_sql, limit_idx, offset_idx
+    );
+
+    let mut result = conn.query(query.as_str(), params).await.map_err(|e| e.to_string())?;
 
     let mut ingresos = Vec::new();
     while let Some(row) = result.next().await.map_err(|e| e.to_string())? {
-        ingresos.push(Ingreso {
+        ingresos.push(ParteProduccionResumen {
             id: Some(row.get(0).map_err(|e| e.to_string())?),
-            variante_id: 0, // ya no aplica en lista, puedes usar Option<i64> = None
-            tipo_ingreso_id: row.get(1).map_err(|e| e.to_string())?,
+            codigo: get_optional_string(&row, 1).map_err(|e| e.to_string())?,
             fecha: row.get(2).map_err(|e| e.to_string())?,
-            peso_total_lote: None,
-            kg: row.get(3).map_err(|e| e.to_string())?,
-            cajas: row.get(4).map_err(|e| e.to_string())?,
-            observaciones: get_optional_string(&row, 5).map_err(|e| e.to_string())?,
+            cliente: get_optional_string(&row, 3).map_err(|e| e.to_string())?,
+            tipo_documento_id: row.get(4).map_err(|e| e.to_string())?,
+            tipo_documento_codigo: row.get(5).map_err(|e| e.to_string())?,
+            especie_id: get_optional_i64(&row, 6).map_err(|e| e.to_string())?,
+            especie_nombre: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
         });
     }
     Ok(ingresos)
 }
 
-pub async fn contar_ingresos(db: &Database) -> Result<i64, String> {
+pub async fn contar_ingresos(
+    db: &Database,
+    tipo_documento_id: Option<i64>,
+    especie_id: Option<i64>,
+) -> Result<i64, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
-    let mut result = conn.query("SELECT COUNT(*) FROM parte_produccion_producto", ()).await.map_err(|e| e.to_string())?;
-    
+
+    let mut where_clauses = Vec::new();
+    let mut params: Vec<Value> = Vec::new();
+
+    if let Some(t) = tipo_documento_id {
+        where_clauses.push(format!("tipo_documento_id = ?{}", params.len() + 1));
+        params.push(Value::from(t));
+    }
+    if let Some(e) = especie_id {
+        where_clauses.push(format!("especie_id = ?{}", params.len() + 1));
+        params.push(Value::from(e));
+    }
+
+    let where_sql = if where_clauses.is_empty() {
+        String::new()
+    } else {
+        format!("WHERE {}", where_clauses.join(" AND "))
+    };
+
+    let query = format!("SELECT COUNT(*) FROM partes_produccion {}", where_sql);
+    let mut result = conn.query(query.as_str(), params).await.map_err(|e| e.to_string())?;
+
     match result.next().await.map_err(|e| e.to_string())? {
         Some(row) => row.get(0).map_err(|e| e.to_string()),
         None => Ok(0),

@@ -78,18 +78,6 @@ pub struct CatalogoItem {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Ingreso {
-    pub id: Option<i64>,
-    pub variante_id: i64,
-    pub tipo_ingreso_id: i64,
-    pub fecha: String,
-    pub peso_total_lote: Option<f64>,
-    pub kg: f64,
-    pub cajas: i32,
-    pub observaciones: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ControlSalidaItem {
     pub id: Option<i64>,
     pub control_salida_id: Option<i64>,
@@ -215,4 +203,16 @@ pub struct ControlSalidaResumen {
     pub tipo_documento_codigo: String,
     pub especie_id: i64,
     pub especie_nombre: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ParteProduccionResumen {
+    pub id: Option<i64>,
+    pub codigo: Option<String>,
+    pub fecha: String,
+    pub cliente: Option<String>,
+    pub tipo_documento_id: i64,
+    pub tipo_documento_codigo: String,
+    pub especie_id: Option<i64>,
+    pub especie_nombre: Option<String>,
 }

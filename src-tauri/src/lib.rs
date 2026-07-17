@@ -246,15 +246,15 @@ async fn obtener_motivos_salida_cmd(state: State<'_, AppState>, token: String) -
 // ============ COMANDOS TAURI - INGRESOS ============
 
 #[tauri::command]
-async fn obtener_ingresos_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Ingreso>, String> {
+async fn obtener_ingresos_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<ParteProduccionResumen>, String> {
     require_auth(&token)?;
     obtener_ingresos(&state.db).await
 }
 
 #[tauri::command]
-async fn obtener_ingresos_paginados_cmd(state: State<'_, AppState>, token: String, limite: i64, offset: i64) -> Result<Vec<Ingreso>, String> {
+async fn obtener_ingresos_paginados_cmd(state: State<'_, AppState>, token: String, limite: i64, offset: i64, tipo_documento_id: Option<i64>, especie_id: Option<i64> ) -> Result<Vec<ParteProduccionResumen>, String> {
     require_auth(&token)?;
-    obtener_ingresos_paginados(&state.db, limite, offset).await
+    obtener_ingresos_paginados(&state.db, limite, offset, tipo_documento_id, especie_id).await
 }
 
 #[tauri::command]
@@ -264,9 +264,9 @@ async fn obtener_parte_produccion_por_id_cmd(state: State<'_, AppState>, token: 
 }
 
 #[tauri::command]
-async fn contar_ingresos_cmd(state: State<'_, AppState>, token: String) -> Result<i64, String> {
+async fn contar_ingresos_cmd( state: State<'_, AppState>, token: String, tipo_documento_id: Option<i64>, especie_id: Option<i64>, ) -> Result<i64, String> {
     require_auth(&token)?;
-    contar_ingresos(&state.db).await
+    contar_ingresos(&state.db, tipo_documento_id, especie_id).await
 }
 
 // ============ COMANDOS TAURI - SALIDAS ============
@@ -275,21 +275,20 @@ async fn contar_ingresos_cmd(state: State<'_, AppState>, token: String) -> Resul
 #[tauri::command]
 async fn obtener_salidas_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<ControlSalidaResumen>, String> {
     require_auth(&token)?;
-    obtener_salidas(&state.db).await
+    obtener_salidas(&state.db).await 
 }
 
 #[tauri::command]
-async fn obtener_salidas_paginadas_cmd(state: State<'_, AppState>, token: String, limite: i64, offset: i64) -> Result<Vec<ControlSalidaResumen>, String> {
+async fn obtener_salidas_paginadas_cmd( state: State<'_, AppState>, token: String, limite: i64, offset: i64, tipo_documento_id: Option<i64>, especie_id: Option<i64>, ) -> Result<Vec<ControlSalidaResumen>, String> {
     require_auth(&token)?;
-    obtener_salidas_paginadas(&state.db, limite, offset).await
+    obtener_salidas_paginadas(&state.db, limite, offset, tipo_documento_id, especie_id).await
 }
 
 #[tauri::command]
-async fn contar_salidas_cmd(state: State<'_, AppState>, token: String) -> Result<i64, String> {
+async fn contar_salidas_cmd( state: State<'_, AppState>, token: String, tipo_documento_id: Option<i64>, especie_id: Option<i64>, ) -> Result<i64, String> {
     require_auth(&token)?;
-    contar_salidas(&state.db).await
+    contar_salidas(&state.db, tipo_documento_id, especie_id).await
 }
-
 
 // ============ COMANDOS TAURI - CONTROL DE SALIDA ============
 
