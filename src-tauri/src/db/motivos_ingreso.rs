@@ -1,8 +1,8 @@
 
 use libsql::Database;
-use crate::db::types::TipoIngreso;
+use crate::db::types::CatalogoItem;
 
-pub async fn obtener_motivos_ingreso(db: &Database) -> Result<Vec<TipoIngreso>, String> {
+pub async fn obtener_motivos_ingreso(db: &Database) -> Result<Vec<CatalogoItem>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
     let mut rows = conn
         .query("SELECT id, codigo, descripcion FROM motivos_ingreso ORDER BY id", ())
@@ -17,7 +17,7 @@ pub async fn obtener_motivos_ingreso(db: &Database) -> Result<Vec<TipoIngreso>, 
             Ok(v) => Some(v),
             Err(_) => None,
         };
-        result.push(TipoIngreso { 
+        result.push(CatalogoItem { 
           id: Some(id), 
           codigo, 
           descripcion });

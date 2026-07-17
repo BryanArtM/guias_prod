@@ -71,7 +71,7 @@ pub struct VarianteCompleta {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TipoIngreso {
+pub struct CatalogoItem {
     pub id: Option<i64>,
     pub codigo: String,
     pub descripcion: Option<String>,
@@ -87,13 +87,6 @@ pub struct Ingreso {
     pub kg: f64,
     pub cajas: i32,
     pub observaciones: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TipoSalida {
-    pub id: Option<i64>,
-    pub codigo: String,
-    pub descripcion: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

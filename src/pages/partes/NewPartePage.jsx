@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ParteProduccionForm } from "@/components/partes";
 import { Alert, Loading } from "@/components/common";
-import { partesService, obtenerTiposIngreso } from "@/services";
+import { partesService, obtenerTiposDocumentoProduccion } from "@/services";
 
 export default function NewPartePage() {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ export default function NewPartePage() {
   useEffect(() => {
     const cargarTipos = async () => {
       try {
-        const data = await obtenerTiposIngreso();
+        const data = await obtenerTiposDocumentoProduccion();
         setTipos(data);
         if (data.length > 0) setTipoSeleccionado(data[0]);
       } catch (err) {

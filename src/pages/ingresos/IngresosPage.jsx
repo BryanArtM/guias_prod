@@ -4,7 +4,7 @@ import { Loading, Alert, Button } from "@/components/common";
 import {
   obtenerEspecies,
   obtenerVariantesCompletas,
-  obtenerTiposIngreso,
+  obtenerTiposDocumentoProduccion,
 } from "@/services";
 
 export default function IngresosPage() {
@@ -12,7 +12,7 @@ export default function IngresosPage() {
   const [error, setError] = useState(null);
   const [especies, setEspecies] = useState([]);
   const [variantes, setVariantes] = useState([]);
-  const [tiposIngreso, setTiposIngreso] = useState([]);
+  const [tiposDocumentoIngreso, setTiposDocumentoIngreso] = useState([]);
 
   useEffect(() => {
     cargarDatos();
@@ -25,12 +25,12 @@ export default function IngresosPage() {
       const [especiesData, variantesData, tiposData] = await Promise.all([
         obtenerEspecies(),
         obtenerVariantesCompletas(),
-        obtenerTiposIngreso(),
+        obtenerTiposDocumentoProduccion(),
       ]);
 
       setEspecies(especiesData);
       setVariantes(variantesData);
-      setTiposIngreso(tiposData);
+      setTiposDocumentoIngreso(tiposData);
     } catch (err) {
       setError("Error al cargar los datos: " + err.message);
     } finally {
@@ -63,7 +63,7 @@ export default function IngresosPage() {
       <IngresosList
         especies={especies}
         variantes={variantes}
-        tiposIngreso={tiposIngreso}
+        tiposDocumentoIngreso={tiposDocumentoIngreso}
       />
 
     </div>

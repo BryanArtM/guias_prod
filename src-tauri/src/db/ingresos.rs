@@ -1,22 +1,8 @@
 use libsql::Database;
-use crate::db::types::{Ingreso, TipoIngreso};
+use crate::db::types::Ingreso;
 use crate::db::helpers::*;
 
-pub async fn obtener_tipos_ingreso(db: &Database) -> Result<Vec<TipoIngreso>, String> {
-    let conn = db.connect().map_err(|e| e.to_string())?;
-    let mut result = conn.query("SELECT id, codigo, descripcion FROM tipos_documento_produccion ORDER BY codigo", ())
-        .await.map_err(|e| e.to_string())?;
 
-    let mut tipos = Vec::new();
-    while let Some(row) = result.next().await.map_err(|e| e.to_string())? {
-        tipos.push(TipoIngreso {
-            id: Some(row.get(0).map_err(|e| e.to_string())?),
-            codigo: row.get(1).map_err(|e| e.to_string())?,
-            descripcion: get_optional_string(&row, 2).map_err(|e| e.to_string())?,
-        });
-    }
-    Ok(tipos)
-}
 pub async fn obtener_ingresos(db: &Database) -> Result<Vec<Ingreso>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;
     let mut result = conn.query(

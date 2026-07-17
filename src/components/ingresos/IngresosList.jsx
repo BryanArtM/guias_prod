@@ -14,10 +14,9 @@ import { Trash2, Filter, Pencil, Eye } from "lucide-react";
 import { obtenerIngresosPaginados, contarIngresos } from "@/services";
 import { usePagination } from "@/hooks";
 
-export default function IngresosList({ especies = [], tiposIngreso = [] }) {
+export default function IngresosList({ especies = [], tiposDocumentoIngreso = [] }) {
   const navigate = useNavigate();
 
-  const [modalAbierto, setModalAbierto] = useState(false);
   const [alerta, setAlerta] = useState(null);
 
   // Filtros
@@ -61,13 +60,6 @@ export default function IngresosList({ especies = [], tiposIngreso = [] }) {
     setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
   };
 
-  const abrirModal = () => {
-    setModalAbierto(true);
-  };
-
-  const cerrarModal = () => {
-    setModalAbierto(false);
-  };
 
   const handleEliminar = async (id, fecha) => {
     if (!window.confirm(`¿Estás seguro de eliminar el ingreso del ${fecha}?`)) {
@@ -84,7 +76,7 @@ export default function IngresosList({ especies = [], tiposIngreso = [] }) {
   };
 
   const obtenerNombreTipo = (tipoId) => {
-    const tipo = tiposIngreso.find((t) => t.id === tipoId);
+    const tipo = tiposDocumentoIngreso.find((t) => t.id === tipoId);
     return tipo ? tipo.codigo : "-";
   };
 
@@ -121,7 +113,7 @@ export default function IngresosList({ especies = [], tiposIngreso = [] }) {
               onChange={(e) => setFiltroTipo(e.target.value)}
             >
               <option value="">Todos los tipos</option>
-              {tiposIngreso.map((tipo) => (
+              {tiposDocumentoIngreso.map((tipo) => (
                 <option key={tipo.id} value={tipo.id}>
                   {tipo.codigo}
                 </option>
