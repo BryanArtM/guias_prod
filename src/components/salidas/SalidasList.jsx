@@ -6,7 +6,7 @@ import {
   TableRow,
   TableHead,
 } from "@/components/common/Table";
-import { Button, Modal, Alert, Select, Pagination } from "@/components/common";
+import { Button, Alert, Select, Pagination } from "@/components/common";
 import { Plus } from "lucide-react";
 import { obtenerSalidasPaginadas, contarSalidas } from "@/services";
 import { controlService } from "@/services";
@@ -59,9 +59,6 @@ export default function SalidasList({
     setAlerta({ mensaje, tipo });
     setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
   };
-
-  const abrirModal = () => setModalAbierto(true);
-  const cerrarModal = () => setModalAbierto(false);
 
   const limpiarFiltros = () => {
     setFiltroTipo("");
@@ -162,13 +159,11 @@ export default function SalidasList({
                   <TableHead>Cliente</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Especie</TableHead>
-                  <TableHead className="text-right">Cantidad</TableHead>
-                  <TableHead className="text-right">Kg</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {salidasFiltradas.map((salida) => (
-                  <TableRow key={salida.id}>
+                  <TableRow key={salida.id} className="text-center">
                     <td className="font-mono text-sm text-blue-700">
                       {salida.numero_control}
                     </td>
@@ -180,10 +175,6 @@ export default function SalidasList({
                       </span>
                     </td>
                     <td>{salida.especie_nombre}</td>
-                    <td className="text-right">{salida.suma_cantidad}</td>
-                    <td className="text-right">
-                      {Number(salida.suma_total_kg || 0).toFixed(2)}
-                    </td>
                   </TableRow>
                 ))}
               </TableBody>
@@ -203,7 +194,6 @@ export default function SalidasList({
           />
         </>
       )}
-
     </div>
   );
 }

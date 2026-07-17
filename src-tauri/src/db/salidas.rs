@@ -14,12 +14,8 @@ pub async fn obtener_salidas(db: &Database) -> Result<Vec<ControlSalidaResumen>,
             c.cliente,
             c.tipo_documento_id,
             td.codigo,
-            td.descripcion,
             c.especie_id,
-            e.nombre,
-            c.suma_cantidad,
-            c.suma_total_kg,
-            c.observaciones
+            e.nombre
          FROM controles_salida c
          JOIN tipos_documento_salida td ON td.id = c.tipo_documento_id
          JOIN especies e ON e.id = c.especie_id
@@ -36,12 +32,8 @@ pub async fn obtener_salidas(db: &Database) -> Result<Vec<ControlSalidaResumen>,
             cliente: row.get(3).map_err(|e| e.to_string())?,
             tipo_documento_id: row.get(4).map_err(|e| e.to_string())?,
             tipo_documento_codigo: row.get(5).map_err(|e| e.to_string())?,
-            tipo_documento_descripcion: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
-            especie_id: row.get(7).map_err(|e| e.to_string())?,
-            especie_nombre: row.get(8).map_err(|e| e.to_string())?,
-            suma_cantidad: row.get(9).map_err(|e| e.to_string())?,
-            suma_total_kg: row.get(10).map_err(|e| e.to_string())?,
-            observaciones: get_optional_string(&row, 11).map_err(|e| e.to_string())?,
+            especie_id: row.get(6).map_err(|e| e.to_string())?,
+            especie_nombre: row.get(7).map_err(|e| e.to_string())?,
         });
     }
     Ok(salidas)
@@ -65,12 +57,8 @@ pub async fn obtener_salidas_paginadas(
             c.cliente,
             c.tipo_documento_id,
             td.codigo,
-            td.descripcion,
             c.especie_id,
-            e.nombre,
-            c.suma_cantidad,
-            c.suma_total_kg,
-            c.observaciones
+            e.nombre
          FROM controles_salida c
          JOIN tipos_documento_salida td ON td.id = c.tipo_documento_id
          JOIN especies e ON e.id = c.especie_id
@@ -88,12 +76,8 @@ pub async fn obtener_salidas_paginadas(
             cliente: row.get(3).map_err(|e| e.to_string())?,
             tipo_documento_id: row.get(4).map_err(|e| e.to_string())?,
             tipo_documento_codigo: row.get(5).map_err(|e| e.to_string())?,
-            tipo_documento_descripcion: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
-            especie_id: row.get(7).map_err(|e| e.to_string())?,
-            especie_nombre: row.get(8).map_err(|e| e.to_string())?,
-            suma_cantidad: row.get(9).map_err(|e| e.to_string())?,
-            suma_total_kg: row.get(10).map_err(|e| e.to_string())?,
-            observaciones: get_optional_string(&row, 11).map_err(|e| e.to_string())?,
+            especie_id: row.get(6).map_err(|e| e.to_string())?,
+            especie_nombre: row.get(7).map_err(|e| e.to_string())?,
         });
     }
     Ok(salidas)
