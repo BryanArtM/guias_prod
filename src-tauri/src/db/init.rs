@@ -387,7 +387,7 @@ pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
     println!("Conexión establecida con Turso");
 
     let conn = db.connect()?;
-
+    conn.execute("PRAGMA foreign_keys = ON", ()).await?;
     create_tables(&conn).await?;
     create_transaction_tables(&conn).await?;
     create_users_table(&conn).await?;

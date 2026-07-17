@@ -319,6 +319,12 @@ async fn obtener_partes_produccion_cmd(state: State<'_, AppState>, token: String
     obtener_partes_produccion(&state.db, tipo_documento_id).await
 }
 
+#[tauri::command]
+async fn eliminar_parte_produccion_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
+    require_auth(&token)?;
+    eliminar_parte_produccion(&state.db, id).await
+}
+
 // ============ COMANDOS TAURI - CONSULTAS ============
 
 #[tauri::command]
@@ -435,6 +441,8 @@ pub fn run() {
             actualizar_parte_produccion_cmd,
             obtener_parte_produccion_por_id_cmd,
             obtener_partes_produccion_cmd,
+            eliminar_parte_produccion_cmd,
+
             // Consultas
             obtener_stock_por_variante_cmd,
             obtener_stock_actual_cmd,

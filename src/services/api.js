@@ -172,7 +172,6 @@ export const eliminarVariantePresentacion = (id) => {
 
 // ==================== TIPOS DE INGRESO ====================
 
-
 export const obtenerMotivosIngreso = () => {
   return invokeWithAuth("obtener_motivos_ingreso_cmd");
 };
@@ -198,6 +197,10 @@ export const obtenerIngresosPaginados = (limite = 50, offset = 0) => {
 
 export const contarIngresos = () => {
   return invokeWithAuth("contar_ingresos_cmd");
+};
+
+export const eliminarIngreso = (id) => {
+  return invokeWithAuth("eliminar_parte_produccion_cmd", { id });
 };
 
 // ==================== TIPOS DE SALIDA ====================

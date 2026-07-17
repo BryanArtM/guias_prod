@@ -99,5 +99,7 @@ pub use partes::{
     actualizar_parte_produccion,
     obtener_partes_produccion,
     obtener_parte_produccion_por_id,
+    eliminar_parte_produccion,
+
 };
 

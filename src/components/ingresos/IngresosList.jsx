@@ -11,7 +11,7 @@ import {
 import { Button, Alert, Select, Pagination } from "@/components/common";
 import { PrintButton } from "@/components/ingresos/ImpresionParteProduccion";
 import { Trash2, Filter, Pencil, Eye } from "lucide-react";
-import { obtenerIngresosPaginados, contarIngresos } from "@/services";
+import { obtenerIngresosPaginados, contarIngresos, eliminarIngreso } from "@/services";
 import { usePagination } from "@/hooks";
 
 export default function IngresosList({ especies = [], tiposDocumentoIngreso = [] }) {

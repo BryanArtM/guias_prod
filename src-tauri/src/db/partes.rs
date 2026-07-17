@@ -371,3 +371,35 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
 
     Ok(parte)
 }
+
+pub async fn eliminar_parte_produccion(db: &Database, id: i64) -> Result<(), String> {
+    let conn = db.connect().map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM parte_produccion_embarcacion 
+         WHERE transporte_id IN (SELECT id FROM parte_produccion_transporte WHERE parte_id = ?1)",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM parte_produccion_transporte WHERE parte_id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM parte_produccion_producto WHERE parte_id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM parte_produccion_insumo WHERE parte_id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM partes_produccion WHERE id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    Ok(())
+}
