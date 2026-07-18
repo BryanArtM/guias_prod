@@ -88,12 +88,14 @@ pub struct ControlSalidaItem {
     pub peso_unidad: f64,
     pub total_kg: f64,
     pub observaciones: Option<String>,
+    pub codigo_completo: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ControlSalida {
     pub id: Option<i64>,
     pub tipo_documento_id: i64,
+    pub tipo_documento_codigo: Option<String>,
     pub numero_control: String,
     pub fecha: String,
     pub cliente: String,
@@ -102,9 +104,11 @@ pub struct ControlSalida {
     pub numero_lote: Option<String>,
     pub numero_camara: Option<String>,
     pub especie_id: i64,
+    pub especie_nombre: Option<String>,
     pub suma_cantidad: i32,
     pub suma_total_kg: f64,
     pub motivo_salida: i64,
+    pub motivo_salida_codigo: Option<String>,
     pub observaciones: Option<String>,
     pub items: Vec<ControlSalidaItem>,
 }
