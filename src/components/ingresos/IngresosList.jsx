@@ -174,7 +174,7 @@ export default function IngresosList({
               </TableHeader>
               <TableBody>
                 {ingresos.map((ingreso) => (
-                  <TableRow key={ingreso.id} className="text-center">
+                  <TableRow key={ingreso.id} className="text-center uppercase">
                     <TableCell className="font-mono text-sm text-blue-700">
                       {ingreso.codigo || "-"}
                     </TableCell>

@@ -386,13 +386,9 @@ function generarHtmlImpresion(parte) {
 </html>`;
 }
 
-// ─── PrintButton ─────────────────────────────────────────────────────────────
-// Uso en IngresosList:   <PrintButton parteId={ingreso.id} />
-// Uso en IngresoDetalle: <PrintButton parte={ingreso} />
 export function PrintButton({
   parteId,
   parte: parteProps,
-  label = "Imprimir",
 }) {
   const [cargando, setCargando] = useState(false);
 
@@ -440,10 +436,9 @@ export function PrintButton({
     <button
       onClick={handleClick}
       disabled={cargando}
-      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 disabled:opacity-50 rounded transition-colors"
+      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-500 disabled:opacity-50 rounded transition-colors"
     >
       <Printer size={15} />
-      {cargando ? "Cargando..." : label}
     </button>
   );
 }

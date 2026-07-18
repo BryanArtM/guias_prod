@@ -153,14 +153,14 @@ export default function SalidasList({
               </TableHeader>
               <TableBody>
                 {salidas.map((salida) => (
-                  <TableRow key={salida.id} className="text-center">
+                  <TableRow key={salida.id} className="text-center uppercase">
                     <td className="font-mono text-sm text-blue-700">
                       {salida.numero_control}
                     </td>
                     <td>{salida.fecha}</td>
                     <td>{salida.cliente}</td>
                     <td>
-                      <span className="inline-block px-2 py-1 text-xs bg-red-100 text-red-800 rounded">
+                      <span className="inline-block px-2 py-1 text-xs text-red-800 rounded">
                         {salida.tipo_documento_codigo}
                       </span>
                     </td>
