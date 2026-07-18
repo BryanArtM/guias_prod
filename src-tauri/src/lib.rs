@@ -298,6 +298,24 @@ async fn crear_control_salida_cmd(state: State<'_, AppState>, token: String, con
     crear_control_salida(&state.db, &control).await
 }
 
+#[tauri::command]
+async fn obtener_control_salida_por_id_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<ControlSalida, String> {
+    require_auth(&token)?;
+    obtener_control_salida_por_id(&state.db, id).await
+}
+
+#[tauri::command]
+async fn actualizar_control_salida_cmd(state: State<'_, AppState>, token: String, id: i64, control: ControlSalida) -> Result<(), String> {
+    require_auth(&token)?;
+    actualizar_control_salida(&state.db, id, &control).await
+}
+
+#[tauri::command]
+async fn eliminar_control_salida_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
+    require_auth(&token)?;
+    eliminar_control_salida(&state.db, id).await
+}
+
 // ============ COMANDOS TAURI - PARTES DE PRODUCCIÓN ============
 
 #[tauri::command]
@@ -435,6 +453,9 @@ pub fn run() {
             contar_salidas_cmd,
             // Control de salida
             crear_control_salida_cmd,
+            obtener_control_salida_por_id_cmd,
+            actualizar_control_salida_cmd,
+            eliminar_control_salida_cmd,
             // Partes de producción
             crear_parte_produccion_cmd,
             actualizar_parte_produccion_cmd,

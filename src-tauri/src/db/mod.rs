@@ -85,6 +85,9 @@ pub use salidas::{
 
 pub use control::{
     crear_control_salida,
+    obtener_control_salida_por_id,
+    actualizar_control_salida,
+    eliminar_control_salida,
 };
 
 pub use motivos_ingreso::obtener_motivos_ingreso;
