@@ -9,7 +9,7 @@ import {
   TableCell,
 } from "@/components/common/Table";
 import { Button, Alert, Select, Pagination } from "@/components/common";
-import { PrintButton } from "@/components/ingresos/ImpresionParteProduccion";
+import { PrintButtonIngreso } from "@/components/ingresos/ImpresionParteProduccion";
 import { Trash2, Filter, Pencil, Eye } from "lucide-react";
 import {
   obtenerIngresosPaginados,
@@ -211,7 +211,7 @@ export default function IngresosList({
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                      <PrintButton parteId={ingreso.id} />
+                      <PrintButtonIngreso parteId={ingreso.id} />
                     </TableCell>
                   </TableRow>
                 ))}

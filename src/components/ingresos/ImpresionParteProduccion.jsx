@@ -216,9 +216,15 @@ function generarHtmlImpresion(parte) {
     col.col-total { width: 75px; }
 
     .celda-item { text-align: center; }
-    .celda-desc { text-align: left; }
-    .desc-linea1 { color: #1a4fa0; font-weight: bold; font-size: 8pt; line-height: 1.15; }
-    .desc-linea2 { color: #000; font-size: 7.5pt; line-height: 1.15; text-align: center; }
+    .celda-desc {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      text-align: left;
+    }
+    .celda-desc .nombre { color: #1a4fa0; font-weight: bold; font-size: 8pt; line-height: 1.15; }
+    .celda-desc .fp { color: #000; font-size: 8pt; white-space: nowrap; line-height: 1.15; }
     .celda-traz { text-align: center; }
     .traz-linea1 { color: #1a4fa0; font-size: 7.5pt; line-height: 1.15; }
     .traz-linea2 { color: #000; font-size: 7pt; line-height: 1.15; }
