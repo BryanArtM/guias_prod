@@ -8,6 +8,8 @@ export { default as IngresosPage } from "./ingresos/IngresosPage";
 export { default as IngresoDetallePage } from "./ingresos/IngresoDetallePage";
 export { default as EditarIngresosPage } from "./ingresos/EditarIngresosPage";
 export { default as SalidasPage } from "./salidas/SalidasPage";
+export { default as SalidaDetallePage } from "./salidas/SalidaDetallePage";
+export { default as EditarSalidasPage } from "./salidas/EditarSalidasPage";
 export { default as StockPage } from "./StockPage";
 export { default as ReportesPage } from "./ReportesPage";
 export { default as NewPartePage } from "./partes/NewPartePage";

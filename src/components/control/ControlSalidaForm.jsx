@@ -15,37 +15,64 @@ export default function ControlSalidaForm({
   especies = [],
   variantes = [],
   tipoDocumento = "EMBARQUE",
+  initialData = null,
 }) {
   const { user } = useAuthStore();
 
   const initialFormData = useMemo(
-    () => ({
-      numero_control: "",
-      fecha: new Date().toISOString().split("T")[0],
-      cliente: "",
-      tipo_documento_id: null,
-      usuario_sistema: user?.username || "",
-      fecha_produccion: "",
-      turno: "",
-      numero_lote: "",
-      numero_camara: "",
-      especie_id: "",
-      observaciones: "",
-      motivo_salida_id: null,
-    }),
-    [user?.username],
+    () =>
+      initialData
+        ? {
+            numero_control: initialData.numero_control || "",
+            fecha: initialData.fecha || "",
+            cliente: initialData.cliente || "",
+            tipo_documento_id: initialData.tipo_documento_id || null,
+            usuario_sistema: user?.username || "",
+            fecha_produccion: initialData.fecha_produccion || "",
+            turno: initialData.turno || "",
+            numero_lote: initialData.numero_lote || "",
+            numero_camara: initialData.numero_camara || "",
+            especie_id: initialData.especie_id || "",
+            observaciones: initialData.observaciones || "",
+            motivo_salida_id: initialData.motivo_salida || null,
+          }
+        : {
+            numero_control: "",
+            fecha: new Date().toISOString().split("T")[0],
+            cliente: "",
+            tipo_documento_id: null,
+            usuario_sistema: user?.username || "",
+            fecha_produccion: "",
+            turno: "",
+            numero_lote: "",
+            numero_camara: "",
+            especie_id: "",
+            observaciones: "",
+            motivo_salida_id: null,
+          },
+    [user?.username, initialData],
   );
 
   const [formData, setFormData] = useState(initialFormData);
-  const [items, setItems] = useState([
-    {
-      descripcion: "",
-      codigo_trazabilidad: "",
-      cantidad: 0,
-      peso_unidad: 0,
-      motivo_salida: "OTROS",
-    },
-  ]);
+  const [items, setItems] = useState(
+    initialData?.items?.length
+      ? initialData.items.map((it) => ({
+          variante_id: it.variante_id,
+          codigo_trazabilidad: it.codigo_trazabilidad || "",
+          cantidad: it.cantidad,
+          peso_unidad: it.peso_unidad,
+          motivo_salida: "OTROS",
+        }))
+      : [
+          {
+            variante_id: "",
+            codigo_trazabilidad: "",
+            cantidad: 0,
+            peso_unidad: 0,
+            motivo_salida: "OTROS",
+          },
+        ],
+  );
   const [errors, setErrors] = useState({});
   const [cargando, setCargando] = useState(false);
   const [mensajeError, setMensajeError] = useState(null);
@@ -176,6 +203,8 @@ export default function ControlSalidaForm({
           cantidad,
           peso_unidad: pesoUnidad,
           total_kg: cantidad * pesoUnidad,
+          observaciones: null,
+          codigo_completo: null,
         };
       });
 
@@ -190,6 +219,7 @@ export default function ControlSalidaForm({
 
       await onSubmit({
         tipo_documento_id: formData.tipo_documento_id,
+        tipo_documento_codigo: null,
         numero_control: formData.numero_control.trim(),
         fecha: formData.fecha,
         cliente: formData.cliente.trim(),
@@ -198,10 +228,12 @@ export default function ControlSalidaForm({
         numero_lote: formData.numero_lote.trim(),
         numero_camara: formData.numero_camara.trim(),
         especie_id: parseInt(formData.especie_id, 10),
+        especie_nombre: null,
         suma_cantidad: sumaCantidad,
         suma_total_kg: sumaTotalKg,
         observaciones: formData.observaciones?.trim() || null,
         motivo_salida: formData.motivo_salida_id,
+        motivo_salida_codigo: null,
         items: itemsConTotales,
       });
     } catch (error) {
@@ -216,7 +248,7 @@ export default function ControlSalidaForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12">
+    <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
       {mensajeError && (
         <Alert type="error" className="mb-4">
           {mensajeError}
