@@ -1,7 +1,5 @@
-import { useState } from "react";
-import { Printer } from "lucide-react";
 import { partesService } from "@/services";
-
+import PrintButton from "@/components/common/PrintButton";
 // ─── Helpers de formato ──────────────────────────────────────────────────────
 const fmtNum = (n, dec = 1) =>
   new Intl.NumberFormat("es-PE", {
@@ -11,14 +9,12 @@ const fmtNum = (n, dec = 1) =>
 
 const fmtEntero = (n) => fmtNum(n, 0);
 
-// Extrae "DD/MM" de una fecha en formato "DD/MM/YYYY" o "YYYY-MM-DD"
-function diaMes(fechaStr) {
+// ─── Formateo de fecha ───────────────────────────────────────────────────────
+function fmtFecha(fechaStr) {
   if (!fechaStr) return "-";
   const s = String(fechaStr).trim();
-  const dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (dmy) return `${dmy[1].padStart(2, "0")}/${dmy[2].padStart(2, "0")}`;
-  const iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (iso) return `${iso[3].padStart(2, "0")}/${iso[2].padStart(2, "0")}`;
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
   return s;
 }
 
@@ -32,24 +28,24 @@ function generarHtmlImpresion(parte) {
     turno,
     codigo_trazabilidad,
     especie_nombre,
-    entera,
     observaciones,
-    motivo_ingreso, // "produccion" | "reempaque" | "despacho" | "otros"
+    motivo_ingreso_codigo, // "produccion" | "reempaque" | "despacho" | "otros"
     productos = [],
   } = parte;
 
-  const marca = (valor) => (motivo_ingreso === valor ? "X" : "");
   // Por defecto, si no viene informado, se marca "PRODUCCIÓN" (comportamiento del formulario original)
-  const motivoActivo = motivo_ingreso || "produccion";
-  const marcaOn = (v) => (motivoActivo === v ? "X" : "");
+  const motivoActivo = (motivo_ingreso_codigo || "PRODUCCION").toUpperCase();
+  const marcaOn = (v) => (motivoActivo === v.toUpperCase() ? "X" : "");
+  const sumaCajas = (p) =>
+    (parseInt(p.cajas_carro_1) || 0) +
+    (parseInt(p.cajas_carro_2) || 0) +
+    (parseInt(p.cajas_carro_3) || 0) +
+    (parseInt(p.cajas_carro_4) || 0);
 
   const totales = productos.reduce(
     (acc, p) => {
-      const cajas =
-        (parseInt(p.cajas_carro_1) || 0) +
-        (parseInt(p.cajas_carro_2) || 0) +
-        (parseInt(p.cajas_carro_3) || 0) +
-        (parseInt(p.cajas_carro_4) || 0);
+      const cajas = sumaCajas(p);
+      const totalKgFila = cajas * (parseFloat(p.peso_unidad) || 0);
       acc.cajas += cajas;
       acc.pesoNeto += parseFloat(p.peso_total_neto_kg) || 0;
       return acc;
@@ -60,46 +56,39 @@ function generarHtmlImpresion(parte) {
   const ROW_H = 22; // px, altura fija de cada fila (debe coincidir con la columna F.P. lateral)
   const HEAD_H = 32; // px, altura fija del encabezado de la tabla
 
+  const lineasObservaciones = (observaciones || "")
+    .split("\n")
+    .map((linea) => linea.trim())
+    .filter((linea) => linea.length > 0);
+
   const filasProductos = productos
     .map((p, i) => {
-      const cajas =
-        (parseInt(p.cajas_carro_1) || 0) +
-        (parseInt(p.cajas_carro_2) || 0) +
-        (parseInt(p.cajas_carro_3) || 0) +
-        (parseInt(p.cajas_carro_4) || 0);
-
+      const cajas = sumaCajas(p);
+      const totalKgFila = cajas * (parseFloat(p.peso_unidad) || 0);
       const nombreProducto =
         p.nombre_producto || p.codigo_completo || `Variante #${p.variante_id}`;
-      const detalleVariante = p.detalle_variante || p.rango || p.talla || "";
       const trazabilidad = p.codigo_trazabilidad || codigo_trazabilidad || "-";
 
       return `
         <tr style="height:${ROW_H}px">
           <td class="celda-item">${i + 1}</td>
           <td class="celda-desc">
-            <div class="desc-linea1">${nombreProducto}</div>
-            ${detalleVariante ? `<div class="desc-linea2">${detalleVariante}</div>` : ""}
+            <div class="desc-linea1">
+              ${nombreProducto} 
+              <span class="desc-linea2">
+                F.P.: ${fmtFecha(fecha) || "-"}
+              </span>
+            </div>
+            
           </td>
           <td class="celda-traz">
             <div class="traz-linea1">${trazabilidad}</div>
-            <div class="traz-linea2">F.P.: ${diaMes(fecha)}/YYYY</div>
           </td>
           <td class="celda-num">${fmtEntero(cajas)}</td>
           <td class="celda-num">${fmtNum(p.peso_unidad, 1)}</td>
-          <td class="celda-total">${fmtNum(p.peso_total_neto_kg, 1)}</td>
+          <td class="celda-total">${fmtNum(totalKgFila, 1)}</td>
         </tr>`;
     })
-    .join("");
-
-  // Columna lateral de fechas F.P. (una caja por cada fila de producto, misma altura que la fila)
-  const cajasFP = productos
-    .map(
-      () => `
-      <div class="fp-fila" style="height:${ROW_H}px">
-        <span class="fp-label">F.P.:</span>
-        <span class="fp-caja">${fecha || "-"}</span>
-      </div>`,
-    )
     .join("");
 
   return `<!DOCTYPE html>
@@ -108,7 +97,12 @@ function generarHtmlImpresion(parte) {
   <meta charset="UTF-8">
   <title>Control de Ingreso a Cámara N° ${codigo || ""}</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; 
+        padding: 0; 
+        box-sizing: border-box; 
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
     body {
       font-family: Arial, Helvetica, sans-serif;
       font-size: 9pt;
@@ -124,7 +118,13 @@ function generarHtmlImpresion(parte) {
       justify-content: space-between;
       margin-bottom: 10px;
     }
-    .header-logo { min-width: 220px; }
+    .header-logo {
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
     .logo-nombre {
       font-size: 13pt;
       font-weight: bold;
@@ -182,16 +182,17 @@ function generarHtmlImpresion(parte) {
       flex: 1;
       font-size: 9pt;
       text-align: center;
-      border: 1px solid #999;
+      border: none;
+      border-bottom: 1px solid #333;
       padding: 2px 4px;
       min-height: 16px;
     }
 
-    /* ── CUERPO: tabla + columna F.P. lateral ── */
+    /* ── CUERPO: tabla  ── */
     .cuerpo { display: flex; gap: 6px; align-items: flex-start; }
     .tabla-wrap { flex: 1; }
 
-    table { width: 100%; border-collapse: collapse; font-size: 8pt; table-layout: fixed; }
+    table { width: 100%; border-collapse: collapse; font-size: 8pt; table-layout: fixed; border: 1px solid #aaa; }
     thead tr { height: ${HEAD_H}px; }
     th {
       background: #1a4fa0;
@@ -216,57 +217,52 @@ function generarHtmlImpresion(parte) {
     col.col-total { width: 75px; }
 
     .celda-item { text-align: center; }
-    .celda-desc {
+    .celda-desc { text-align: left; }
+    .desc-linea1 {
+      color: #1a4fa0;
+      font-weight: bold;
+      font-size: 8pt;
+      line-height: 1.15;
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      text-align: left;
+      align-items: baseline;
     }
-    .celda-desc .nombre { color: #1a4fa0; font-weight: bold; font-size: 8pt; line-height: 1.15; }
-    .celda-desc .fp { color: #000; font-size: 8pt; white-space: nowrap; line-height: 1.15; }
+    .desc-linea2 { color: #555; font-size: 7pt; font-weight: normal; white-space: nowrap; }
     .celda-traz { text-align: center; }
     .traz-linea1 { color: #1a4fa0; font-size: 7.5pt; line-height: 1.15; }
-    .traz-linea2 { color: #000; font-size: 7pt; line-height: 1.15; }
     .celda-num { text-align: center; }
     .celda-total { text-align: right; }
 
     .tr-total { background: #dde4ef; font-weight: bold; height: ${ROW_H}px; }
     .tr-total td { border: 1px solid #888; }
 
-    /* ── Columna lateral F.P. ── */
-    .fp-col { width: 140px; flex-shrink: 0; }
-    .fp-spacer { height: ${HEAD_H}px; }
-    .fp-fila {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 7.5pt;
-      border-bottom: 1px solid transparent;
-    }
-    .fp-label { font-weight: bold; white-space: nowrap; }
-    .fp-caja {
-      border: 1px solid #999;
-      padding: 1px 6px;
-      flex: 1;
-      text-align: center;
-      background: #fff;
-    }
-    .fp-total-spacer { height: ${ROW_H}px; }
-
     /* ── MOTIVO DE INGRESO ── */
     .motivo {
       margin-top: 10px;
       font-size: 8.5pt;
       display: flex;
+      justify-content: space-around;
       gap: 26px;
+      margin-left: 14.3%;
+      margin-right: 14.3%;   
     }
     .motivo b { font-weight: bold; }
 
     /* ── OBSERVACIONES ── */
-    .observaciones { margin-top: 10px; font-size: 8.5pt; margin-bottom: 14px; }
-    .linea-obs { border-bottom: 0.5px solid #999; margin-top: 16px; }
-
+    .observaciones { 
+      margin-top: 10px; 
+      font-size: 8.5pt; 
+      margin-bottom: 14px;   
+      margin-left: 14.3%;
+      margin-right: 14.3%;
+    }
+    .obs-lineas { margin-top: 6px; }
+    .obs-linea {
+      border-bottom: 1px solid #999;
+      padding: 2px 2px 3px;
+      min-height: 14px;
+      font-size: 8.5pt;
+    }
     /* ── FIRMAS ── */
     .firmas { display: flex; justify-content: space-around; margin-top: 24px; padding-top: 8px; }
     .firma-box { text-align: center; flex: 1; padding: 0 8px; }
@@ -314,7 +310,7 @@ function generarHtmlImpresion(parte) {
     </div>
   </div>
 
-  <!-- CUERPO: TABLA + COLUMNA F.P. -->
+  <!-- CUERPO: TABLA -->
   <div class="cuerpo">
     <div class="tabla-wrap">
       <table>
@@ -335,19 +331,13 @@ function generarHtmlImpresion(parte) {
         <tbody>
           ${filasProductos}
           <tr class="tr-total">
-            <td colspan="3">TOTAL SALIDA PRODUCTO DE CÁMARA</td>
+            <td colspan="3">TOTAL INGRESO PRODUCTO DE CÁMARA</td>
             <td class="celda-num">${fmtEntero(totales.cajas)}</td>
             <td></td>
             <td class="celda-total">${fmtNum(totales.pesoNeto, 1)}</td>
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <div class="fp-col">
-      <div class="fp-spacer"></div>
-      ${cajasFP}
-      <div class="fp-total-spacer"></div>
     </div>
   </div>
 
@@ -362,9 +352,17 @@ function generarHtmlImpresion(parte) {
 
   <!-- OBSERVACIONES -->
   <div class="observaciones">
-    <strong>OBSERVACIONES: </strong>${observaciones || ""}
-    <div class="linea-obs"></div>
-    <div class="linea-obs"></div>
+    <strong>OBSERVACIONES:</strong>
+    <div class="obs-lineas">
+      ${
+        lineasObservaciones.length > 0
+          ? lineasObservaciones
+              .map((l) => `<div class="obs-linea">${l}</div>`)
+              .join("")
+          : `<div class="obs-linea">&nbsp;</div>`
+      }
+      <div class="obs-linea">&nbsp;</div>
+    </div>
   </div>
 
   <!-- FIRMAS -->
@@ -384,69 +382,20 @@ function generarHtmlImpresion(parte) {
       <div class="firma-titulo">V.°B.° CLIENTE</div>
     </div>
   </div>
-
-  <script>
-    window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; };
-  </script>
 </body>
 </html>`;
 }
 
-export function PrintButton({
-  parteId,
-  parte: parteProps,
-}) {
-  const [cargando, setCargando] = useState(false);
-
-  const imprimir = (parte) => {
-    const html = generarHtmlImpresion(parte);
-
-    // Crear iframe oculto (funciona dentro de Tauri, que bloquea window.open)
-    const iframe = document.createElement("iframe");
-    iframe.style.cssText =
-      "position:fixed;top:0;left:0;width:0;height:0;border:none;visibility:hidden";
-    document.body.appendChild(iframe);
-
-    iframe.contentDocument.open();
-    iframe.contentDocument.write(html);
-    iframe.contentDocument.close();
-
-    // Esperar a que cargue y disparar impresión
-    iframe.onload = () => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      // Limpiar iframe después de imprimir
-      iframe.contentWindow.onafterprint = () => {
-        document.body.removeChild(iframe);
-      };
-    };
-  };
-
-  const handleClick = async () => {
-    if (parteProps) {
-      imprimir(parteProps);
-      return;
-    }
-    try {
-      setCargando(true);
-      const data = await partesService.obtenerParte(parteId);
-      imprimir(data);
-    } catch (err) {
-      console.error("Error cargando parte para impresión:", err);
-    } finally {
-      setCargando(false);
-    }
-  };
-
+export function PrintButtonIngreso({ parteId, parte }) {
   return (
-    <button
-      onClick={handleClick}
-      disabled={cargando}
-      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-500 disabled:opacity-50 rounded transition-colors"
-    >
-      <Printer size={15} />
-    </button>
+    <PrintButton
+      data={parte}
+      id={parteId}
+      obtenerPorId={partesService.obtenerParte}
+      generarHtml={generarHtmlImpresion}
+      title="Imprimir parte de producción"
+    />
   );
 }
 
-export default PrintButton;
+export default PrintButtonIngreso;

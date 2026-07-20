@@ -11,6 +11,8 @@ import {
   IngresoDetallePage,
   EditarIngresosPage,
   SalidasPage,
+  SalidaDetallePage,
+  EditarSalidasPage,
   StockPage,
   ReportesPage,
   NewPartePage,
@@ -143,6 +145,26 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <SalidasPage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/salidas/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <SalidaDetallePage />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/salidas/:id/editar"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <EditarSalidasPage />
               </Layout>
             </ProtectedRoute>
           }
