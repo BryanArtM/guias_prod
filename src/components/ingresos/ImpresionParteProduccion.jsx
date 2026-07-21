@@ -112,26 +112,20 @@ function generarHtmlImpresion(parte) {
     }
 
     /* ── ENCABEZADO ── */
-    .header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .header-logo {
-      min-width: 220px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .header-logo { min-width: 220px; display: flex; flex-direction: column; align-items: center; text-align: center; }
     .logo-nombre {
-      font-size: 13pt;
-      font-weight: bold;
-      color: #1a4fa0;
-      border-bottom: 1.5px solid #1a4fa0;
-      display: inline-block;
-      padding-bottom: 1px;
+      font-family: "Century", "Century Schoolbook", serif;
+      font-size: 13pt; font-weight: bold; color: #1a4fa0;
+      border-bottom: 1.5px solid #1a4fa0; display: inline-block; padding-bottom: 1px;
+    }
+    .header-img {
+      display: flex;
+      align-items: center;
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin-right: 8px;
     }
     .header-address {
       font-size: 7pt;
@@ -278,6 +272,7 @@ function generarHtmlImpresion(parte) {
 
   <!-- ENCABEZADO -->
   <div class="header">
+    <img src="logo_karsol.png" class="header-img" alt="Logo" />
     <div class="header-logo">
       <span class="logo-nombre">PESQUERA KARSOL S.A.C</span>
       <div class="header-address">
