@@ -6,20 +6,15 @@ export default function VarianteForm({
   onCancel,
   varianteInicial = null,
   especies = [],
-  formasEnvasado = [],
-  formasEmpacado = [],
   calidades = [],
   calibres = [],
 }) {
   const [formData, setFormData] = useState({
     especie_id: "",
     presentacion_id: "",
-    forma_envasado_id: "",
-    forma_empacado_id: "",
     ensunchado: false,
     calidad_id: "",
     calibre_id: "",
-    observaciones: "",
   });
 
   const [presentaciones, setPresentaciones] = useState([]);
@@ -33,12 +28,9 @@ export default function VarianteForm({
       setFormData({
         especie_id: varianteInicial.especie_id || "",
         presentacion_id: varianteInicial.presentacion_id || "",
-        forma_envasado_id: varianteInicial.forma_envasado_id || "",
-        forma_empacado_id: varianteInicial.forma_empacado_id || "",
         ensunchado: varianteInicial.ensunchado || false,
         calidad_id: varianteInicial.calidad_id || "",
         calibre_id: varianteInicial.calibre_id || "",
-        observaciones: varianteInicial.observaciones || "",
       });
     }
   }, [varianteInicial]);
@@ -85,18 +77,6 @@ export default function VarianteForm({
     );
     if (presentacion) partes.push(presentacion.nombre);
 
-    // Forma Envasado
-    const formaEnv = formasEnvasado.find(
-      (f) => f.id === parseInt(formData.forma_envasado_id),
-    );
-    if (formaEnv) partes.push(formaEnv.nombre);
-
-    // Forma Empacado
-    const formaEmp = formasEmpacado.find(
-      (f) => f.id === parseInt(formData.forma_empacado_id),
-    );
-    if (formaEmp) partes.push(formaEmp.nombre);
-
     // Ensunchado
     if (formData.ensunchado) {
       partes.push("Z");
@@ -125,15 +105,7 @@ export default function VarianteForm({
     setCodigoPreview(
       partes.join(" ") || "Seleccione los campos para ver el código...",
     );
-  }, [
-    formData,
-    especies,
-    presentaciones,
-    formasEnvasado,
-    formasEmpacado,
-    calidades,
-    calibres,
-  ]);
+  }, [formData, especies, presentaciones, calidades, calibres]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -179,16 +151,9 @@ export default function VarianteForm({
     try {
       const dataToSend = {
         presentacion_id: parseInt(formData.presentacion_id),
-        forma_envasado_id: formData.forma_envasado_id
-          ? parseInt(formData.forma_envasado_id)
-          : null,
-        forma_empacado_id: formData.forma_empacado_id
-          ? parseInt(formData.forma_empacado_id)
-          : null,
         ensunchado: formData.ensunchado,
         calidad_id: formData.calidad_id ? parseInt(formData.calidad_id) : null,
         calibre_id: formData.calibre_id ? parseInt(formData.calibre_id) : null,
-        observaciones: formData.observaciones || null,
       };
 
       await onSubmit(dataToSend);
@@ -254,37 +219,7 @@ export default function VarianteForm({
         ))}
       </Select>
 
-      {/* 3. Forma de Envasado */}
-      <Select
-        label="Forma de Envasado"
-        name="forma_envasado_id"
-        value={formData.forma_envasado_id}
-        onChange={handleChange}
-      >
-        <option value="">Ninguna</option>
-        {formasEnvasado.map((forma) => (
-          <option key={forma.id} value={forma.id}>
-            {forma.nombre} {forma.descripcion && `- ${forma.descripcion}`}
-          </option>
-        ))}
-      </Select>
-
-      {/* 4. Forma de Empacado */}
-      <Select
-        label="Forma de Empacado"
-        name="forma_empacado_id"
-        value={formData.forma_empacado_id}
-        onChange={handleChange}
-      >
-        <option value="">Ninguna</option>
-        {formasEmpacado.map((forma) => (
-          <option key={forma.id} value={forma.id}>
-            {forma.nombre} {forma.descripcion && `- ${forma.descripcion}`}
-          </option>
-        ))}
-      </Select>
-
-      {/* 5. Ensunchado */}
+      {/* 3. Ensunchado */}
       <div className="flex items-center space-x-2">
         <input
           type="checkbox"
@@ -302,7 +237,7 @@ export default function VarianteForm({
         </label>
       </div>
 
-      {/* 6. Calidad */}
+      {/* 4. Calidad */}
       <Select
         label="Calidad"
         name="calidad_id"
@@ -317,7 +252,7 @@ export default function VarianteForm({
         ))}
       </Select>
 
-      {/* 7. Calibre */}
+      {/* 5. Calibre */}
       <Select
         label="Calibre"
         name="calibre_id"
@@ -337,21 +272,6 @@ export default function VarianteForm({
           </option>
         ))}
       </Select>
-
-      {/* Observaciones */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Observaciones
-        </label>
-        <textarea
-          name="observaciones"
-          value={formData.observaciones}
-          onChange={handleChange}
-          rows="3"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Notas adicionales (opcional)"
-        />
-      </div>
 
       {/* Botones */}
       <div className="flex justify-end gap-2 pt-4">

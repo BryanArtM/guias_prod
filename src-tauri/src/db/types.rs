@@ -47,12 +47,9 @@ pub struct Calibre {
 pub struct VariantePresentacion {
     pub id: Option<i64>,
     pub presentacion_id: i64,
-    pub forma_envasado_id: Option<i64>,
-    pub forma_empacado_id: Option<i64>,
     pub ensunchado: bool,
     pub calidad_id: Option<i64>,
     pub calibre_id: Option<i64>,
-    pub observaciones: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -62,8 +59,6 @@ pub struct VarianteCompleta {
     pub especie_nombre: String,
     pub presentacion_id: i64,
     pub presentacion_nombre: String,
-    pub forma_envasado: Option<String>,
-    pub forma_empacado: Option<String>,
     pub tipo_ensunchado: Option<String>,
     pub calidad: Option<String>,
     pub calibre: Option<String>,

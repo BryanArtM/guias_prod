@@ -3,8 +3,6 @@ import { VariantesList } from "@/components/variantes";
 import { Loading, Alert } from "@/components/common";
 import {
   obtenerEspecies,
-  obtenerFormasEnvasado,
-  obtenerFormasEmpacado,
   obtenerCalidades,
   obtenerCalibres,
 } from "@/services";
@@ -15,8 +13,6 @@ export default function VariantesPage() {
 
   // Catálogos necesarios
   const [especies, setEspecies] = useState([]);
-  const [formasEnvasado, setFormasEnvasado] = useState([]);
-  const [formasEmpacado, setFormasEmpacado] = useState([]);
   const [calidades, setCalidades] = useState([]);
   const [calibres, setCalibres] = useState([]);
 
@@ -28,17 +24,13 @@ export default function VariantesPage() {
     setCargando(true);
     setError(null);
     try {
-      const [esp, fe, fem, cal, calib] = await Promise.all([
+      const [esp, cal, calib] = await Promise.all([
         obtenerEspecies(),
-        obtenerFormasEnvasado(),
-        obtenerFormasEmpacado(),
         obtenerCalidades(),
         obtenerCalibres(),
       ]);
 
       setEspecies(esp);
-      setFormasEnvasado(fe);
-      setFormasEmpacado(fem);
       setCalidades(cal);
       setCalibres(calib);
     } catch (err) {
@@ -65,10 +57,6 @@ export default function VariantesPage() {
   // Validar que existan catálogos necesarios
   const catalogosFaltantes = [];
   if (especies.length === 0) catalogosFaltantes.push("Especies");
-  if (formasEnvasado.length === 0)
-    catalogosFaltantes.push("Formas de Envasado");
-  if (formasEmpacado.length === 0)
-    catalogosFaltantes.push("Formas de Empacado");
   if (calidades.length === 0) catalogosFaltantes.push("Calidades");
   if (calibres.length === 0) catalogosFaltantes.push("Calibres");
 
@@ -99,8 +87,6 @@ export default function VariantesPage() {
     <div className="container mx-auto px-4 py-8">
       <VariantesList
         especies={especies}
-        formasEnvasado={formasEnvasado}
-        formasEmpacado={formasEmpacado}
         calidades={calidades}
         calibres={calibres}
       />

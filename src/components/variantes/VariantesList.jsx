@@ -19,8 +19,6 @@ import {
 
 export default function VariantesList({
   especies = [],
-  formasEnvasado = [],
-  formasEmpacado = [],
   calidades = [],
   calibres = [],
 }) {
@@ -35,15 +33,6 @@ export default function VariantesList({
   const [filtroEspecie, setFiltroEspecie] = useState("");
   const [filtroPresentacion, setFiltroPresentacion] = useState("");
   const [presentacionesFiltro, setPresentacionesFiltro] = useState([]);
-
-  // Debug: Log props recibidos
-  useEffect(() => {}, [
-    especies,
-    formasEnvasado,
-    formasEmpacado,
-    calidades,
-    calibres,
-  ]);
 
   useEffect(() => {
     cargarVariantes();
@@ -181,8 +170,6 @@ export default function VariantesList({
 
       {/* Mensaje de advertencia si faltan catálogos */}
       {(especies.length === 0 ||
-        formasEnvasado.length === 0 ||
-        formasEmpacado.length === 0 ||
         calidades.length === 0 ||
         calibres.length === 0) && (
         <Alert variant="warning" className="mb-4">
@@ -193,8 +180,6 @@ export default function VariantesList({
               Faltan:{" "}
               {[
                 especies.length === 0 && "Especies",
-                formasEnvasado.length === 0 && "Formas de Envasado",
-                formasEmpacado.length === 0 && "Formas de Empacado",
                 calidades.length === 0 && "Calidades",
                 calibres.length === 0 && "Calibres",
               ]
@@ -213,8 +198,6 @@ export default function VariantesList({
           onClick={() => abrirModal()}
           disabled={
             especies.length === 0 ||
-            formasEnvasado.length === 0 ||
-            formasEmpacado.length === 0 ||
             calidades.length === 0 ||
             calibres.length === 0
           }
@@ -344,8 +327,6 @@ export default function VariantesList({
           onCancel={cerrarModal}
           varianteInicial={varianteEditando}
           especies={especies}
-          formasEnvasado={formasEnvasado}
-          formasEmpacado={formasEmpacado}
           calidades={calidades}
           calibres={calibres}
         />

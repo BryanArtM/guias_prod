@@ -44,18 +44,13 @@ const CREATE_CALIBRES: &str = "CREATE TABLE IF NOT EXISTS calibres (
 const CREATE_VARIANTES: &str = "CREATE TABLE IF NOT EXISTS variantes_presentaciones (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     presentacion_id INTEGER NOT NULL,
-    forma_envasado_id INTEGER,
-    forma_empacado_id INTEGER,
     ensunchado INTEGER NOT NULL DEFAULT 0,
     calidad_id INTEGER,
     calibre_id INTEGER,
-    observaciones TEXT,
     FOREIGN KEY (presentacion_id) REFERENCES presentaciones(id) ON DELETE RESTRICT,
-    FOREIGN KEY (forma_envasado_id) REFERENCES formas_envasado(id) ON DELETE RESTRICT,
-    FOREIGN KEY (forma_empacado_id) REFERENCES formas_empacado(id) ON DELETE RESTRICT,
     FOREIGN KEY (calidad_id) REFERENCES calidades(id) ON DELETE RESTRICT,
     FOREIGN KEY (calibre_id) REFERENCES calibres(id) ON DELETE RESTRICT,
-    UNIQUE (presentacion_id, forma_envasado_id, forma_empacado_id, ensunchado, calidad_id, calibre_id)
+    UNIQUE (presentacion_id, ensunchado, calidad_id, calibre_id)
 )";
 
 const CREATE_TIPOS_DOCUMENTO_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS tipos_documento_produccion (
@@ -191,37 +186,33 @@ const CREATE_USERS: &str = "CREATE TABLE IF NOT EXISTS users (
 )";
 
 const CREATE_VIEW: &str = "CREATE VIEW IF NOT EXISTS variantes_completas_view AS
-SELECT 
+SELECT
     v.id AS variante_id,
     e.id AS especie_id,
     e.nombre AS especie_nombre,
     p.id AS presentacion_id,
     p.nombre AS presentacion_nombre,
-    fe.nombre AS forma_envasado,
-    fem.nombre AS forma_empacado,
     v.ensunchado AS ensunchado,
     c.nombre AS calidad,
-    CASE 
-        WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL 
+    CASE
+        WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL
         THEN CAST(cal.valor_minimo AS TEXT) || '-' || CAST(cal.valor_maximo AS TEXT)
-        WHEN cal.valor_minimo IS NOT NULL 
+        WHEN cal.valor_minimo IS NOT NULL
         THEN CAST(cal.valor_minimo AS TEXT) || '+'
-        WHEN cal.valor_maximo IS NOT NULL 
+        WHEN cal.valor_maximo IS NOT NULL
         THEN '0-' || CAST(cal.valor_maximo AS TEXT)
         ELSE NULL
     END AS calibre,
-    (e.nombre || ' ' || p.nombre || 
-     COALESCE(' ' || fe.nombre, '') || 
-     COALESCE(' ' || fem.nombre, '') || 
-     CASE WHEN v.ensunchado = 1 THEN ' Z' ELSE '' END || 
-     COALESCE(' ' || c.nombre, '') || 
-     COALESCE(' ' || 
-        CASE 
-            WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL 
+    (e.nombre || ' ' || p.nombre ||
+     CASE WHEN v.ensunchado = 1 THEN ' Z' ELSE '' END ||
+     COALESCE(' ' || c.nombre, '') ||
+     COALESCE(' ' ||
+        CASE
+            WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL
             THEN CAST(cal.valor_minimo AS TEXT) || '-' || CAST(cal.valor_maximo AS TEXT)
-            WHEN cal.valor_minimo IS NOT NULL 
+            WHEN cal.valor_minimo IS NOT NULL
             THEN CAST(cal.valor_minimo AS TEXT) || '+'
-            WHEN cal.valor_maximo IS NOT NULL 
+            WHEN cal.valor_maximo IS NOT NULL
             THEN '0-' || CAST(cal.valor_maximo AS TEXT)
             ELSE NULL
         END, '')
@@ -230,8 +221,6 @@ SELECT
 FROM variantes_presentaciones v
 JOIN presentaciones p ON v.presentacion_id = p.id
 JOIN especies e ON p.especie_id = e.id
-LEFT JOIN formas_envasado fe ON v.forma_envasado_id = fe.id
-LEFT JOIN formas_empacado fem ON v.forma_empacado_id = fem.id
 LEFT JOIN calidades c ON v.calidad_id = c.id
 LEFT JOIN calibres cal ON v.calibre_id = cal.id";
 
@@ -239,6 +228,12 @@ const CREATE_STOCK_ACTUAL_VIEW: &str = "CREATE VIEW IF NOT EXISTS stock_actual_v
 SELECT
     vc.variante_id,
     vc.codigo_completo,
+    vc.especie_nombre,
+    vc.presentacion_nombre,
+    COALESCE(ing.kg, 0) AS ingresos_kg,
+    COALESCE(sal.kg, 0) AS salidas_kg,
+    COALESCE(ing.cajas, 0) AS ingresos_cajas,
+    COALESCE(sal.cajas, 0) AS salidas_cajas,
     COALESCE(ing.kg, 0) - COALESCE(sal.kg, 0) AS stock_kg,
     COALESCE(ing.cajas, 0) - COALESCE(sal.cajas, 0) AS stock_cajas
 FROM variantes_completas_view vc
@@ -273,6 +268,34 @@ async fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Erro
     conn.execute(CREATE_VARIANTES, ()).await?;
     println!("  ✓ Tabla variantes");
     
+    Ok(())
+}
+
+async fn migrate_variantes_schema(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
+    let mut result = conn.query("PRAGMA table_info(variantes_presentaciones)", ()).await?;
+    let mut necesita_migracion = false;
+    while let Some(row) = result.next().await? {
+        let nombre_columna: String = row.get(1)?;
+        if nombre_columna == "forma_envasado_id"
+            || nombre_columna == "forma_empacado_id"
+            || nombre_columna == "observaciones"
+        {
+            necesita_migracion = true;
+            break;
+        }
+    }
+
+    if necesita_migracion {
+        println!("Migrando variantes_presentaciones al nuevo esquema (especie, presentacion, calidad, calibre, ensunchado)...");
+        conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
+        conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
+        conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;
+        conn.execute("DROP TABLE IF EXISTS variantes_presentaciones", ()).await?;
+        conn.execute(CREATE_VARIANTES, ()).await?;
+        conn.execute("PRAGMA foreign_keys = ON", ()).await?;
+        println!("  ✓ Tabla variantes_presentaciones recreada con el nuevo esquema");
+    }
+
     Ok(())
 }
 
@@ -326,6 +349,11 @@ async fn create_users_table(conn: &Connection) -> Result<(), Box<dyn std::error:
 
 async fn create_views(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     println!("Creando vistas...");
+    // Las vistas se recrean en cada arranque (no almacenan datos propios) para
+    // que los cambios de definición se apliquen también sobre una base ya existente,
+    // donde "CREATE VIEW IF NOT EXISTS" dejaría la definición vieja intacta.
+    conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
+    conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;
     conn.execute(CREATE_VIEW, ()).await?;
     conn.execute(CREATE_STOCK_ACTUAL_VIEW, ()).await?;
     Ok(())
@@ -389,6 +417,7 @@ pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
     let conn = db.connect()?;
     conn.execute("PRAGMA foreign_keys = ON", ()).await?;
     create_tables(&conn).await?;
+    migrate_variantes_schema(&conn).await?;
     create_transaction_tables(&conn).await?;
     create_users_table(&conn).await?;
     create_views(&conn).await?;
