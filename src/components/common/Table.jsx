@@ -131,8 +131,12 @@ export const TableBody = ({ children }) => {
   return <tbody className="table__body">{children}</tbody>;
 };
 
-export const TableRow = ({ children, className = "" }) => {
-  return <tr className={`table__row ${className}`}>{children}</tr>;
+export const TableRow = ({ children, className = "", ...props }) => {
+  return (
+    <tr className={`table__row ${className}`} {...props}>
+      {children}
+    </tr>
+  );
 };
 
 export const TableHead = ({ children, className = "", ...props }) => {

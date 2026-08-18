@@ -5,17 +5,38 @@ import {
   TableBody,
   TableRow,
   TableHead,
+  TableCell,
 } from "@/components/common/Table";
 import { Button, Alert, Select } from "@/components/common";
-import { Download, RefreshCw } from "lucide-react";
-import { obtenerStockActual } from "@/services";
+import { ChevronDown, ChevronRight, Download, RefreshCw } from "lucide-react";
+import { obtenerStockActual, obtenerStockPorLote } from "@/services";
+
+// Un lote se considera antiguo a partir de estos dias, para avisar de rotacion
+const DIAS_ALERTA_ANTIGUEDAD = 45;
+
+function diasDesde(fechaIso) {
+  const inicio = new Date(`${fechaIso}T00:00:00`);
+  if (Number.isNaN(inicio.getTime())) return null;
+  const hoy = new Date();
+  return Math.floor((hoy - inicio) / 86400000);
+}
+
+function formatearFecha(fechaIso) {
+  if (!fechaIso) return "-";
+  const [anio, mes, dia] = fechaIso.split("-");
+  return `${dia}/${mes}/${anio}`;
+}
+
+const num = (valor, decimales = 2) => Number(valor || 0).toFixed(decimales);
 
 export default function StockList() {
   const [stock, setStock] = useState([]);
+  const [lotes, setLotes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [alerta, setAlerta] = useState(null);
   const [filtroCodigo, setFiltroCodigo] = useState("");
   const [soloConStock, setSoloConStock] = useState(false);
+  const [expandidas, setExpandidas] = useState(new Set());
 
   useEffect(() => {
     cargarStock();
@@ -26,17 +47,36 @@ export default function StockList() {
     setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
   };
 
+  // El agregado trae todas las variantes (incluidas las que nunca tuvieron
+  // movimiento); los lotes solo existen para las que si tuvieron ingresos.
   const cargarStock = async () => {
     setCargando(true);
     try {
-      const data = await obtenerStockActual();
-      setStock(data || []);
+      const [agregado, porLote] = await Promise.all([
+        obtenerStockActual(),
+        obtenerStockPorLote(),
+      ]);
+      setStock(agregado || []);
+      setLotes(porLote || []);
     } catch (error) {
       mostrarAlerta("Error al cargar stock: " + error.message, "error");
     } finally {
       setCargando(false);
     }
   };
+
+  const lotesPorVariante = useMemo(() => {
+    const mapa = new Map();
+    for (const lote of lotes) {
+      if (!mapa.has(lote.variante_id)) mapa.set(lote.variante_id, []);
+      mapa.get(lote.variante_id).push(lote);
+    }
+    // Del mas antiguo al mas reciente: es el orden en que se debe despachar
+    for (const lista of mapa.values()) {
+      lista.sort((a, b) => a.fecha_ingreso.localeCompare(b.fecha_ingreso));
+    }
+    return mapa;
+  }, [lotes]);
 
   const stockFiltrado = useMemo(() => {
     return stock.filter((item) => {
@@ -50,24 +90,92 @@ export default function StockList() {
     });
   }, [stock, filtroCodigo, soloConStock]);
 
-  const exportarCSV = () => {
-    const headers = ["Código Variante", "Kg Stock", "Cajas Stock"];
-    const csv = [
-      headers.join(","),
-      ...stockFiltrado.map((s) =>
-        [`"${s.codigo_completo}"`, s.stock_kg, s.stock_cajas].join(","),
-      ),
-    ].join("\n");
+  // Solo los lotes con existencias: los agotados no son parte del stock
+  const lotesConStockDe = (varianteId) =>
+    (lotesPorVariante.get(varianteId) ?? []).filter(
+      (lote) => lote.stock_cajas > 0 || lote.stock_kg > 0,
+    );
 
+  const toggleFila = (varianteId) => {
+    setExpandidas((prev) => {
+      const next = new Set(prev);
+      if (next.has(varianteId)) next.delete(varianteId);
+      else next.add(varianteId);
+      return next;
+    });
+  };
+
+  const todasExpandidas =
+    stockFiltrado.length > 0 &&
+    stockFiltrado.every((item) => expandidas.has(item.variante_id));
+
+  const toggleTodas = () => {
+    setExpandidas(
+      todasExpandidas
+        ? new Set()
+        : new Set(stockFiltrado.map((item) => item.variante_id)),
+    );
+  };
+
+  // Se exporta el detalle por lote, que es el nivel util para inventario
+  const exportarCSV = () => {
+    const headers = [
+      "Variante",
+      "Fecha Ingreso",
+      "Dias",
+      "Cajas Ingresadas",
+      "Cajas Salidas",
+      "Cajas Disponibles",
+      "Kg Ingresados",
+      "Kg Salidos",
+      "Kg Disponibles",
+    ];
+    const filas = [];
+    for (const item of stockFiltrado) {
+      const suyos = lotesConStockDe(item.variante_id);
+      if (suyos.length === 0) {
+        filas.push(
+          [
+            `"${item.codigo_completo}"`,
+            "sin lotes",
+            "",
+            0,
+            0,
+            item.stock_cajas,
+            0,
+            0,
+            item.stock_kg,
+          ].join(","),
+        );
+        continue;
+      }
+      for (const lote of suyos) {
+        filas.push(
+          [
+            `"${item.codigo_completo}"`,
+            lote.fecha_ingreso,
+            diasDesde(lote.fecha_ingreso) ?? "",
+            lote.ingresos_cajas,
+            lote.salidas_cajas,
+            lote.stock_cajas,
+            num(lote.ingresos_kg),
+            num(lote.salidas_kg),
+            num(lote.stock_kg),
+          ].join(","),
+        );
+      }
+    }
+
+    const csv = [headers.join(","), ...filas].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `stock_${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `stock_lotes_${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
 
-    mostrarAlerta("Stock exportado a CSV exitosamente");
+    mostrarAlerta("Stock por lote exportado a CSV");
   };
 
   if (cargando) {
@@ -77,6 +185,11 @@ export default function StockList() {
       </div>
     );
   }
+
+  const totalLotes = stockFiltrado.reduce(
+    (total, item) => total + lotesConStockDe(item.variante_id).length,
+    0,
+  );
 
   return (
     <div>
@@ -89,6 +202,9 @@ export default function StockList() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-gray-800">Stock Actual</h2>
         <div className="flex gap-2">
+          <Button variant="secondary" onClick={toggleTodas}>
+            {todasExpandidas ? "Contraer todo" : "Expandir todo"}
+          </Button>
           <Button
             variant="secondary"
             onClick={cargarStock}
@@ -144,7 +260,8 @@ export default function StockList() {
           </div>
         </div>
         <p className="text-sm text-gray-600 mt-2">
-          Mostrando {stockFiltrado.length} de {stock.length} variantes
+          Mostrando {stockFiltrado.length} de {stock.length} variantes ·{" "}
+          {totalLotes} lote{totalLotes === 1 ? "" : "s"} con existencias
         </p>
       </div>
 
@@ -156,25 +273,165 @@ export default function StockList() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10"></TableHead>
               <TableHead>Código Variante</TableHead>
+              <TableHead className="text-center">Lotes</TableHead>
+              <TableHead>Lote más antiguo</TableHead>
               <TableHead className="text-right">Kg Stock</TableHead>
               <TableHead className="text-right">Cajas Stock</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {stockFiltrado.map((item) => (
-              <TableRow key={item.variante_id}>
-                <td>
-                  <span className="font-mono text-sm font-semibold text-blue-700">
-                    {item.codigo_completo}
-                  </span>
-                </td>
-                <td className="text-right font-semibold">
-                  {Number(item.stock_kg || 0).toFixed(2)}
-                </td>
-                <td className="text-right">{Number(item.stock_cajas || 0)}</td>
-              </TableRow>
-            ))}
+            {stockFiltrado.map((item) => {
+              const suyos = lotesConStockDe(item.variante_id);
+              const abierta = expandidas.has(item.variante_id);
+              const masAntiguo = suyos[0];
+              const dias = masAntiguo ? diasDesde(masAntiguo.fecha_ingreso) : null;
+              const esAntiguo = dias != null && dias >= DIAS_ALERTA_ANTIGUEDAD;
+
+              return [
+                <TableRow
+                  key={item.variante_id}
+                  className="cursor-pointer"
+                  onClick={() => toggleFila(item.variante_id)}
+                >
+                  <TableCell className="text-center text-gray-500">
+                    {suyos.length > 0 &&
+                      (abierta ? (
+                        <ChevronDown className="w-4 h-4 inline" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 inline" />
+                      ))}
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-mono text-sm font-semibold text-blue-700">
+                      {item.codigo_completo}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {suyos.length > 0 ? (
+                      suyos.length
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {masAntiguo ? (
+                      <span
+                        className={
+                          esAntiguo ? "text-amber-700 font-medium" : undefined
+                        }
+                        title={
+                          esAntiguo
+                            ? "Lote con mucha antigüedad, conviene rotarlo"
+                            : undefined
+                        }
+                      >
+                        {formatearFecha(masAntiguo.fecha_ingreso)}
+                        {dias != null && (
+                          <span className="text-xs text-gray-500">
+                            {" "}
+                            ({dias} d)
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 italic text-sm">
+                        Sin movimiento
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">
+                    {num(item.stock_kg)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {Number(item.stock_cajas || 0)}
+                  </TableCell>
+                </TableRow>,
+
+                abierta && suyos.length > 0 && (
+                  <TableRow key={`${item.variante_id}-detalle`}>
+                    <TableCell colSpan={6} className="bg-gray-50 p-0">
+                      <div className="px-6 py-3">
+                        <p className="text-xs font-semibold text-gray-600 uppercase mb-2">
+                          Detalle por lote (del más antiguo al más reciente)
+                        </p>
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="text-xs uppercase text-gray-500">
+                              <th className="p-2 border text-left">
+                                Fecha Ingreso
+                              </th>
+                              <th className="p-2 border text-right">
+                                Antigüedad
+                              </th>
+                              <th className="p-2 border text-right">
+                                Ingresado
+                              </th>
+                              <th className="p-2 border text-right">Salido</th>
+                              <th className="p-2 border text-right">
+                                Disponible
+                              </th>
+                              <th className="p-2 border text-right">
+                                Peso Und.
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {suyos.map((lote) => {
+                              const d = diasDesde(lote.fecha_ingreso);
+                              const viejo =
+                                d != null && d >= DIAS_ALERTA_ANTIGUEDAD;
+                              return (
+                                <tr
+                                  key={lote.fecha_ingreso}
+                                  className="bg-white"
+                                >
+                                  <td className="p-2 border font-medium">
+                                    {formatearFecha(lote.fecha_ingreso)}
+                                  </td>
+                                  <td
+                                    className={`p-2 border text-right ${
+                                      viejo ? "text-amber-700 font-medium" : ""
+                                    }`}
+                                  >
+                                    {d != null ? `${d} días` : "-"}
+                                  </td>
+                                  <td className="p-2 border text-right text-gray-600">
+                                    {lote.ingresos_cajas} cajas
+                                    <br />
+                                    <span className="text-xs">
+                                      {num(lote.ingresos_kg)} kg
+                                    </span>
+                                  </td>
+                                  <td className="p-2 border text-right text-gray-600">
+                                    {lote.salidas_cajas} cajas
+                                    <br />
+                                    <span className="text-xs">
+                                      {num(lote.salidas_kg)} kg
+                                    </span>
+                                  </td>
+                                  <td className="p-2 border text-right font-semibold text-blue-700">
+                                    {lote.stock_cajas} cajas
+                                    <br />
+                                    <span className="text-xs">
+                                      {num(lote.stock_kg)} kg
+                                    </span>
+                                  </td>
+                                  <td className="p-2 border text-right text-gray-600">
+                                    {num(lote.peso_unidad)}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ),
+              ];
+            })}
           </TableBody>
         </Table>
       )}

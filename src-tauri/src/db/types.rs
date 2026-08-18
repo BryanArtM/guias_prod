@@ -208,6 +208,10 @@ pub struct StockLote {
     pub calibre: Option<String>,
     pub tipo_ensunchado: Option<String>,
     pub peso_unidad: f64,
+    pub ingresos_kg: f64,
+    pub salidas_kg: f64,
+    pub ingresos_cajas: i64,
+    pub salidas_cajas: i64,
     pub stock_kg: f64,
     pub stock_cajas: i64,
 }
