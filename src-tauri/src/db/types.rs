@@ -5,6 +5,7 @@ pub struct Especie {
     pub id: Option<i64>,
     pub nombre: String,
     pub descripcion: Option<String>,
+    pub peso_unidad_defecto: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -60,6 +61,8 @@ pub struct VarianteCompleta {
     pub presentacion_id: i64,
     pub presentacion_nombre: String,
     pub tipo_ensunchado: Option<String>,
+    pub calidad_id: Option<i64>,
+    pub calibre_id: Option<i64>,
     pub calidad: Option<String>,
     pub calibre: Option<String>,
     pub codigo_completo: String,

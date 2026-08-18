@@ -8,6 +8,7 @@ import HeaderSection from "./HeaderSection";
 import {
   obtenerEspecies,
   obtenerVariantesCompletas,
+  crearVariantePresentacion,
   obtenerMotivosIngreso,
   obtenerTiposDocumentoProduccion,
 } from "@/services";
@@ -105,6 +106,26 @@ export default function ParteProduccionForm({
       especie_id: val,
       productos: [],
     }));
+  };
+
+  // El ensunchado ya no se define al crear la variante en el catálogo, sino
+  // al momento del ingreso. Si no existe todavía la variante (misma
+  // presentación/calidad/calibre) con el estado de ensunchado elegido, se crea aquí.
+  const crearVarianteEnsunchado = async ({
+    presentacion_id,
+    calidad_id,
+    calibre_id,
+    ensunchado,
+  }) => {
+    const nuevoId = await crearVariantePresentacion({
+      presentacion_id,
+      calidad_id,
+      calibre_id,
+      ensunchado,
+    });
+    const variantesActualizadas = await obtenerVariantesCompletas();
+    setVariantes(variantesActualizadas);
+    return variantesActualizadas.find((v) => v.variante_id === nuevoId);
   };
 
   const calculateTotalRecepcion = () => {
@@ -236,6 +257,7 @@ export default function ParteProduccionForm({
       <PackedProductSection
         productos={formData.productos}
         variantes={variantes}
+        especies={especies}
         especieId={formData.especie_id}
         motivoIngreso={formData.motivo_ingreso_id}
         motivos={motivosIngreso}
@@ -245,6 +267,7 @@ export default function ParteProduccionForm({
         onChangeMotivoIngreso={(val) =>
           setFormData((prev) => ({ ...prev, motivo_ingreso_id: val }))
         }
+        onCrearVarianteEnsunchado={crearVarianteEnsunchado}
         totalRecepcion={totalRecepcion}
       />
 

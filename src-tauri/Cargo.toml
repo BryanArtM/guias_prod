@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
+default-run = "guias-produccion"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -31,3 +32,4 @@ jsonwebtoken = "9.2"
 dotenvy = "0.15"
 libsql = "0.9.29"
 tokio = { version = "1", features = ["full"] }
+clap = { version = "4", features = ["derive"] }

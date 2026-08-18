@@ -249,7 +249,7 @@ export default function IngresoDetallePage() {
                   <TableRow key={prod.id}>
                     <TableCell>
                       <span className="font-mono text-sm text-blue-700">
-                        {prod.variante_id ?? `ID: ${prod.variante_id}`}
+                        {prod.codigo_completo ?? `ID: ${prod.variante_id}`}
                       </span>
                     </TableCell>
                     <TableCell>{prod.peso_unidad ?? "-"}</TableCell>

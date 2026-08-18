@@ -1,5 +1,5 @@
-mod auth;
-mod db;
+pub mod auth;
+pub mod db;
 
 use auth::*;
 use db::*;

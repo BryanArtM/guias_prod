@@ -5,7 +5,8 @@ use dotenvy::dotenv;
 const CREATE_ESPECIES: &str = "CREATE TABLE IF NOT EXISTS especies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL UNIQUE,
-    descripcion TEXT
+    descripcion TEXT,
+    peso_unidad_defecto REAL
 )";
 
 const CREATE_PRESENTACIONES: &str = "CREATE TABLE IF NOT EXISTS presentaciones (
@@ -193,6 +194,8 @@ SELECT
     p.id AS presentacion_id,
     p.nombre AS presentacion_nombre,
     v.ensunchado AS ensunchado,
+    v.calidad_id AS calidad_id,
+    v.calibre_id AS calibre_id,
     c.nombre AS calidad,
     CASE
         WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL
@@ -230,12 +233,15 @@ SELECT
     vc.codigo_completo,
     vc.especie_nombre,
     vc.presentacion_nombre,
-    COALESCE(ing.kg, 0) AS ingresos_kg,
-    COALESCE(sal.kg, 0) AS salidas_kg,
-    COALESCE(ing.cajas, 0) AS ingresos_cajas,
-    COALESCE(sal.cajas, 0) AS salidas_cajas,
-    COALESCE(ing.kg, 0) - COALESCE(sal.kg, 0) AS stock_kg,
-    COALESCE(ing.cajas, 0) - COALESCE(sal.cajas, 0) AS stock_cajas
+    -- Los CAST son obligatorios: las expresiones calculadas no tienen afinidad de
+    -- tipo, así que COALESCE(NULL, 0) devolvería INTEGER para las variantes sin
+    -- movimientos y el driver entra en pánico al leer un INTEGER como f64.
+    CAST(COALESCE(ing.kg, 0) AS REAL) AS ingresos_kg,
+    CAST(COALESCE(sal.kg, 0) AS REAL) AS salidas_kg,
+    CAST(COALESCE(ing.cajas, 0) AS INTEGER) AS ingresos_cajas,
+    CAST(COALESCE(sal.cajas, 0) AS INTEGER) AS salidas_cajas,
+    CAST(COALESCE(ing.kg, 0) - COALESCE(sal.kg, 0) AS REAL) AS stock_kg,
+    CAST(COALESCE(ing.cajas, 0) - COALESCE(sal.cajas, 0) AS INTEGER) AS stock_cajas
 FROM variantes_completas_view vc
 LEFT JOIN (
     SELECT variante_id,
@@ -251,22 +257,22 @@ LEFT JOIN (
 ) sal ON sal.variante_id = vc.variante_id";
 
 async fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Creando tablas...");
+    eprintln!("Creando tablas...");
     
     conn.execute(CREATE_ESPECIES, ()).await?;
-    println!("  ✓ Tabla especies");
+    eprintln!("  ✓ Tabla especies");
     conn.execute(CREATE_PRESENTACIONES, ()).await?;
-    println!("  ✓ Tabla presentaciones");
+    eprintln!("  ✓ Tabla presentaciones");
     conn.execute(CREATE_FORMAS_ENVASADO, ()).await?;
-    println!("  ✓ Tabla formas_envasado");
+    eprintln!("  ✓ Tabla formas_envasado");
     conn.execute(CREATE_FORMAS_EMPACADO, ()).await?;
-    println!("  ✓ Tabla formas_empacado");
+    eprintln!("  ✓ Tabla formas_empacado");
     conn.execute(CREATE_CALIDADES, ()).await?;
-    println!("  ✓ Tabla calidades");
+    eprintln!("  ✓ Tabla calidades");
     conn.execute(CREATE_CALIBRES, ()).await?;
-    println!("  ✓ Tabla calibres");
+    eprintln!("  ✓ Tabla calibres");
     conn.execute(CREATE_VARIANTES, ()).await?;
-    println!("  ✓ Tabla variantes");
+    eprintln!("  ✓ Tabla variantes");
     
     Ok(())
 }
@@ -286,21 +292,44 @@ async fn migrate_variantes_schema(conn: &Connection) -> Result<(), Box<dyn std::
     }
 
     if necesita_migracion {
-        println!("Migrando variantes_presentaciones al nuevo esquema (especie, presentacion, calidad, calibre, ensunchado)...");
+        eprintln!("Migrando variantes_presentaciones al nuevo esquema (especie, presentacion, calidad, calibre, ensunchado)...");
         conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
         conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
         conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;
         conn.execute("DROP TABLE IF EXISTS variantes_presentaciones", ()).await?;
         conn.execute(CREATE_VARIANTES, ()).await?;
         conn.execute("PRAGMA foreign_keys = ON", ()).await?;
-        println!("  ✓ Tabla variantes_presentaciones recreada con el nuevo esquema");
+        eprintln!("  ✓ Tabla variantes_presentaciones recreada con el nuevo esquema");
+    }
+
+    Ok(())
+}
+
+async fn migrate_especies_schema(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
+    let mut result = conn.query("PRAGMA table_info(especies)", ()).await?;
+    let mut tiene_columna = false;
+    while let Some(row) = result.next().await? {
+        let nombre_columna: String = row.get(1)?;
+        if nombre_columna == "peso_unidad_defecto" {
+            tiene_columna = true;
+            break;
+        }
+    }
+
+    if !tiene_columna {
+        eprintln!("Recreando especies con el nuevo esquema (peso_unidad_defecto)...");
+        conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
+        conn.execute("DROP TABLE IF EXISTS especies", ()).await?;
+        conn.execute(CREATE_ESPECIES, ()).await?;
+        conn.execute("PRAGMA foreign_keys = ON", ()).await?;
+        eprintln!("  ✓ Tabla especies recreada con el nuevo esquema");
     }
 
     Ok(())
 }
 
 async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Creando tablas de transacciones...");
+    eprintln!("Creando tablas de transacciones...");
     
     // Tipos de documento para partes de producción
     conn.execute(CREATE_TIPOS_DOCUMENTO_PRODUCCION, ()).await?;
@@ -342,13 +371,13 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
 }
 
 async fn create_users_table(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Creando tabla de usuarios...");
+    eprintln!("Creando tabla de usuarios...");
     conn.execute(CREATE_USERS, ()).await?;
     Ok(())
 }
 
 async fn create_views(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Creando vistas...");
+    eprintln!("Creando vistas...");
     // Las vistas se recrean en cada arranque (no almacenan datos propios) para
     // que los cambios de definición se apliquen también sobre una base ya existente,
     // donde "CREATE VIEW IF NOT EXISTS" dejaría la definición vieja intacta.
@@ -360,70 +389,93 @@ async fn create_views(conn: &Connection) -> Result<(), Box<dyn std::error::Error
 }
 
 async fn create_indexes(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    println!("Creando índices de optimización...");
+    eprintln!("Creando índices de optimización...");
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_fecha ON controles_salida(fecha DESC)", ()).await?;
-    println!(" Índice idx_controles_salida_fecha");
+    eprintln!(" Índice idx_controles_salida_fecha");
 
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_especie_id ON controles_salida(especie_id)", ()).await?;
-    println!(" Índice idx_controles_salida_especie_id");
+    eprintln!(" Índice idx_controles_salida_especie_id");
 
     conn.execute("CREATE INDEX IF NOT EXISTS idx_control_salida_items_control_id ON control_salida_items(control_salida_id)", ()).await?;
-    println!(" Índice idx_control_salida_items_control_id");
+    eprintln!(" Índice idx_control_salida_items_control_id");
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_presentaciones_especie_id ON presentaciones(especie_id)", ()).await?;
-    println!(" Índice idx_presentaciones_especie_id");
+    eprintln!(" Índice idx_presentaciones_especie_id");
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_producto_parte_id ON parte_produccion_producto(parte_id)", ()).await?;
-    println!(" Índice idx_parte_produccion_producto_parte_id");
+    eprintln!(" Índice idx_parte_produccion_producto_parte_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_producto_variante_id ON parte_produccion_producto(variante_id)", ()).await?;
-    println!(" Índice idx_parte_produccion_producto_variante_id");
+    eprintln!(" Índice idx_parte_produccion_producto_variante_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_transporte_parte_id ON parte_produccion_transporte(parte_id)", ()).await?;
-    println!(" Índice idx_parte_produccion_transporte_parte_id");
+    eprintln!(" Índice idx_parte_produccion_transporte_parte_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_embarcacion_transporte_id ON parte_produccion_embarcacion(transporte_id)", ()).await?;
-    println!(" Índice idx_parte_produccion_embarcacion_transporte_id");
+    eprintln!(" Índice idx_parte_produccion_embarcacion_transporte_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_insumo_parte_id ON parte_produccion_insumo(parte_id)", ()).await?;
-    println!(" Índice idx_parte_produccion_insumo_parte_id");
+    eprintln!(" Índice idx_parte_produccion_insumo_parte_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_partes_produccion_especie_id ON partes_produccion(especie_id)", ()).await?;
-    println!(" Índice idx_partes_produccion_especie_id");
+    eprintln!(" Índice idx_partes_produccion_especie_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_partes_produccion_tipo_documento_id ON partes_produccion(tipo_documento_id)", ()).await?;
-    println!(" Índice idx_partes_produccion_tipo_documento_id");
+    eprintln!(" Índice idx_partes_produccion_tipo_documento_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_control_salida_items_variante_id ON control_salida_items(variante_id)", ()).await?;
-    println!(" Índice idx_control_salida_items_variante_id");
+    eprintln!(" Índice idx_control_salida_items_variante_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_motivo_salida_id ON controles_salida(motivo_salida_id)", ()).await?;
-    println!(" Índice idx_controles_salida_motivo_salida_id");
+    eprintln!(" Índice idx_controles_salida_motivo_salida_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_tipo_documento_id ON controles_salida(tipo_documento_id)", ()).await?;
-    println!(" Índice idx_controles_salida_tipo_documento_id");
+    eprintln!(" Índice idx_controles_salida_tipo_documento_id");
     
     Ok(())
 }
 
-pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
+// Solo abre la conexión a Turso, sin crear/migrar tablas, vistas ni índices.
+// Pensado para procesos de corta duración (como el CLI) que se ejecutan
+// repetidas veces y ya saben que el esquema está al día: evita repetir en
+// cada invocación una docena de sentencias DDL de ida y vuelta a la red.
+pub async fn connect_db() -> Result<Database, Box<dyn std::error::Error>> {
     dotenv().ok();
-    
+
     let database_url = env::var("TURSO_DATABASE_URL")
         .expect("TURSO_DATABASE_URL debe estar configurada en el archivo .env");
     let auth_token = env::var("TURSO_AUTH_TOKEN")
         .expect("TURSO_AUTH_TOKEN debe estar configurada en el archivo .env");
 
-    println!("Conectando a Turso en: {}", database_url);
+    let db = libsql::Builder::new_remote(database_url, auth_token)
+        .build()
+        .await?;
+
+    let conn = db.connect()?;
+    conn.execute("PRAGMA foreign_keys = ON", ()).await?;
+
+    Ok(db)
+}
+
+pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
+    dotenv().ok();
+
+    let database_url = env::var("TURSO_DATABASE_URL")
+        .expect("TURSO_DATABASE_URL debe estar configurada en el archivo .env");
+    let auth_token = env::var("TURSO_AUTH_TOKEN")
+        .expect("TURSO_AUTH_TOKEN debe estar configurada en el archivo .env");
+
+    eprintln!("Conectando a Turso en: {}", database_url);
 
     let db = libsql::Builder::new_remote(database_url, auth_token)
         .build()
         .await?;
-    
-    println!("Conexión establecida con Turso");
+
+    eprintln!("Conexión establecida con Turso");
 
     let conn = db.connect()?;
     conn.execute("PRAGMA foreign_keys = ON", ()).await?;
     create_tables(&conn).await?;
     migrate_variantes_schema(&conn).await?;
+    migrate_especies_schema(&conn).await?;
     create_transaction_tables(&conn).await?;
     create_users_table(&conn).await?;
     create_views(&conn).await?;
     create_indexes(&conn).await?;
 
-    println!("Tablas, vistas e índices creados/verificados correctamente");
+    eprintln!("Tablas, vistas e índices creados/verificados correctamente");
 
     Ok(db)
 }

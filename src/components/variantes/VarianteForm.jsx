@@ -219,25 +219,7 @@ export default function VarianteForm({
         ))}
       </Select>
 
-      {/* 3. Ensunchado */}
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="ensunchado"
-          name="ensunchado"
-          checked={formData.ensunchado}
-          onChange={handleChange}
-          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-        />
-        <label
-          htmlFor="ensunchado"
-          className="text-sm font-medium text-gray-700"
-        >
-          Ensunchado (Z)
-        </label>
-      </div>
-
-      {/* 4. Calidad */}
+      {/* 3. Calidad */}
       <Select
         label="Calidad"
         name="calidad_id"
@@ -252,7 +234,7 @@ export default function VarianteForm({
         ))}
       </Select>
 
-      {/* 5. Calibre */}
+      {/* 4. Calibre */}
       <Select
         label="Calibre"
         name="calibre_id"

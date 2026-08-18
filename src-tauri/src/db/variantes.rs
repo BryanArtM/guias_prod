@@ -53,6 +53,8 @@ pub async fn obtener_variantes_completas(db: &Database) -> Result<Vec<VarianteCo
             presentacion_id,
             presentacion_nombre,
             tipo_ensunchado,
+            calidad_id,
+            calibre_id,
             calidad,
             calibre,
             codigo_completo
@@ -70,9 +72,11 @@ pub async fn obtener_variantes_completas(db: &Database) -> Result<Vec<VarianteCo
             presentacion_id: row.get(3).map_err(|e| e.to_string())?,
             presentacion_nombre: row.get(4).map_err(|e| e.to_string())?,
             tipo_ensunchado: get_optional_string(&row, 5).map_err(|e| e.to_string())?,
-            calidad: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
-            calibre: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
-            codigo_completo: row.get(8).map_err(|e| e.to_string())?,
+            calidad_id: get_optional_i64(&row, 6).map_err(|e| e.to_string())?,
+            calibre_id: get_optional_i64(&row, 7).map_err(|e| e.to_string())?,
+            calidad: get_optional_string(&row, 8).map_err(|e| e.to_string())?,
+            calibre: get_optional_string(&row, 9).map_err(|e| e.to_string())?,
+            codigo_completo: row.get(10).map_err(|e| e.to_string())?,
         });
     }
     Ok(variantes)

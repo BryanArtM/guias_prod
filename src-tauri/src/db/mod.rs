@@ -20,7 +20,7 @@ mod partes;
 
 pub use types::*;
 
-pub use init::init_db;
+pub use init::{connect_db, init_db};
 
 pub use especies::{
     crear_especie,

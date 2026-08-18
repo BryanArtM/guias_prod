@@ -5,6 +5,7 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
   const [formData, setFormData] = useState({
     nombre: "",
     descripcion: "",
+    peso_unidad_defecto: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,6 +16,7 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
       setFormData({
         nombre: especie.nombre || "",
         descripcion: especie.descripcion || "",
+        peso_unidad_defecto: especie.peso_unidad_defecto ?? "",
       });
     }
   }, [especie]);
@@ -31,8 +33,13 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
 
     setLoading(true);
     try {
-      await onSubmit(formData);
-      setFormData({ nombre: "", descripcion: "" });
+      await onSubmit({
+        ...formData,
+        peso_unidad_defecto: formData.peso_unidad_defecto
+          ? parseFloat(formData.peso_unidad_defecto)
+          : null,
+      });
+      setFormData({ nombre: "", descripcion: "", peso_unidad_defecto: "" });
     } catch (err) {
       setError(err.message || "Error al guardar la especie");
     } finally {
@@ -70,6 +77,20 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
+
+      <Input
+        label="Peso por unidad por defecto (kg)"
+        name="peso_unidad_defecto"
+        type="number"
+        step="0.01"
+        min="0"
+        value={formData.peso_unidad_defecto}
+        onChange={(e) =>
+          setFormData({ ...formData, peso_unidad_defecto: e.target.value })
+        }
+        placeholder="Ej: 22.7"
+        helperText="Se usa para precargar el peso por unidad al registrar un ingreso de esta especie"
+      />
 
       <div className="flex justify-end gap-3 pt-4">
         <Button
