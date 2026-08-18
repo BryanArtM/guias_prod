@@ -1,6 +1,23 @@
-import { Button } from "@/components/common";
-import { Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Button, Select } from "@/components/common";
+import { ChevronDown, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
 
+const FILAS_INICIALES_POR_PRESENTACION = 5;
+
+function claveLote(varianteId, fechaIngreso) {
+  return `${varianteId}|${fechaIngreso ?? ""}`;
+}
+
+function crearItemDesdeLote(lote) {
+  return {
+    variante_id: lote.variante_id,
+    fecha_ingreso: lote.fecha_ingreso,
+    codigo_trazabilidad: "",
+    cantidad: 0,
+    peso_unidad: lote.peso_unidad ?? 0,
+    motivo_salida: "OTROS",
+  };
+}
 
 export default function ControlItemsSection({
   items,
@@ -8,53 +25,258 @@ export default function ControlItemsSection({
   motivoSalida,
   onChangeMotivoSalida,
   motivos = [],
-  variantes = [],
+  lotes = [],
+  especieId,
   error,
 }) {
-  const addItem = () => {
-    onChangeItems([
-      ...items,
-      {
-        variante_id: "",
-        codigo_trazabilidad: "",
-        cantidad: 0,
-        peso_unidad: 0,
-        motivo_salida: "OTROS",
-      },
-    ]);
+  const [presentacionesAbiertas, setPresentacionesAbiertas] = useState(
+    new Set(),
+  );
+  const [filaEditandoIndex, setFilaEditandoIndex] = useState(null);
+  // Filtros de calidad/calibre por presentación
+  const [filtros, setFiltros] = useState({});
+  const especieInicializada = useRef(null);
+
+  const lotesDeEspecie = useMemo(() => {
+    if (!especieId) return [];
+    const id = parseInt(especieId, 10);
+    return lotes.filter((lote) => lote.especie_id === id);
+  }, [especieId, lotes]);
+
+  const loteByClave = useMemo(() => {
+    const map = new Map();
+    lotesDeEspecie.forEach((lote) =>
+      map.set(claveLote(lote.variante_id, lote.fecha_ingreso), lote),
+    );
+    return map;
+  }, [lotesDeEspecie]);
+
+  // Agrupar los lotes por presentación; dentro de cada una se ordenan de la
+  // fecha de ingreso más antigua a la más reciente para despachar por FIFO.
+  const presentaciones = useMemo(() => {
+    const grupos = new Map();
+    lotesDeEspecie.forEach((lote) => {
+      if (!grupos.has(lote.presentacion_id)) {
+        grupos.set(lote.presentacion_id, {
+          presentacion_id: lote.presentacion_id,
+          presentacion_nombre: lote.presentacion_nombre,
+          lotes: [],
+        });
+      }
+      grupos.get(lote.presentacion_id).lotes.push(lote);
+    });
+
+    return Array.from(grupos.values())
+      .map((grupo) => {
+        const lotesOrdenados = [...grupo.lotes].sort(
+          (a, b) =>
+            a.fecha_ingreso.localeCompare(b.fecha_ingreso) ||
+            a.codigo_completo.localeCompare(b.codigo_completo, "es"),
+        );
+        const calidades = [
+          ...new Map(
+            lotesOrdenados
+              .filter((l) => l.calidad_id != null)
+              .map((l) => [l.calidad_id, l.calidad]),
+          ),
+        ];
+        const calibres = [
+          ...new Map(
+            lotesOrdenados
+              .filter((l) => l.calibre_id != null)
+              .map((l) => [l.calibre_id, l.calibre]),
+          ),
+        ];
+        return { ...grupo, lotes: lotesOrdenados, calidades, calibres };
+      })
+      .sort((a, b) =>
+        a.presentacion_nombre.localeCompare(b.presentacion_nombre, "es"),
+      );
+  }, [lotesDeEspecie]);
+
+  // Reiniciar el acordeón al cambiar de especie
+  useEffect(() => {
+    setPresentacionesAbiertas(new Set());
+    setFilaEditandoIndex(null);
+    setFiltros({});
+    especieInicializada.current = null;
+  }, [especieId]);
+
+  // Al editar un documento existente, abrir las presentaciones que ya tienen filas
+  useEffect(() => {
+    if (!especieId || items.length === 0 || loteByClave.size === 0) return;
+    if (especieInicializada.current === especieId) return;
+
+    const idsConFilas = new Set(
+      items
+        .map(
+          (it) =>
+            loteByClave.get(claveLote(it.variante_id, it.fecha_ingreso))
+              ?.presentacion_id,
+        )
+        .filter(Boolean),
+    );
+    if (idsConFilas.size > 0) setPresentacionesAbiertas(idsConFilas);
+    especieInicializada.current = especieId;
+  }, [especieId, items, loteByClave]);
+
+  const filtroDe = (presentacionId) =>
+    filtros[presentacionId] ?? { calidad_id: "", calibre_id: "" };
+
+  const hayFiltroActivo = (filtro) =>
+    Boolean(filtro.calidad_id || filtro.calibre_id);
+
+  const coincideFiltro = (lote, filtro) => {
+    if (!lote) return false;
+    if (
+      filtro.calidad_id &&
+      String(lote.calidad_id) !== String(filtro.calidad_id)
+    ) {
+      return false;
+    }
+    if (
+      filtro.calibre_id &&
+      String(lote.calibre_id) !== String(filtro.calibre_id)
+    ) {
+      return false;
+    }
+    return true;
+  };
+
+  // Lotes que se pueden despachar: los agotados no se ofrecen, pero siguen
+  // resolviéndose para mostrar filas que ya los referencian.
+  const lotesFiltrados = (presentacion) => {
+    const filtro = filtroDe(presentacion.presentacion_id);
+    return presentacion.lotes.filter(
+      (lote) => lote.stock_cajas > 0 && coincideFiltro(lote, filtro),
+    );
+  };
+
+  const filasDePresentacion = (presentacionId) =>
+    items.reduce((acc, item, index) => {
+      const lote = loteByClave.get(
+        claveLote(item.variante_id, item.fecha_ingreso),
+      );
+      if (lote?.presentacion_id === presentacionId) {
+        acc.push({ item, index });
+      }
+      return acc;
+    }, []);
+
+  // Opciones del selector de lote: los disponibles más el que la fila ya usa,
+  // aunque esté agotado o no pase el filtro, para que el select no quede vacío.
+  const opcionesDeLote = (presentacion, loteActual) => {
+    const opciones = lotesFiltrados(presentacion);
+    if (
+      loteActual &&
+      !opciones.some(
+        (l) =>
+          claveLote(l.variante_id, l.fecha_ingreso) ===
+          claveLote(loteActual.variante_id, loteActual.fecha_ingreso),
+      )
+    ) {
+      return [loteActual, ...opciones];
+    }
+    return opciones;
+  };
+
+  // Filas visibles según el filtro. Las que ya tienen cantidad cargada nunca se
+  // ocultan, para no esconder datos que igual se van a guardar.
+  const filasVisibles = (presentacionId) => {
+    const filtro = filtroDe(presentacionId);
+    return filasDePresentacion(presentacionId).filter(({ item }) => {
+      if ((parseFloat(item.cantidad) || 0) > 0) return true;
+      const lote = loteByClave.get(
+        claveLote(item.variante_id, item.fecha_ingreso),
+      );
+      return coincideFiltro(lote, filtro);
+    });
+  };
+
+  // Devuelve los siguientes lotes por fecha que todavía no están en la lista,
+  // para que al añadir filas se continúe con las fechas más recientes.
+  const lotesDisponibles = (presentacion) => {
+    const yaUsados = new Set(
+      items.map((it) => claveLote(it.variante_id, it.fecha_ingreso)),
+    );
+    return lotesFiltrados(presentacion).filter(
+      (lote) => !yaUsados.has(claveLote(lote.variante_id, lote.fecha_ingreso)),
+    );
+  };
+
+  const togglePresentacion = (presentacion) => {
+    const estaAbierta = presentacionesAbiertas.has(
+      presentacion.presentacion_id,
+    );
+
+    setPresentacionesAbiertas((prev) => {
+      const next = new Set(prev);
+      if (estaAbierta) next.delete(presentacion.presentacion_id);
+      else next.add(presentacion.presentacion_id);
+      return next;
+    });
+
+    if (!estaAbierta) {
+      const filasExistentes = filasDePresentacion(presentacion.presentacion_id);
+      if (filasExistentes.length === 0) {
+        const nuevas = lotesDisponibles(presentacion)
+          .slice(0, FILAS_INICIALES_POR_PRESENTACION)
+          .map(crearItemDesdeLote);
+        if (nuevas.length > 0) onChangeItems([...items, ...nuevas]);
+      }
+    }
+  };
+
+  const addFila = (presentacion) => {
+    const siguiente = lotesDisponibles(presentacion)[0];
+    if (!siguiente) return;
+    onChangeItems([...items, crearItemDesdeLote(siguiente)]);
   };
 
   const removeItem = (index) => {
-    onChangeItems(items.filter((_, itemIndex) => itemIndex !== index));
+    onChangeItems(items.filter((_, i) => i !== index));
+    setFilaEditandoIndex(null);
   };
 
   const updateItem = (index, field, value) => {
-    const nextItems = [...items];
-    nextItems[index][field] = value;
-    onChangeItems(nextItems);
+    const next = [...items];
+    next[index] = { ...next[index], [field]: value };
+    onChangeItems(next);
+  };
+
+  // Al elegir otro lote se arrastra el peso por unidad con el que ingresó
+  const cambiarLote = (index, lote) => {
+    const next = [...items];
+    next[index] = {
+      ...next[index],
+      variante_id: lote.variante_id,
+      fecha_ingreso: lote.fecha_ingreso,
+      peso_unidad: lote.peso_unidad ?? next[index].peso_unidad,
+    };
+    onChangeItems(next);
   };
 
   const itemsConTotales = items.map((item, index) => {
     const cantidad = parseFloat(item.cantidad) || 0;
     const pesoUnidad = parseFloat(item.peso_unidad) || 0;
-    return {
-      ...item,
-      numero_item: index + 1,
-      total_kg: cantidad * pesoUnidad,
-    };
+    return { ...item, numero_item: index + 1, total_kg: cantidad * pesoUnidad };
   });
 
   const sumaCantidad = itemsConTotales.reduce(
-    (total, item) => total + (parseFloat(item.cantidad) || 0),
+    (t, i) => t + (parseFloat(i.cantidad) || 0),
     0,
   );
-  const sumaTotalKg = itemsConTotales.reduce(
-    (total, item) => total + (parseFloat(item.total_kg) || 0),
-    0,
-  );
+  const sumaTotalKg = itemsConTotales.reduce((t, i) => t + i.total_kg, 0);
+
+  const setFiltro = (presentacionId, campo, valor) => {
+    setFiltros((prev) => ({
+      ...prev,
+      [presentacionId]: { ...filtroDe(presentacionId), [campo]: valor },
+    }));
+  };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 overflow-x-auto">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
       <div className="flex items-center justify-between gap-4 mb-4 border-b pb-2">
         <h2 className="text-lg font-bold text-gray-800">Lista de salida</h2>
         <div className="text-sm text-gray-600">
@@ -70,121 +292,383 @@ export default function ControlItemsSection({
         </div>
       )}
 
-      <table className="w-full text-sm text-left border-collapse min-w-[1100px]">
-        <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-bold">
-          <tr>
-            <th className="p-2 border w-16">Item</th>
-            <th className="p-2 border">Descripción</th>
-            <th className="p-2 border">Código Trazabilidad</th>
-            <th className="p-2 border w-24">Cantidad</th>
-            <th className="p-2 border w-28">Peso Unidad</th>
-            <th className="p-2 border w-28">Total Kg</th>
-            <th className="p-2 border w-12"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {itemsConTotales.map((item, index) => (
-            <tr key={index} className="hover:bg-gray-50 transition-colors">
-              <td className="p-2 border text-center font-semibold">
-                {item.numero_item}
-              </td>
-              <td className="p-1 border">
-                <select
-                  className="w-full p-2 border-none bg-transparent focus:ring-0"
-                  value={item.variante_id}
-                  onChange={(e) =>
-                    updateItem(
-                      index,
-                      "variante_id",
-                      e.target.value ? parseInt(e.target.value, 10) : "",
-                    )
-                  }
-                >
-                  <option value="">Seleccione...</option>
-                  {variantes.map((v) => (
-                    <option key={v.variante_id} value={v.variante_id}>
-                      {v.codigo_completo}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td className="p-1 border">
-                <input
-                  type="text"
-                  className="w-full p-2 border-none bg-transparent focus:ring-0"
-                  value={item.codigo_trazabilidad}
-                  onChange={(e) =>
-                    updateItem(index, "codigo_trazabilidad", e.target.value)
-                  }
-                />
-              </td>
-              <td className="p-1 border">
-                <input
-                  type="number"
-                  className="w-full p-2 border-none bg-transparent focus:ring-0"
-                  value={item.cantidad}
-                  onChange={(e) =>
-                    updateItem(index, "cantidad", e.target.value)
-                  }
-                  min="0"
-                />
-              </td>
-              <td className="p-1 border">
-                <input
-                  type="number"
-                  className="w-full p-2 border-none bg-transparent focus:ring-0"
-                  value={item.peso_unidad}
-                  onChange={(e) =>
-                    updateItem(index, "peso_unidad", e.target.value)
-                  }
-                  min="0"
-                  step="0.01"
-                />
-              </td>
-              <td className="p-2 border font-semibold text-blue-600 bg-blue-50/30">
-                {item.total_kg.toFixed(2)}
-              </td>
-              <td className="p-2 border text-center">
+      {!especieId ? (
+        <p className="text-sm text-gray-500 py-4">
+          Primero seleccione una especie para ver sus presentaciones.
+        </p>
+      ) : presentaciones.length === 0 ? (
+        <p className="text-sm text-amber-600 py-4">
+          Esta especie no tiene existencias registradas para despachar.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {presentaciones.map((presentacion) => {
+            const abierta = presentacionesAbiertas.has(
+              presentacion.presentacion_id,
+            );
+            const filas = filasDePresentacion(presentacion.presentacion_id);
+            const visibles = filasVisibles(presentacion.presentacion_id);
+            const ocultasPorFiltro = filas.length - visibles.length;
+            const filtro = filtroDe(presentacion.presentacion_id);
+            const filtroActivo = hayFiltroActivo(filtro);
+            // Ambos numeros salen del mismo conjunto filtrado, para que la
+            // cabecera nunca mezcle un conteo filtrado con otro sin filtrar.
+            const disponibles = lotesFiltrados(presentacion);
+            const totalCajasDisponibles = disponibles.reduce(
+              (t, l) => t + l.stock_cajas,
+              0,
+            );
+            const totalLotesConStock = presentacion.lotes.filter(
+              (l) => l.stock_cajas > 0,
+            ).length;
+
+            return (
+              <div
+                key={presentacion.presentacion_id}
+                className="border border-gray-200 rounded-lg overflow-hidden"
+              >
                 <button
                   type="button"
-                  onClick={() => removeItem(index)}
-                  className="text-red-500 hover:text-red-700"
+                  onClick={() => togglePresentacion(presentacion)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                 >
-                  <Trash2 size={16} />
+                  <span className="flex items-center gap-2 font-semibold text-gray-800">
+                    {abierta ? (
+                      <ChevronDown size={16} />
+                    ) : (
+                      <ChevronRight size={16} />
+                    )}
+                    {presentacion.presentacion_nombre}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {disponibles.length} lote
+                    {disponibles.length === 1 ? "" : "s"}
+                    {filtroActivo && ` de ${totalLotesConStock}`} ·{" "}
+                    {totalCajasDisponibles} cajas disponibles
+                    {filas.length > 0 && ` · ${filas.length} en la lista`}
+                  </span>
                 </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot className="bg-gray-100 font-bold">
-          <tr>
-            <td className="p-2 border">TOTALES</td>
-            <td className="p-2 border" colSpan="2"></td>
-            <td className="p-2 border text-center text-blue-800">
-              {sumaCantidad}
-            </td>
-            <td className="p-2 border"></td>
-            <td className="p-2 border text-blue-800">
-              {sumaTotalKg.toFixed(2)}
-            </td>
-            <td className="p-2 border" colSpan="2"></td>
-          </tr>
-        </tfoot>
-      </table>
 
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        className="my-3"
-        icon={<Plus size={14} />}
-        iconPosition="left"
-        onClick={addItem}
-      >
-        Añadir Ítem
-      </Button>
+                {abierta && (
+                  <div>
+                    {/* Filtros por calidad y calibre */}
+                    <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-white border-b border-gray-100">
+                      <div className="min-w-[180px]">
+                        <Select
+                          label="Calidad"
+                          value={filtro.calidad_id}
+                          onChange={(e) =>
+                            setFiltro(
+                              presentacion.presentacion_id,
+                              "calidad_id",
+                              e.target.value,
+                            )
+                          }
+                        >
+                          <option value="">Todas</option>
+                          {presentacion.calidades.map(([id, nombre]) => (
+                            <option key={id} value={id}>
+                              {nombre}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                      <div className="min-w-[180px]">
+                        <Select
+                          label="Calibre"
+                          value={filtro.calibre_id}
+                          onChange={(e) =>
+                            setFiltro(
+                              presentacion.presentacion_id,
+                              "calibre_id",
+                              e.target.value,
+                            )
+                          }
+                        >
+                          <option value="">Todos</option>
+                          {presentacion.calibres.map(([id, nombre]) => (
+                            <option key={id} value={id}>
+                              {nombre}
+                            </option>
+                          ))}
+                        </Select>
+                      </div>
+                      {(filtro.calidad_id || filtro.calibre_id) && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() =>
+                            setFiltros((prev) => ({
+                              ...prev,
+                              [presentacion.presentacion_id]: {
+                                calidad_id: "",
+                                calibre_id: "",
+                              },
+                            }))
+                          }
+                        >
+                          Limpiar filtros
+                        </Button>
+                      )}
+                      <span className="text-xs text-gray-500 ml-auto">
+                        {ocultasPorFiltro > 0
+                          ? `${ocultasPorFiltro} fila${ocultasPorFiltro === 1 ? "" : "s"} oculta${ocultasPorFiltro === 1 ? "" : "s"} por el filtro`
+                          : `${disponibles.length} lote${disponibles.length === 1 ? "" : "s"} disponible${disponibles.length === 1 ? "" : "s"}`}
+                      </span>
+                    </div>
 
-      <div className="flex items-center gap-3 mb-4">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left border-collapse">
+                        <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-bold">
+                          <tr>
+                            <th className="p-2 border w-12">Item</th>
+                            <th className="p-2 border">Variante</th>
+                            <th className="p-2 border w-40">Fecha Ingreso</th>
+                            <th className="p-2 border w-28">Disponible</th>
+                            <th className="p-2 border">Cód. Trazabilidad</th>
+                            <th className="p-2 border w-24">Cantidad</th>
+                            <th className="p-2 border w-28">Peso Unidad</th>
+                            <th className="p-2 border w-28">Total Kg</th>
+                            <th className="p-2 border w-12"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {visibles.length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={9}
+                                className="p-4 text-center text-sm text-gray-500 border"
+                              >
+                                {filas.length === 0
+                                  ? 'Sin filas. Use "Añadir lote" para agregar.'
+                                  : "Ninguna fila coincide con el filtro."}
+                              </td>
+                            </tr>
+                          ) : (
+                            visibles.map(({ item, index }) => {
+                              const lote = loteByClave.get(
+                                claveLote(item.variante_id, item.fecha_ingreso),
+                              );
+                              const cantidad = parseFloat(item.cantidad) || 0;
+                              const pesoUnidad =
+                                parseFloat(item.peso_unidad) || 0;
+                              const excede =
+                                lote != null && cantidad > lote.stock_cajas;
+
+                              return (
+                                <tr
+                                  key={index}
+                                  className="hover:bg-gray-50 transition-colors"
+                                >
+                                  <td className="p-2 border text-center font-semibold">
+                                    {index + 1}
+                                  </td>
+                                  <td className="p-1 border">
+                                    {filaEditandoIndex === index ? (
+                                      <Select
+                                        autoFocus
+                                        value={claveLote(
+                                          item.variante_id,
+                                          item.fecha_ingreso,
+                                        )}
+                                        onChange={(e) => {
+                                          const elegido =
+                                            presentacion.lotes.find(
+                                              (l) =>
+                                                claveLote(
+                                                  l.variante_id,
+                                                  l.fecha_ingreso,
+                                                ) === e.target.value,
+                                            );
+                                          if (elegido)
+                                            cambiarLote(index, elegido);
+                                          setFilaEditandoIndex(null);
+                                        }}
+                                        onBlur={() =>
+                                          setFilaEditandoIndex(null)
+                                        }
+                                        className="border-none bg-transparent"
+                                      >
+                                        {opcionesDeLote(presentacion, lote).map(
+                                          (l) => (
+                                            <option
+                                              key={claveLote(
+                                                l.variante_id,
+                                                l.fecha_ingreso,
+                                              )}
+                                              value={claveLote(
+                                                l.variante_id,
+                                                l.fecha_ingreso,
+                                              )}
+                                            >
+                                              {l.codigo_completo} —{" "}
+                                              {l.fecha_ingreso} (
+                                              {l.stock_cajas} cajas)
+                                            </option>
+                                          ),
+                                        )}
+                                      </Select>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setFilaEditandoIndex(index)
+                                        }
+                                        className="w-full text-left px-1 py-1 rounded hover:bg-blue-50 flex items-center gap-1 group"
+                                        title="Cambiar lote"
+                                      >
+                                        <span className="truncate">
+                                          {lote?.codigo_completo ??
+                                            "Seleccione..."}
+                                        </span>
+                                        <Edit2
+                                          size={12}
+                                          className="opacity-0 group-hover:opacity-60 shrink-0"
+                                        />
+                                      </button>
+                                    )}
+                                  </td>
+                                  <td className="p-1 border">
+                                    <input
+                                      type="date"
+                                      className="w-full p-1 border-none bg-transparent focus:ring-0"
+                                      value={item.fecha_ingreso ?? ""}
+                                      onChange={(e) =>
+                                        updateItem(
+                                          index,
+                                          "fecha_ingreso",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </td>
+                                  <td className="p-2 border text-center text-xs">
+                                    {lote ? (
+                                      <span
+                                        className={
+                                          excede
+                                            ? "text-red-600 font-semibold"
+                                            : "text-gray-600"
+                                        }
+                                      >
+                                        {lote.stock_cajas} cajas
+                                        <br />
+                                        {lote.stock_kg.toFixed(2)} kg
+                                      </span>
+                                    ) : (
+                                      <span className="text-amber-600">
+                                        Lote sin stock
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="p-1 border">
+                                    <input
+                                      type="text"
+                                      className="w-full p-1 border-none bg-transparent focus:ring-0"
+                                      value={item.codigo_trazabilidad ?? ""}
+                                      onChange={(e) =>
+                                        updateItem(
+                                          index,
+                                          "codigo_trazabilidad",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </td>
+                                  <td className="p-1 border">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      className={`w-full p-1 border-none bg-transparent focus:ring-0 ${
+                                        excede ? "text-red-600 font-semibold" : ""
+                                      }`}
+                                      value={item.cantidad}
+                                      onChange={(e) =>
+                                        updateItem(
+                                          index,
+                                          "cantidad",
+                                          e.target.value,
+                                        )
+                                      }
+                                      title={
+                                        excede
+                                          ? "La cantidad supera el stock del lote"
+                                          : undefined
+                                      }
+                                    />
+                                  </td>
+                                  <td className="p-1 border">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      className="w-full p-1 border-none bg-transparent focus:ring-0"
+                                      value={item.peso_unidad}
+                                      onChange={(e) =>
+                                        updateItem(
+                                          index,
+                                          "peso_unidad",
+                                          e.target.value,
+                                        )
+                                      }
+                                    />
+                                  </td>
+                                  <td className="p-2 border font-semibold text-blue-600 bg-blue-50/30">
+                                    {(cantidad * pesoUnidad).toFixed(2)}
+                                  </td>
+                                  <td className="p-2 border text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => removeItem(index)}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+
+                      <div className="p-2 border-t border-gray-100">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          icon={<Plus size={14} />}
+                          iconPosition="left"
+                          onClick={() => addFila(presentacion)}
+                          disabled={lotesDisponibles(presentacion).length === 0}
+                        >
+                          Añadir lote
+                        </Button>
+                        {lotesDisponibles(presentacion).length === 0 && (
+                          <span className="ml-3 text-xs text-gray-500">
+                            No quedan lotes sin agregar en esta presentación
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {items.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-4 bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 font-bold text-sm">
+          <span>TOTALES:</span>
+          <span className="text-blue-800">{sumaCantidad} cajas</span>
+          <span className="text-blue-800">{sumaTotalKg.toFixed(2)} kg</span>
+        </div>
+      )}
+
+      <div className="flex items-center gap-3 mt-4">
         <span className="text-sm font-medium text-gray-700">
           Motivo de Salida:
         </span>

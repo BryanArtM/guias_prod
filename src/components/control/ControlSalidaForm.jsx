@@ -7,13 +7,13 @@ import ControlObservacionesSection from "./ControlObservacionesSection";
 import {
   obtenerMotivosSalida,
   obtenerTiposDocumentoSalida,
+  obtenerStockPorLote,
 } from "@/services/api";
 
 export default function ControlSalidaForm({
   onSubmit,
   onCancel,
   especies = [],
-  variantes = [],
   tipoDocumento = "EMBARQUE",
   initialData = null,
 }) {
@@ -54,39 +54,25 @@ export default function ControlSalidaForm({
   );
 
   const [formData, setFormData] = useState(initialFormData);
+  // Las filas se arman desde el acordeón de presentaciones, por eso arranca vacío
   const [items, setItems] = useState(
     initialData?.items?.length
       ? initialData.items.map((it) => ({
           variante_id: it.variante_id,
+          fecha_ingreso: it.fecha_ingreso || "",
           codigo_trazabilidad: it.codigo_trazabilidad || "",
           cantidad: it.cantidad,
           peso_unidad: it.peso_unidad,
           motivo_salida: "OTROS",
         }))
-      : [
-          {
-            variante_id: "",
-            codigo_trazabilidad: "",
-            cantidad: 0,
-            peso_unidad: 0,
-            motivo_salida: "OTROS",
-          },
-        ],
+      : [],
   );
   const [errors, setErrors] = useState({});
   const [cargando, setCargando] = useState(false);
   const [mensajeError, setMensajeError] = useState(null);
   const [motivos, setMotivos] = useState([]);
   const [tiposDocumentoSalida, setTiposDocumentoSalida] = useState([]);
-
-  const variantesFiltradasPorEspecie = useMemo(() => {
-    if (!formData.especie_id) {
-      return [];
-    }
-
-    const especieId = parseInt(formData.especie_id, 10);
-    return variantes.filter((variante) => variante.especie_id === especieId);
-  }, [formData.especie_id, variantes]);
+  const [lotes, setLotes] = useState([]);
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -105,13 +91,18 @@ export default function ControlSalidaForm({
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([obtenerMotivosSalida(), obtenerTiposDocumentoSalida()])
+    Promise.all([
+      obtenerMotivosSalida(),
+      obtenerTiposDocumentoSalida(),
+      obtenerStockPorLote(),
+    ])
       .then((res) => {
         if (!mounted) return;
         const motivosRes = res[0] || [];
         const tiposRes = res[1] || [];
         setMotivos(motivosRes);
         setTiposDocumentoSalida(tiposRes);
+        setLotes(res[2] || []);
         // set default motivo (OTROS) if exists
         const otros = (motivosRes || []).find((m) => m.codigo === "OTROS");
         if (otros)
@@ -127,29 +118,20 @@ export default function ControlSalidaForm({
     };
   }, []);
 
-  useEffect(() => {
-    setItems((prevItems) =>
-      prevItems.map((item) => {
-        if (!item.variante_id) {
-          return item;
-        }
-
-        const varianteValida = variantesFiltradasPorEspecie.some(
-          (variante) => variante.variante_id === item.variante_id,
-        );
-
-        return varianteValida ? item : { ...item, variante_id: "" };
-      }),
-    );
-  }, [variantesFiltradasPorEspecie]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Al cambiar de especie las filas dejan de corresponder: se limpian
+    if (name === "especie_id" && value !== formData.especie_id) {
+      setItems([]);
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
+
+  const itemsConCantidad = () =>
+    items.filter((item) => (parseFloat(item.cantidad) || 0) > 0);
 
   const validar = () => {
     const nextErrors = {};
@@ -162,22 +144,30 @@ export default function ControlSalidaForm({
     if (!formData.numero_lote.trim()) nextErrors.numero_lote = "Requerido";
     if (!formData.numero_camara.trim()) nextErrors.numero_camara = "Requerido";
     if (!formData.especie_id) nextErrors.especie_id = "Seleccione una especie";
-    if (items.length === 0)
-      nextErrors.items = "Debe registrar al menos un ítem";
 
-    items.forEach((item, index) => {
-      if (!item.variante_id) {
-        nextErrors[`item_${index}_variante_id`] = "Requerido";
-      }
-      const cantidad = parseFloat(item.cantidad);
+    // Las filas se precargan en 0 al desplegar una presentación: las que quedan
+    // en 0 se consideran no utilizadas y no se guardan.
+    const itemsAGuardar = itemsConCantidad();
+    if (itemsAGuardar.length === 0) {
+      nextErrors.items =
+        "Indique la cantidad de al menos un lote para poder guardar";
+    }
+
+    const problemas = [];
+    itemsAGuardar.forEach((item) => {
+      const etiqueta = `${item.fecha_ingreso || "sin fecha"}`;
+      if (!item.variante_id) problemas.push(`Falta la variante (${etiqueta})`);
+      if (!item.fecha_ingreso)
+        problemas.push("Falta la fecha de ingreso de un lote");
       const pesoUnidad = parseFloat(item.peso_unidad);
-      if (Number.isNaN(cantidad) || cantidad <= 0) {
-        nextErrors[`item_${index}_cantidad`] = "Debe ser mayor a 0";
-      }
-      if (Number.isNaN(pesoUnidad) || pesoUnidad < 0) {
-        nextErrors[`item_${index}_peso_unidad`] = "Debe ser válido";
+      if (Number.isNaN(pesoUnidad) || pesoUnidad <= 0) {
+        problemas.push(`Peso por unidad inválido (${etiqueta})`);
       }
     });
+
+    if (problemas.length > 0) {
+      nextErrors.items = problemas.join(". ");
+    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -193,12 +183,13 @@ export default function ControlSalidaForm({
 
     setCargando(true);
     try {
-      const itemsConTotales = items.map((item, index) => {
+      const itemsConTotales = itemsConCantidad().map((item, index) => {
         const cantidad = parseFloat(item.cantidad) || 0;
         const pesoUnidad = parseFloat(item.peso_unidad) || 0;
         return {
           numero_item: index + 1,
           variante_id: item.variante_id,
+          fecha_ingreso: item.fecha_ingreso || null,
           codigo_trazabilidad: item.codigo_trazabilidad?.trim() || null,
           cantidad,
           peso_unidad: pesoUnidad,
@@ -299,7 +290,8 @@ export default function ControlSalidaForm({
         onChangeItems={setItems}
         motivoSalida={formData.motivo_salida_id}
         motivos={motivos}
-        variantes={variantesFiltradasPorEspecie}
+        lotes={lotes}
+        especieId={formData.especie_id}
         onChangeMotivoSalida={(val) =>
           setFormData((prev) => ({ ...prev, motivo_salida_id: val }))
         }

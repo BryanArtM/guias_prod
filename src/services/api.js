@@ -260,6 +260,11 @@ export const obtenerStockActual = () => {
   return invokeWithAuth("obtener_stock_actual_cmd");
 };
 
+// Existencias por lote (variante + fecha de ingreso), de la mas antigua a la mas reciente
+export const obtenerStockPorLote = () => {
+  return invokeWithAuth("obtener_stock_por_lote_cmd");
+};
+
 // ==================== DIAGNÓSTICO ====================
 
 export const diagnosticarDB = () => {

@@ -2,11 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ControlSalidaForm } from "@/components/control";
 import { Alert, Loading } from "@/components/common";
-import {
-  controlService,
-  obtenerEspecies,
-  obtenerVariantesCompletas,
-} from "@/services";
+import { controlService, obtenerEspecies } from "@/services";
 
 export default function NewControlPage() {
   const navigate = useNavigate();
@@ -14,7 +10,6 @@ export default function NewControlPage() {
   const [success, setSuccess] = useState(false);
   const [tipoDocumento, setTipoDocumento] = useState("EMBARQUE");
   const [especies, setEspecies] = useState([]);
-  const [variantes, setVariantes] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   const tipos = ["SALIDA", "EMBARQUE", "MUESTREO"];
@@ -22,12 +17,7 @@ export default function NewControlPage() {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const [variantesData, especiesData] = await Promise.all([
-          obtenerVariantesCompletas(),
-          obtenerEspecies(),
-        ]);
-        setVariantes(variantesData);
-        setEspecies(especiesData);
+        setEspecies(await obtenerEspecies());
       } catch (err) {
         setError("Error al cargar datos: " + err.message);
       } finally {
@@ -88,7 +78,6 @@ export default function NewControlPage() {
       <ControlSalidaForm
         tipoDocumento={tipoDocumento}
         especies={especies}
-        variantes={variantes}
         onSubmit={handleSubmit}
         onCancel={() => navigate("/salidas")}
       />
