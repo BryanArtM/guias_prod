@@ -265,6 +265,36 @@ export const obtenerStockPorLote = () => {
   return invokeWithAuth("obtener_stock_por_lote_cmd");
 };
 
+// ==================== REPORTES ====================
+
+// Movimientos de inventario. Los ingresos se fechan por la fecha del lote y las
+// salidas por la fecha en que salio la mercaderia.
+export const obtenerMovimientos = ({
+  desde = null,
+  hasta = null,
+  especieId = null,
+  varianteId = null,
+} = {}) => {
+  return invokeWithAuth("obtener_movimientos_cmd", {
+    desde,
+    hasta,
+    especieId,
+    varianteId,
+  });
+};
+
+export const obtenerMateriaPrima = ({
+  desde = null,
+  hasta = null,
+  especieId = null,
+} = {}) => {
+  return invokeWithAuth("obtener_materia_prima_cmd", {
+    desde,
+    hasta,
+    especieId,
+  });
+};
+
 // ==================== DIAGNÓSTICO ====================
 
 export const diagnosticarDB = () => {

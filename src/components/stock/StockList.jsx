@@ -10,6 +10,7 @@ import {
 import { Button, Alert, Select } from "@/components/common";
 import { ChevronDown, ChevronRight, Download, RefreshCw } from "lucide-react";
 import { obtenerStockActual, obtenerStockPorLote } from "@/services";
+import { descargarCSV } from "@/components/reportes/shared";
 
 // Un lote se considera antiguo a partir de estos dias, para avisar de rotacion
 const DIAS_ALERTA_ANTIGUEDAD = 45;
@@ -118,7 +119,7 @@ export default function StockList() {
   };
 
   // Se exporta el detalle por lote, que es el nivel util para inventario
-  const exportarCSV = () => {
+  const exportarCSV = async () => {
     const headers = [
       "Variante",
       "Fecha Ingreso",
@@ -134,48 +135,40 @@ export default function StockList() {
     for (const item of stockFiltrado) {
       const suyos = lotesConStockDe(item.variante_id);
       if (suyos.length === 0) {
-        filas.push(
-          [
-            `"${item.codigo_completo}"`,
-            "sin lotes",
-            "",
-            0,
-            0,
-            item.stock_cajas,
-            0,
-            0,
-            item.stock_kg,
-          ].join(","),
-        );
+        filas.push([
+          item.codigo_completo,
+          "sin lotes",
+          "",
+          0,
+          0,
+          item.stock_cajas,
+          0,
+          0,
+          num(item.stock_kg),
+        ]);
         continue;
       }
       for (const lote of suyos) {
-        filas.push(
-          [
-            `"${item.codigo_completo}"`,
-            lote.fecha_ingreso,
-            diasDesde(lote.fecha_ingreso) ?? "",
-            lote.ingresos_cajas,
-            lote.salidas_cajas,
-            lote.stock_cajas,
-            num(lote.ingresos_kg),
-            num(lote.salidas_kg),
-            num(lote.stock_kg),
-          ].join(","),
-        );
+        filas.push([
+          item.codigo_completo,
+          lote.fecha_ingreso,
+          diasDesde(lote.fecha_ingreso) ?? "",
+          lote.ingresos_cajas,
+          lote.salidas_cajas,
+          lote.stock_cajas,
+          num(lote.ingresos_kg),
+          num(lote.salidas_kg),
+          num(lote.stock_kg),
+        ]);
       }
     }
 
-    const csv = [headers.join(","), ...filas].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `stock_lotes_${new Date().toISOString().split("T")[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-
-    mostrarAlerta("Stock por lote exportado a CSV");
+    try {
+      const ruta = await descargarCSV("stock_lotes", headers, filas);
+      mostrarAlerta(`Archivo guardado en ${ruta}`);
+    } catch (e) {
+      mostrarAlerta(`No se pudo exportar: ${e.message || e}`, "error");
+    }
   };
 
   if (cargando) {

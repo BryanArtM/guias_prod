@@ -1,0 +1,335 @@
+import { useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/common";
+import { Download } from "lucide-react";
+import { obtenerStockPorLote } from "@/services";
+import {
+  BarrasHorizontales,
+  Cargando,
+  EncabezadoReporte,
+  Indicador,
+  PanelVacio,
+  descargarCSV,
+  diasDesde,
+  formatearEntero,
+  formatearFecha,
+  formatearNumero,
+} from "./shared";
+
+// Tramos de antiguedad. El color va de neutro a alerta para que el panorama
+// se lea de un vistazo.
+const TRAMOS = [
+  { etiqueta: "0 a 15 días", min: 0, max: 15, color: "#1e3a8a" },
+  { etiqueta: "16 a 30 días", min: 16, max: 30, color: "#2563eb" },
+  { etiqueta: "31 a 45 días", min: 31, max: 45, color: "#0891b2" },
+  { etiqueta: "46 a 60 días", min: 46, max: 60, color: "#d97706" },
+  { etiqueta: "Más de 60 días", min: 61, max: Infinity, color: "#b91c1c" },
+];
+
+const tramoDe = (dias) =>
+  TRAMOS.find((t) => dias >= t.min && dias <= t.max) ?? TRAMOS[TRAMOS.length - 1];
+
+export default function ReporteAntiguedad({ especieId }) {
+  const [lotes, setLotes] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+  const [avisoExport, setAvisoExport] = useState(null);
+
+  useEffect(() => {
+    let vigente = true;
+    const cargar = async () => {
+      setCargando(true);
+      setError(null);
+      try {
+        const data = await obtenerStockPorLote();
+        if (vigente) setLotes(data || []);
+      } catch (e) {
+        if (vigente) setError(e.message || String(e));
+      } finally {
+        if (vigente) setCargando(false);
+      }
+    };
+    cargar();
+    return () => {
+      vigente = false;
+    };
+  }, []);
+
+  const conStock = useMemo(() => {
+    return lotes
+      .filter((l) => l.stock_cajas > 0 || l.stock_kg > 0)
+      .filter((l) => !especieId || l.especie_id === Number(especieId))
+      .map((l) => ({ ...l, dias: diasDesde(l.fecha_ingreso) ?? 0 }))
+      .sort((a, b) => b.dias - a.dias);
+  }, [lotes, especieId]);
+
+  const resumen = useMemo(() => {
+    const porTramo = TRAMOS.map((tramo) => ({
+      ...tramo,
+      lotes: 0,
+      cajas: 0,
+      kg: 0,
+    }));
+    for (const lote of conStock) {
+      const indice = TRAMOS.indexOf(tramoDe(lote.dias));
+      porTramo[indice].lotes += 1;
+      porTramo[indice].cajas += lote.stock_cajas;
+      porTramo[indice].kg += lote.stock_kg;
+    }
+    return porTramo;
+  }, [conStock]);
+
+  const totalKg = conStock.reduce((t, l) => t + l.stock_kg, 0);
+  const totalCajas = conStock.reduce((t, l) => t + l.stock_cajas, 0);
+  const kgEnRiesgo = resumen
+    .filter((t) => t.min >= 46)
+    .reduce((total, t) => total + t.kg, 0);
+  const masAntiguo = conStock[0];
+  const diasPromedio =
+    totalKg > 0
+      ? conStock.reduce((t, l) => t + l.dias * l.stock_kg, 0) / totalKg
+      : 0;
+
+  const exportar = async () => {
+    try {
+      const ruta = await descargarCSV(
+        "antiguedad_inventario",
+        ["Variante", "Fecha Ingreso", "Dias", "Tramo", "Cajas", "Kg"],
+        conStock.map((l) => [
+          l.codigo_completo,
+          l.fecha_ingreso,
+          l.dias,
+          tramoDe(l.dias).etiqueta,
+          l.stock_cajas,
+          Number(l.stock_kg).toFixed(2),
+        ]),
+      );
+      setAvisoExport(`Archivo guardado en ${ruta}`);
+    } catch (e) {
+      setAvisoExport(`No se pudo exportar: ${e.message || e}`);
+    }
+  };
+
+  if (cargando) return <Cargando />;
+  if (error) {
+    return (
+      <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        {error}
+      </div>
+    );
+  }
+  if (conStock.length === 0) {
+    return <PanelVacio mensaje="No hay lotes con existencias" />;
+  }
+
+  return (
+    <div>
+      <EncabezadoReporte
+        titulo="Antigüedad del inventario"
+        descripcion="Distribución de las existencias según el tiempo que llevan almacenadas, contado desde la fecha de producción del lote. Permite detectar mercadería que conviene rotar."
+        acciones={
+          <Button
+            variant="secondary"
+            onClick={exportar}
+            icon={<Download className="w-4 h-4" />}
+            iconPosition="left"
+          >
+            CSV
+          </Button>
+        }
+      />
+
+      {avisoExport && (
+        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900 flex items-start justify-between gap-4">
+          <span className="break-all">{avisoExport}</span>
+          <button
+            type="button"
+            onClick={() => setAvisoExport(null)}
+            className="text-blue-700 hover:text-blue-900 shrink-0"
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <Indicador
+          etiqueta="Existencias"
+          valor={`${formatearNumero(totalKg)} kg`}
+          detalle={`${formatearEntero(totalCajas)} cajas en ${conStock.length} lotes`}
+        />
+        <Indicador
+          etiqueta="Antigüedad promedio"
+          valor={`${formatearNumero(diasPromedio, 0)} días`}
+          detalle="Ponderada por kilos"
+        />
+        <Indicador
+          etiqueta="Más de 45 días"
+          valor={`${formatearNumero(kgEnRiesgo)} kg`}
+          detalle={
+            totalKg > 0
+              ? `${formatearNumero((kgEnRiesgo / totalKg) * 100, 1)} % del total`
+              : undefined
+          }
+          tono={kgEnRiesgo > 0 ? "alerta" : "neutro"}
+        />
+        <Indicador
+          etiqueta="Lote más antiguo"
+          valor={`${masAntiguo.dias} días`}
+          detalle={formatearFecha(masAntiguo.fecha_ingreso)}
+          tono={masAntiguo.dias > 60 ? "negativo" : "neutro"}
+        />
+      </div>
+
+      <section className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
+        <h3 className="text-sm font-semibold text-gray-800 mb-4">
+          Distribución por tramo de antigüedad
+        </h3>
+        <BarrasHorizontales
+          datos={resumen.map((t) => ({
+            etiqueta: t.etiqueta,
+            valor: t.kg,
+            color: t.color,
+          }))}
+          formatoValor={(v) => `${formatearNumero(v)} kg`}
+        />
+      </section>
+
+      <section className="mb-6">
+        <div className="overflow-x-auto border border-gray-300 rounded-lg">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  Tramo
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  Lotes
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  Cajas
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  Kg
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  % del total
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {resumen.map((tramo) => (
+                <tr key={tramo.etiqueta} className="hover:bg-gray-50">
+                  <td className="border-b border-gray-200 px-3 py-2">
+                    <span className="inline-flex items-center gap-2">
+                      <span
+                        className="inline-block w-3 h-3 rounded-sm"
+                        style={{ backgroundColor: tramo.color }}
+                      />
+                      {tramo.etiqueta}
+                    </span>
+                  </td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                    {tramo.lotes || "-"}
+                  </td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                    {tramo.cajas ? formatearEntero(tramo.cajas) : "-"}
+                  </td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums font-medium">
+                    {tramo.kg ? formatearNumero(tramo.kg) : "-"}
+                  </td>
+                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums text-gray-600">
+                    {totalKg > 0
+                      ? `${formatearNumero((tramo.kg / totalKg) * 100, 1)} %`
+                      : "-"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-gray-100 font-semibold">
+                <td className="px-3 py-2">Total</td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {conStock.length}
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {formatearEntero(totalCajas)}
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums">
+                  {formatearNumero(totalKg)}
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums">100,0 %</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="text-sm font-semibold text-gray-800 mb-3">
+          Lotes ordenados por antigüedad
+        </h3>
+        <div className="overflow-x-auto border border-gray-300 rounded-lg">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  Variante
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  Fecha de lote
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  Antigüedad
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  Tramo
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  Cajas
+                </th>
+                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  Kg
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {conStock.map((lote) => {
+                const tramo = tramoDe(lote.dias);
+                return (
+                  <tr
+                    key={`${lote.variante_id}-${lote.fecha_ingreso}`}
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="border-b border-gray-200 px-3 py-2 font-mono text-xs text-blue-900">
+                      {lote.codigo_completo}
+                    </td>
+                    <td className="border-b border-gray-200 px-3 py-2">
+                      {formatearFecha(lote.fecha_ingreso)}
+                    </td>
+                    <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums font-medium">
+                      {lote.dias} días
+                    </td>
+                    <td className="border-b border-gray-200 px-3 py-2">
+                      <span
+                        className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
+                        style={{ backgroundColor: tramo.color }}
+                      >
+                        {tramo.etiqueta}
+                      </span>
+                    </td>
+                    <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                      {formatearEntero(lote.stock_cajas)}
+                    </td>
+                    <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                      {formatearNumero(lote.stock_kg)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
