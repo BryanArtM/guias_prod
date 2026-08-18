@@ -81,6 +81,8 @@ pub struct ControlSalidaItem {
     pub control_salida_id: Option<i64>,
     pub numero_item: i32,
     pub variante_id: i64,
+    /// Fecha de ingreso del lote del que sale la mercaderia
+    pub fecha_ingreso: Option<String>,
     pub codigo_trazabilidad: Option<String>,
     pub cantidad: i32,
     pub peso_unidad: f64,
@@ -155,6 +157,9 @@ pub struct ParteProduccionEmbarcacion {
 pub struct ParteProduccionProducto {
     pub id: Option<i64>,
     pub variante_id: i64,
+    /// Fecha del lote; la asigna el backend copiando la fecha del parte
+    #[serde(default)]
+    pub fecha_ingreso: Option<String>,
     pub peso_unidad: Option<f64>,
     pub cajas_carro_1: i32,
     pub cajas_carro_2: i32,
@@ -185,6 +190,26 @@ pub struct StockVariante {
     pub cajas_ingresadas: i32,
     pub cajas_salidas: i32,
     pub cajas_stock: i32,
+}
+
+/// Existencias de una variante para una fecha de ingreso concreta.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct StockLote {
+    pub variante_id: i64,
+    pub fecha_ingreso: String,
+    pub codigo_completo: String,
+    pub especie_id: i64,
+    pub especie_nombre: String,
+    pub presentacion_id: i64,
+    pub presentacion_nombre: String,
+    pub calidad_id: Option<i64>,
+    pub calibre_id: Option<i64>,
+    pub calidad: Option<String>,
+    pub calibre: Option<String>,
+    pub tipo_ensunchado: Option<String>,
+    pub peso_unidad: f64,
+    pub stock_kg: f64,
+    pub stock_cajas: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

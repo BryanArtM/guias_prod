@@ -76,9 +76,9 @@ const CREATE_CONTROLES_SALIDA: &str = "CREATE TABLE IF NOT EXISTS controles_sali
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tipo_documento_id INTEGER NOT NULL,
     numero_control TEXT NOT NULL UNIQUE,
-    fecha TEXT NOT NULL,
+    fecha TEXT NOT NULL CHECK (fecha GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     cliente TEXT NOT NULL,
-    fecha_produccion TEXT,
+    fecha_produccion TEXT CHECK (fecha_produccion IS NULL OR fecha_produccion GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     turno TEXT,
     numero_lote TEXT,
     numero_camara TEXT,
@@ -93,11 +93,14 @@ const CREATE_CONTROLES_SALIDA: &str = "CREATE TABLE IF NOT EXISTS controles_sali
     FOREIGN KEY (motivo_salida_id) REFERENCES motivos_salida(id) ON DELETE RESTRICT
 )";
 
+// fecha_ingreso identifica el lote del que sale la mercaderia: una misma variante
+// puede tener existencias de varias fechas de ingreso, y el stock se lleva por lote.
 const CREATE_CONTROL_SALIDA_ITEMS: &str = "CREATE TABLE IF NOT EXISTS control_salida_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     control_salida_id INTEGER NOT NULL,
     numero_item INTEGER NOT NULL,
     variante_id INTEGER NOT NULL,
+    fecha_ingreso TEXT CHECK (fecha_ingreso IS NULL OR fecha_ingreso GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     codigo_trazabilidad TEXT,
     cantidad INTEGER NOT NULL,
     peso_unidad REAL NOT NULL,
@@ -121,7 +124,7 @@ const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produc
     revision TEXT,
     version TEXT,
     cliente TEXT,
-    fecha TEXT NOT NULL,
+    fecha TEXT NOT NULL CHECK (fecha GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     turno TEXT,
     codigo_trazabilidad TEXT,
     especie_id INTEGER,
@@ -153,10 +156,14 @@ const CREATE_PARTE_PRODUCCION_EMBARCACION: &str = "CREATE TABLE IF NOT EXISTS pa
     FOREIGN KEY (transporte_id) REFERENCES parte_produccion_transporte(id) ON DELETE CASCADE
 )";
 
+// fecha_ingreso se copia de la cabecera del parte al guardar en vez de derivarse
+// con un JOIN: asi cada fila es un lote autocontenido y el stock historico no
+// cambia solo porque se edite la cabecera del documento.
 const CREATE_PARTE_PRODUCCION_PRODUCTO: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_producto (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     parte_id INTEGER NOT NULL,
     variante_id INTEGER NOT NULL,
+    fecha_ingreso TEXT CHECK (fecha_ingreso IS NULL OR fecha_ingreso GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     peso_unidad REAL,
     cajas_carro_1 INTEGER DEFAULT 0,
     cajas_carro_2 INTEGER DEFAULT 0,
@@ -256,6 +263,48 @@ LEFT JOIN (
     GROUP BY variante_id
 ) sal ON sal.variante_id = vc.variante_id";
 
+// Stock desglosado por lote: cada combinacion de variante y fecha de ingreso es
+// una existencia independiente, porque la fecha del parte de produccion se hereda
+// a lo que se almacena. Las salidas descuentan del lote que declaran consumir.
+const CREATE_STOCK_POR_LOTE_VIEW: &str = "CREATE VIEW IF NOT EXISTS stock_por_lote_view AS
+SELECT
+    ing.variante_id,
+    ing.fecha_ingreso,
+    vc.codigo_completo,
+    vc.especie_id,
+    vc.especie_nombre,
+    vc.presentacion_id,
+    vc.presentacion_nombre,
+    vc.calidad_id,
+    vc.calibre_id,
+    vc.calidad,
+    vc.calibre,
+    vc.tipo_ensunchado,
+    CAST(COALESCE(ing.peso_unidad, 0) AS REAL) AS peso_unidad,
+    CAST(COALESCE(ing.kg, 0) AS REAL) AS ingresos_kg,
+    CAST(COALESCE(sal.kg, 0) AS REAL) AS salidas_kg,
+    CAST(COALESCE(ing.cajas, 0) AS INTEGER) AS ingresos_cajas,
+    CAST(COALESCE(sal.cajas, 0) AS INTEGER) AS salidas_cajas,
+    CAST(COALESCE(ing.kg, 0) - COALESCE(sal.kg, 0) AS REAL) AS stock_kg,
+    CAST(COALESCE(ing.cajas, 0) - COALESCE(sal.cajas, 0) AS INTEGER) AS stock_cajas
+FROM (
+    SELECT pp.variante_id,
+           pp.fecha_ingreso,
+           SUM(pp.peso_total_neto_kg) AS kg,
+           SUM(pp.cajas_carro_1 + pp.cajas_carro_2 + pp.cajas_carro_3 + pp.cajas_carro_4) AS cajas,
+           AVG(pp.peso_unidad) AS peso_unidad
+    FROM parte_produccion_producto pp
+    WHERE pp.fecha_ingreso IS NOT NULL
+    GROUP BY pp.variante_id, pp.fecha_ingreso
+) ing
+JOIN variantes_completas_view vc ON vc.variante_id = ing.variante_id
+LEFT JOIN (
+    SELECT variante_id, fecha_ingreso, SUM(total_kg) AS kg, SUM(cantidad) AS cajas
+    FROM control_salida_items
+    WHERE fecha_ingreso IS NOT NULL
+    GROUP BY variante_id, fecha_ingreso
+) sal ON sal.variante_id = ing.variante_id AND sal.fecha_ingreso = ing.fecha_ingreso";
+
 async fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("Creando tablas...");
     
@@ -328,6 +377,111 @@ async fn migrate_especies_schema(conn: &Connection) -> Result<(), Box<dyn std::e
     Ok(())
 }
 
+// A diferencia de las migraciones de catalogo, aqui si hay documentos ya
+// registrados que deben sobrevivir: se recrea la tabla copiando los items
+// existentes, que quedan con fecha_ingreso NULL (lote desconocido).
+async fn migrate_control_salida_items_schema(
+    conn: &Connection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut result = conn
+        .query("PRAGMA table_info(control_salida_items)", ())
+        .await?;
+    let mut tiene_tabla = false;
+    let mut tiene_columna = false;
+    while let Some(row) = result.next().await? {
+        tiene_tabla = true;
+        let nombre_columna: String = row.get(1)?;
+        if nombre_columna == "fecha_ingreso" {
+            tiene_columna = true;
+            break;
+        }
+    }
+
+    if !tiene_tabla || tiene_columna {
+        return Ok(());
+    }
+
+    eprintln!("Migrando control_salida_items para trazabilidad por lote (fecha_ingreso)...");
+    conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
+    conn.execute("DROP VIEW IF EXISTS stock_por_lote_view", ()).await?;
+    conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
+    conn.execute(
+        "ALTER TABLE control_salida_items RENAME TO control_salida_items_old",
+        (),
+    )
+    .await?;
+    conn.execute(CREATE_CONTROL_SALIDA_ITEMS, ()).await?;
+    conn.execute(
+        "INSERT INTO control_salida_items
+            (id, control_salida_id, numero_item, variante_id, codigo_trazabilidad,
+             cantidad, peso_unidad, total_kg, observaciones, created_at)
+         SELECT id, control_salida_id, numero_item, variante_id, codigo_trazabilidad,
+                cantidad, peso_unidad, total_kg, observaciones, created_at
+         FROM control_salida_items_old",
+        (),
+    )
+    .await?;
+    conn.execute("DROP TABLE control_salida_items_old", ()).await?;
+    conn.execute("PRAGMA foreign_keys = ON", ()).await?;
+    eprintln!("  ✓ control_salida_items migrada conservando los items existentes");
+
+    Ok(())
+}
+
+// Recrea la tabla de productos agregando fecha_ingreso y rellenandola con la
+// fecha de la cabecera del parte al que pertenece cada fila, para no perder los
+// ingresos ya registrados.
+async fn migrate_parte_produccion_producto_schema(
+    conn: &Connection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut result = conn
+        .query("PRAGMA table_info(parte_produccion_producto)", ())
+        .await?;
+    let mut tiene_tabla = false;
+    let mut tiene_columna = false;
+    while let Some(row) = result.next().await? {
+        tiene_tabla = true;
+        let nombre_columna: String = row.get(1)?;
+        if nombre_columna == "fecha_ingreso" {
+            tiene_columna = true;
+            break;
+        }
+    }
+
+    if !tiene_tabla || tiene_columna {
+        return Ok(());
+    }
+
+    eprintln!("Migrando parte_produccion_producto para congelar fecha_ingreso...");
+    conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
+    conn.execute("DROP VIEW IF EXISTS stock_por_lote_view", ()).await?;
+    conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
+    conn.execute(
+        "ALTER TABLE parte_produccion_producto RENAME TO parte_produccion_producto_old",
+        (),
+    )
+    .await?;
+    conn.execute(CREATE_PARTE_PRODUCCION_PRODUCTO, ()).await?;
+    conn.execute(
+        "INSERT INTO parte_produccion_producto
+            (id, parte_id, variante_id, fecha_ingreso, peso_unidad, cajas_carro_1,
+             cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg,
+             acumulado_presentacion, rendimiento)
+         SELECT o.id, o.parte_id, o.variante_id, p.fecha, o.peso_unidad, o.cajas_carro_1,
+                o.cajas_carro_2, o.cajas_carro_3, o.cajas_carro_4, o.peso_total_neto_kg,
+                o.acumulado_presentacion, o.rendimiento
+         FROM parte_produccion_producto_old o
+         LEFT JOIN partes_produccion p ON p.id = o.parte_id",
+        (),
+    )
+    .await?;
+    conn.execute("DROP TABLE parte_produccion_producto_old", ()).await?;
+    conn.execute("PRAGMA foreign_keys = ON", ()).await?;
+    eprintln!("  ✓ parte_produccion_producto migrada con fecha_ingreso poblada");
+
+    Ok(())
+}
+
 async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("Creando tablas de transacciones...");
     
@@ -370,6 +524,77 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     Ok(())
 }
 
+// SQLite no permite agregar un CHECK con ALTER TABLE: hay que recrear la tabla.
+// Se usa el procedimiento seguro (crear la nueva, copiar, borrar la vieja,
+// renombrar) porque algunas de estas tablas tienen hijos con claves foraneas:
+// si se renombrara la original primero, SQLite reescribiria esas referencias.
+async fn migrar_tabla_con_check_fecha(
+    conn: &Connection,
+    tabla: &str,
+    create_sql: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut result = conn
+        .query(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?1",
+            [libsql::Value::from(tabla.to_string())],
+        )
+        .await?;
+
+    let sql_actual: Option<String> = match result.next().await? {
+        Some(row) => Some(row.get(0)?),
+        None => None,
+    };
+
+    // Si la tabla aun no existe, create_tables la creara ya con el CHECK
+    let Some(sql_actual) = sql_actual else {
+        return Ok(());
+    };
+    if sql_actual.contains("GLOB") {
+        return Ok(());
+    }
+
+    let tabla_nueva = format!("{}_new", tabla);
+    let create_nueva = create_sql.replacen(tabla, &tabla_nueva, 1);
+
+    eprintln!("Agregando validacion de formato de fecha a {}...", tabla);
+    conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
+    // Las vistas se recrean despues; se quitan para que el RENAME no falle al
+    // intentar resolver referencias a una tabla que esta siendo reemplazada.
+    conn.execute("DROP VIEW IF EXISTS stock_por_lote_view", ()).await?;
+    conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
+    conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;
+    conn.execute(&format!("DROP TABLE IF EXISTS {}", tabla_nueva), ()).await?;
+    conn.execute(&create_nueva, ()).await?;
+    conn.execute(
+        &format!("INSERT INTO {} SELECT * FROM {}", tabla_nueva, tabla),
+        (),
+    )
+    .await?;
+    conn.execute(&format!("DROP TABLE {}", tabla), ()).await?;
+    conn.execute(
+        &format!("ALTER TABLE {} RENAME TO {}", tabla_nueva, tabla),
+        (),
+    )
+    .await?;
+    conn.execute("PRAGMA foreign_keys = ON", ()).await?;
+    eprintln!("  ✓ {} migrada", tabla);
+
+    Ok(())
+}
+
+async fn migrate_checks_de_fecha(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
+    migrar_tabla_con_check_fecha(conn, "partes_produccion", CREATE_PARTES_PRODUCCION).await?;
+    migrar_tabla_con_check_fecha(
+        conn,
+        "parte_produccion_producto",
+        CREATE_PARTE_PRODUCCION_PRODUCTO,
+    )
+    .await?;
+    migrar_tabla_con_check_fecha(conn, "controles_salida", CREATE_CONTROLES_SALIDA).await?;
+    migrar_tabla_con_check_fecha(conn, "control_salida_items", CREATE_CONTROL_SALIDA_ITEMS).await?;
+    Ok(())
+}
+
 async fn create_users_table(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("Creando tabla de usuarios...");
     conn.execute(CREATE_USERS, ()).await?;
@@ -381,10 +606,12 @@ async fn create_views(conn: &Connection) -> Result<(), Box<dyn std::error::Error
     // Las vistas se recrean en cada arranque (no almacenan datos propios) para
     // que los cambios de definición se apliquen también sobre una base ya existente,
     // donde "CREATE VIEW IF NOT EXISTS" dejaría la definición vieja intacta.
+    conn.execute("DROP VIEW IF EXISTS stock_por_lote_view", ()).await?;
     conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
     conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;
     conn.execute(CREATE_VIEW, ()).await?;
     conn.execute(CREATE_STOCK_ACTUAL_VIEW, ()).await?;
+    conn.execute(CREATE_STOCK_POR_LOTE_VIEW, ()).await?;
     Ok(())
 }
 
@@ -471,6 +698,9 @@ pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
     migrate_variantes_schema(&conn).await?;
     migrate_especies_schema(&conn).await?;
     create_transaction_tables(&conn).await?;
+    migrate_control_salida_items_schema(&conn).await?;
+    migrate_parte_produccion_producto_schema(&conn).await?;
+    migrate_checks_de_fecha(&conn).await?;
     create_users_table(&conn).await?;
     create_views(&conn).await?;
     create_indexes(&conn).await?;

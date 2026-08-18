@@ -356,6 +356,12 @@ async fn obtener_stock_actual_cmd(state: State<'_, AppState>, token: String) -> 
     obtener_stock_actual(&state.db).await
 }
 
+#[tauri::command]
+async fn obtener_stock_por_lote_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<StockLote>, String> {
+    require_auth(&token)?;
+    obtener_stock_por_lote(&state.db).await
+}
+
 // ============ COMANDOS TAURI - AUTENTICACIÓN ============
 
 #[tauri::command]
@@ -465,6 +471,7 @@ pub fn run() {
 
             // Consultas
             obtener_stock_por_variante_cmd,
+            obtener_stock_por_lote_cmd,
             obtener_stock_actual_cmd,
             // Autenticación
             register_cmd,

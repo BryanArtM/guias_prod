@@ -84,6 +84,8 @@ enum StockAccion {
     Actual,
     /// Stock detallado con ingresos/salidas por variante (lo que consume el Dashboard)
     Detalle,
+    /// Stock por lote: variante + fecha de ingreso, de la mas antigua a la mas reciente
+    Lotes,
 }
 
 #[derive(Subcommand)]
@@ -516,6 +518,7 @@ async fn ejecutar(cli: Cli) -> Result<(), String> {
             StockAccion::Detalle => {
                 imprimir(&db::obtener_stock_por_variante(&base_datos).await?)
             }
+            StockAccion::Lotes => imprimir(&db::obtener_stock_por_lote(&base_datos).await?),
         },
 
         Comando::Referencia { accion } => match accion {

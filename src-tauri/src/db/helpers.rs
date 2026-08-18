@@ -1,6 +1,29 @@
 // Helper functions para trabajar con libsql
 use libsql::{Row, Value};
 
+// El CHECK de la base solo valida la forma (YYYY-MM-DD) con GLOB, asi que una
+// fecha imposible como 2026-13-45 la pasaria. Aqui se valida contra el
+// calendario real antes de escribir, y ademas permite dar un mensaje util en
+// vez de un "CHECK constraint failed".
+pub fn validar_fecha_iso(valor: &str, campo: &str) -> Result<(), String> {
+    chrono::NaiveDate::parse_from_str(valor, "%Y-%m-%d")
+        .map(|_| ())
+        .map_err(|_| {
+            format!(
+                "{}: '{}' no es una fecha valida. Se espera el formato AAAA-MM-DD.",
+                campo, valor
+            )
+        })
+}
+
+// Igual que validar_fecha_iso pero para campos opcionales
+pub fn validar_fecha_iso_opcional(valor: &Option<String>, campo: &str) -> Result<(), String> {
+    match valor {
+        Some(v) if !v.is_empty() => validar_fecha_iso(v, campo),
+        _ => Ok(()),
+    }
+}
+
 // El driver hace unreachable!() si el tipo de la columna no coincide exactamente
 // con el solicitado (por ejemplo, leer un INTEGER como f64), lo que aborta el hilo
 // en vez de devolver un error. Estos helpers leen el Value crudo y convierten

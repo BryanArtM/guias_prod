@@ -3,9 +3,19 @@ use crate::db::types::ParteProduccion;
 use crate::db::helpers::*;
 use crate::{ParteProduccionEmbarcacion, ParteProduccionTransporte, ParteProduccionProducto, ParteProduccionInsumo};
 
+// Valida las fechas del documento y de los lotes de cada producto
+fn validar_fechas_parte(parte: &ParteProduccion) -> Result<(), String> {
+    validar_fecha_iso(&parte.fecha, "Fecha del parte")?;
+    for producto in &parte.productos {
+        validar_fecha_iso_opcional(&producto.fecha_ingreso, "Fecha de ingreso del producto")?;
+    }
+    Ok(())
+}
+
 pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> Result<i64, String> {
+    validar_fechas_parte(parte)?;
     let conn = db.connect().map_err(|e| e.to_string())?;
-    
+
     // 1. Insertar encabezado
     conn.execute(
         "INSERT INTO partes_produccion 
@@ -60,12 +70,13 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
     // 3. Insertar productos; el stock se calcula desde la vista en tiempo real.
     for producto in &parte.productos {
         conn.execute(
-            "INSERT INTO parte_produccion_producto 
-             (parte_id, variante_id, peso_unidad, cajas_carro_1, cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            "INSERT INTO parte_produccion_producto
+             (parte_id, variante_id, fecha_ingreso, peso_unidad, cajas_carro_1, cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             vec![
                 Value::from(parte_id),
                 Value::from(producto.variante_id),
+                Value::from(parte.fecha.clone()),
                 option_f64_to_value(producto.peso_unidad),
                 Value::from(producto.cajas_carro_1 as i64),
                 Value::from(producto.cajas_carro_2 as i64),
@@ -95,6 +106,7 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
 }
 
 pub async fn actualizar_parte_produccion(db: &Database, id: i64, parte: &ParteProduccion) -> Result<(), String> {
+    validar_fechas_parte(parte)?;
     let conn = db.connect().map_err(|e| e.to_string())?;
 
     // 1. Actualizar encabezado
@@ -165,15 +177,22 @@ pub async fn actualizar_parte_produccion(db: &Database, id: i64, parte: &PartePr
         }
     }
 
-    // 4. Re-insertar productos
+    // 4. Re-insertar productos. Cada fila conserva la fecha de lote con la que
+    // fue registrada; solo las filas nuevas heredan la fecha actual del parte.
+    // Asi, corregir la cabecera no mueve retroactivamente mercaderia ya despachada.
     for producto in &parte.productos {
+        let fecha_lote = producto
+            .fecha_ingreso
+            .clone()
+            .unwrap_or_else(|| parte.fecha.clone());
         conn.execute(
             "INSERT INTO parte_produccion_producto
-             (parte_id, variante_id, peso_unidad, cajas_carro_1, cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+             (parte_id, variante_id, fecha_ingreso, peso_unidad, cajas_carro_1, cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             vec![
                 Value::from(id),
                 Value::from(producto.variante_id),
+                Value::from(fecha_lote),
                 option_f64_to_value(producto.peso_unidad),
                 Value::from(producto.cajas_carro_1 as i64),
                 Value::from(producto.cajas_carro_2 as i64),
@@ -330,9 +349,9 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
     // Productos
         let mut res_p = conn.query(
             "SELECT pp.id, pp.variante_id, pp.peso_unidad, pp.cajas_carro_1, pp.cajas_carro_2,
-                    pp.cajas_carro_3, pp.cajas_carro_4, pp.peso_total_neto_kg, 
+                    pp.cajas_carro_3, pp.cajas_carro_4, pp.peso_total_neto_kg,
                     pp.acumulado_presentacion, pp.rendimiento,
-                    vc.codigo_completo
+                    vc.codigo_completo, pp.fecha_ingreso
             FROM parte_produccion_producto pp
             LEFT JOIN variantes_completas_view vc ON vc.variante_id = pp.variante_id
             WHERE pp.parte_id = ?1",
@@ -343,6 +362,7 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         parte.productos.push(ParteProduccionProducto {
             id: Some(row_p.get(0).map_err(|e| e.to_string())?),
             variante_id: row_p.get(1).map_err(|e| e.to_string())?,
+            fecha_ingreso: get_optional_string(&row_p, 11).map_err(|e| e.to_string())?,
             peso_unidad: get_optional_f64(&row_p, 2).map_err(|e| e.to_string())?,
             cajas_carro_1: get_optional_i32(&row_p, 3).unwrap_or(None).unwrap_or(0),
             cajas_carro_2: get_optional_i32(&row_p, 4).unwrap_or(None).unwrap_or(0),

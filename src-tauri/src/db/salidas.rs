@@ -1,8 +1,5 @@
 use libsql::Database;
 use crate::db::types::ControlSalidaResumen;
-use crate::db::helpers::*;
-
-
 
 pub async fn obtener_salidas(db: &Database) -> Result<Vec<ControlSalidaResumen>, String> {
     let conn = db.connect().map_err(|e| e.to_string())?;

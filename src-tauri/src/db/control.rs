@@ -3,6 +3,16 @@ use libsql::{Database, Value};
 use crate::db::helpers::*;
 use crate::db::types::{ControlSalida, ControlSalidaItem};
 
+// Valida la fecha del documento, la de produccion y la del lote de cada item
+fn validar_fechas_control(control: &ControlSalida) -> Result<(), String> {
+    validar_fecha_iso(&control.fecha, "Fecha del control de salida")?;
+    validar_fecha_iso_opcional(&control.fecha_produccion, "Fecha de produccion")?;
+    for item in &control.items {
+        validar_fecha_iso_opcional(&item.fecha_ingreso, "Fecha de ingreso del lote")?;
+    }
+    Ok(())
+}
+
 pub async fn crear_control_salida(
     db: &Database,
     control: &ControlSalida,
@@ -10,6 +20,7 @@ pub async fn crear_control_salida(
     if control.items.is_empty() {
         return Err("Debe registrar al menos un ítem".to_string());
     }
+    validar_fechas_control(control)?;
 
     let conn = db.connect().map_err(|e| e.to_string())?;
     conn.execute("BEGIN TRANSACTION", ())
@@ -55,12 +66,13 @@ pub async fn crear_control_salida(
     for item in &control.items {
         if let Err(error) = conn.execute(
             "INSERT INTO control_salida_items
-            (control_salida_id, numero_item, variante_id, codigo_trazabilidad, cantidad, peso_unidad, total_kg, observaciones)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            (control_salida_id, numero_item, variante_id, fecha_ingreso, codigo_trazabilidad, cantidad, peso_unidad, total_kg, observaciones)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             vec![
                 Value::from(control_id),
                 Value::from(item.numero_item as i64),
                 Value::from(item.variante_id),
+                option_string_to_value(item.fecha_ingreso.clone()),
                 option_string_to_value(item.codigo_trazabilidad.clone()),
                 Value::from(item.cantidad as i64),
                 Value::from(item.peso_unidad),
@@ -129,7 +141,7 @@ pub async fn obtener_control_salida_por_id(db: &Database, id: i64) -> Result<Con
     let mut res_i = conn.query(
         "SELECT ci.id, ci.numero_item, ci.variante_id, ci.codigo_trazabilidad,
                 ci.cantidad, ci.peso_unidad, ci.total_kg, ci.observaciones,
-                vc.codigo_completo
+                vc.codigo_completo, ci.fecha_ingreso
          FROM control_salida_items ci
          LEFT JOIN variantes_completas_view vc ON vc.variante_id = ci.variante_id
          WHERE ci.control_salida_id = ?1
@@ -143,6 +155,7 @@ pub async fn obtener_control_salida_por_id(db: &Database, id: i64) -> Result<Con
             control_salida_id: Some(control_id),
             numero_item: row_i.get(1).map_err(|e| e.to_string())?,
             variante_id: row_i.get(2).map_err(|e| e.to_string())?,
+            fecha_ingreso: get_optional_string(&row_i, 9).map_err(|e| e.to_string())?,
             codigo_trazabilidad: get_optional_string(&row_i, 3).map_err(|e| e.to_string())?,
             cantidad: row_i.get(4).map_err(|e| e.to_string())?,
             peso_unidad: row_i.get(5).map_err(|e| e.to_string())?,
@@ -159,6 +172,7 @@ pub async fn actualizar_control_salida(db: &Database, id: i64, control: &Control
     if control.items.is_empty() {
         return Err("Debe registrar al menos un ítem".to_string());
     }
+    validar_fechas_control(control)?;
 
     let conn = db.connect().map_err(|e| e.to_string())?;
     conn.execute("BEGIN TRANSACTION", ()).await.map_err(|e| e.to_string())?;
@@ -207,12 +221,13 @@ pub async fn actualizar_control_salida(db: &Database, id: i64, control: &Control
     for item in &control.items {
         if let Err(error) = conn.execute(
             "INSERT INTO control_salida_items
-             (control_salida_id, numero_item, variante_id, codigo_trazabilidad, cantidad, peso_unidad, total_kg, observaciones)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+             (control_salida_id, numero_item, variante_id, fecha_ingreso, codigo_trazabilidad, cantidad, peso_unidad, total_kg, observaciones)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             vec![
                 Value::from(id),
                 Value::from(item.numero_item as i64),
                 Value::from(item.variante_id),
+                option_string_to_value(item.fecha_ingreso.clone()),
                 option_string_to_value(item.codigo_trazabilidad.clone()),
                 Value::from(item.cantidad as i64),
                 Value::from(item.peso_unidad),

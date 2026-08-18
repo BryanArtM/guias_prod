@@ -95,7 +95,7 @@ pub use tipos_documento_produccion::obtener_tipos_documento_produccion;
 pub use motivos_salida::obtener_motivos_salida;
 pub use tipos_documento_salida::obtener_tipos_documento_salida;
 
-pub use stock::{obtener_stock_por_variante, obtener_stock_actual};
+pub use stock::{obtener_stock_por_variante, obtener_stock_actual, obtener_stock_por_lote};
 
 pub use partes::{
     crear_parte_produccion,
