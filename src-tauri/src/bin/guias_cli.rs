@@ -71,10 +71,39 @@ enum Comando {
         #[command(subcommand)]
         accion: StockAccion,
     },
+    /// Consultas que alimentan la vista de Reportes
+    Reporte {
+        #[command(subcommand)]
+        accion: ReporteAccion,
+    },
     /// Catálogos de referencia de solo lectura (motivos, tipos de documento)
     Referencia {
         #[command(subcommand)]
         accion: ReferenciaAccion,
+    },
+}
+
+#[derive(Subcommand)]
+enum ReporteAccion {
+    /// Movimientos de inventario (ingresos y salidas) en orden cronológico
+    Movimientos {
+        #[arg(long)]
+        desde: Option<String>,
+        #[arg(long)]
+        hasta: Option<String>,
+        #[arg(long)]
+        especie_id: Option<i64>,
+        #[arg(long)]
+        variante_id: Option<i64>,
+    },
+    /// Materia prima recibida por día
+    MateriaPrima {
+        #[arg(long)]
+        desde: Option<String>,
+        #[arg(long)]
+        hasta: Option<String>,
+        #[arg(long)]
+        especie_id: Option<i64>,
     },
 }
 
@@ -519,6 +548,25 @@ async fn ejecutar(cli: Cli) -> Result<(), String> {
                 imprimir(&db::obtener_stock_por_variante(&base_datos).await?)
             }
             StockAccion::Lotes => imprimir(&db::obtener_stock_por_lote(&base_datos).await?),
+        },
+
+        Comando::Reporte { accion } => match accion {
+            ReporteAccion::Movimientos {
+                desde,
+                hasta,
+                especie_id,
+                variante_id,
+            } => imprimir(
+                &db::obtener_movimientos(&base_datos, desde, hasta, especie_id, variante_id)
+                    .await?,
+            ),
+            ReporteAccion::MateriaPrima {
+                desde,
+                hasta,
+                especie_id,
+            } => imprimir(
+                &db::obtener_materia_prima_por_fecha(&base_datos, desde, hasta, especie_id).await?,
+            ),
         },
 
         Comando::Referencia { accion } => match accion {

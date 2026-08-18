@@ -362,6 +362,74 @@ async fn obtener_stock_por_lote_cmd(state: State<'_, AppState>, token: String) -
     obtener_stock_por_lote(&state.db).await
 }
 
+// ============ COMANDOS TAURI - EXPORTACION ============
+
+// El webview bloquea las descargas por blob URL, asi que el archivo se escribe
+// desde el backend en la carpeta de descargas del usuario.
+#[tauri::command]
+async fn guardar_archivo_csv(
+    app: tauri::AppHandle,
+    nombre: String,
+    contenido: String,
+) -> Result<String, String> {
+    use std::io::Write;
+
+    // El nombre llega desde la interfaz: se descarta cualquier componente de
+    // ruta para que no se pueda escribir fuera de la carpeta de destino.
+    let nombre_seguro = std::path::Path::new(&nombre)
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .filter(|n| !n.is_empty())
+        .ok_or_else(|| "Nombre de archivo inválido".to_string())?;
+
+    let carpeta = app
+        .path()
+        .download_dir()
+        .or_else(|_| app.path().document_dir())
+        .map_err(|e| format!("No se pudo determinar la carpeta de destino: {}", e))?;
+
+    let ruta = carpeta.join(&nombre_seguro);
+    let mut archivo = std::fs::File::create(&ruta)
+        .map_err(|e| format!("No se pudo crear {}: {}", ruta.display(), e))?;
+
+    // BOM para que Excel abra el archivo como UTF-8 y respete los acentos
+    archivo
+        .write_all(&[0xEF, 0xBB, 0xBF])
+        .map_err(|e| e.to_string())?;
+    archivo
+        .write_all(contenido.as_bytes())
+        .map_err(|e| format!("No se pudo escribir el archivo: {}", e))?;
+
+    Ok(ruta.to_string_lossy().to_string())
+}
+
+// ============ COMANDOS TAURI - REPORTES ============
+
+#[tauri::command]
+async fn obtener_movimientos_cmd(
+    state: State<'_, AppState>,
+    token: String,
+    desde: Option<String>,
+    hasta: Option<String>,
+    especie_id: Option<i64>,
+    variante_id: Option<i64>,
+) -> Result<Vec<MovimientoStock>, String> {
+    require_auth(&token)?;
+    obtener_movimientos(&state.db, desde, hasta, especie_id, variante_id).await
+}
+
+#[tauri::command]
+async fn obtener_materia_prima_cmd(
+    state: State<'_, AppState>,
+    token: String,
+    desde: Option<String>,
+    hasta: Option<String>,
+    especie_id: Option<i64>,
+) -> Result<Vec<MateriaPrimaDia>, String> {
+    require_auth(&token)?;
+    obtener_materia_prima_por_fecha(&state.db, desde, hasta, especie_id).await
+}
+
 // ============ COMANDOS TAURI - AUTENTICACIÓN ============
 
 #[tauri::command]
@@ -472,6 +540,9 @@ pub fn run() {
             // Consultas
             obtener_stock_por_variante_cmd,
             obtener_stock_por_lote_cmd,
+            obtener_movimientos_cmd,
+            obtener_materia_prima_cmd,
+            guardar_archivo_csv,
             obtener_stock_actual_cmd,
             // Autenticación
             register_cmd,

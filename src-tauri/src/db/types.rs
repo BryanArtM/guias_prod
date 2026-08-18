@@ -192,6 +192,40 @@ pub struct StockVariante {
     pub cajas_stock: i32,
 }
 
+/// Un movimiento de inventario, ya sea de entrada o de salida.
+/// Los ingresos se fechan por la fecha del lote; las salidas, por la fecha en
+/// que el producto salio (la del documento de salida).
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MovimientoStock {
+    pub tipo: String,
+    pub fecha: String,
+    pub fecha_lote: Option<String>,
+    pub documento_id: i64,
+    pub documento_codigo: Option<String>,
+    pub documento_tipo: Option<String>,
+    pub cliente: Option<String>,
+    pub variante_id: i64,
+    pub codigo_completo: String,
+    pub especie_id: i64,
+    pub especie_nombre: String,
+    pub presentacion_id: i64,
+    pub presentacion_nombre: String,
+    pub calidad: Option<String>,
+    pub calibre: Option<String>,
+    pub cajas: i64,
+    pub kg: f64,
+    pub codigo_trazabilidad: Option<String>,
+}
+
+/// Materia prima recibida por dia, para medir el rendimiento de la produccion.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MateriaPrimaDia {
+    pub fecha: String,
+    pub especie_id: Option<i64>,
+    pub kg_recepcion: f64,
+    pub kg_entera: f64,
+}
+
 /// Existencias de una variante para una fecha de ingreso concreta.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct StockLote {
