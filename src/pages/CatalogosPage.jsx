@@ -158,20 +158,16 @@ export default function CatalogosPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-5 py-4">
         <Alert variant="error">{error}</Alert>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        Gestión de Catálogos
-      </h1>
-
+    <div className="px-5 py-4">
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-line mb-6">
         <nav className="flex space-x-4">
           {tabs.map((tab) => (
             <button
@@ -182,7 +178,7 @@ export default function CatalogosPage() {
                 ${
                   tabActiva === tab.id
                     ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    : "border-transparent text-ink-muted hover:border-steel hover:text-ink"
                 }
               `}
             >
@@ -193,7 +189,7 @@ export default function CatalogosPage() {
       </div>
 
       {/* Contenido del catálogo activo */}
-      <div className="bg-white rounded-lg shadow p-6">{renderCatalogo()}</div>
+      <div className="border border-line bg-surface p-6">{renderCatalogo()}</div>
     </div>
   );
 }

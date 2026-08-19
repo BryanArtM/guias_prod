@@ -2,7 +2,7 @@ import { EspeciesList } from "@/components/especies";
 
 export function EspeciesPage() {
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="px-5 py-4">
       <EspeciesList />
     </div>
   );

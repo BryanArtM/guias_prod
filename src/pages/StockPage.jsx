@@ -2,7 +2,7 @@ import { StockList } from "@/components/stock";
 
 export default function StockPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="px-5 py-4">
       <StockList />
     </div>
   );

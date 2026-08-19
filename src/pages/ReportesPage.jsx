@@ -58,16 +58,9 @@ export default function ReportesPage() {
   const especieFiltro = especieId ? Number(especieId) : null;
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-8">
-      <header className="bg-blue-900 text-white rounded-t-xl px-6 py-5">
-        <h1 className="text-2xl font-bold tracking-tight">Reportes</h1>
-        <p className="text-sm text-blue-200 mt-1">
-          Análisis de producción, existencias y trazabilidad
-        </p>
-      </header>
-
+    <div className="px-5 py-4">
       {/* Filtros comunes */}
-      <div className="bg-white border-x border-b border-gray-200 px-6 py-4">
+      <div className="border border-line bg-surface px-3 py-3">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -78,7 +71,7 @@ export default function ReportesPage() {
               value={desde}
               onChange={(e) => setDesde(e.target.value)}
               disabled={!reporte.usaRango}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
+              className="w-full px-3 py-2 border border-line focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
             />
           </div>
           <div>
@@ -90,7 +83,7 @@ export default function ReportesPage() {
               value={hasta}
               onChange={(e) => setHasta(e.target.value)}
               disabled={!reporte.usaRango}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
+              className="w-full px-3 py-2 border border-line focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
             />
           </div>
           <Select
@@ -115,7 +108,7 @@ export default function ReportesPage() {
       </div>
 
       {/* Selector de reporte */}
-      <nav className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border-x border-b border-gray-200">
+      <nav className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border-x border-b border-line">
         {REPORTES.map((r) => {
           const Icono = r.icono;
           const activo = r.id === reporteActivo;
@@ -146,7 +139,7 @@ export default function ReportesPage() {
         })}
       </nav>
 
-      <div className="bg-white border-x border-b border-gray-200 rounded-b-xl px-6 py-6">
+      <div className="bg-surface border-x border-b border-line px-6 py-6">
         {reporteActivo === "movimiento" && (
           <ReporteMovimientoDiario
             desde={desde}

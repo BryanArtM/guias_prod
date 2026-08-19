@@ -1,13 +1,5 @@
 @import "tailwindcss";
-@import "./styles/legacy-tokens.css";
 
-/* ==========================================================================
-   Sistema visual industrial
-   Colores planos, radio de 2px, bordes de 1px, densidad alta.
-   Las rampas de gray/blue/red/green/amber/orange de Tailwind estan
-   redefinidas para que las pantallas que aun no se migraron hablen el mismo
-   lenguaje visual en vez de mezclar dos paletas.
-   ========================================================================== */
 
 @theme {
   /* ---------- Tokens semanticos ---------- */

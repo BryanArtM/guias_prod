@@ -43,7 +43,7 @@ export default function NewPartePage() {
 
   if (success) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-5 py-4">
         <Alert variant="success">
           Documento guardado correctamente. Redirigiendo a los ingresos...
         </Alert>
@@ -54,7 +54,7 @@ export default function NewPartePage() {
   if (cargando) return <Loading />;
 
   return (
-    <div className="container mx-auto px-4 py-10">
+    <div className="px-5 py-4">
       {error && (
         <Alert variant="error" className="mb-4">
           {error}
@@ -66,10 +66,10 @@ export default function NewPartePage() {
             key={tipo.id}
             type="button"
             onClick={() => setTipoSeleccionado(tipo)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${
+            className={`border px-3 py-1.5 text-xs font-medium tracking-[0.06em] uppercase transition-colors ${
               tipoSeleccionado?.id === tipo.id
-                ? "bg-blue-900 text-white border-blue-900"
-                : "text-gray-600 border-gray-300 hover:border-blue-400"
+                ? "border-navy bg-navy text-white"
+                : "border-line text-ink-muted hover:border-steel hover:text-ink"
             }`}
           >
             {tipo.codigo}

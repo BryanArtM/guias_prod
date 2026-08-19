@@ -14,14 +14,14 @@ export const Home = () => {
     <div className="space-y-6">
       <Card
         padding="lg"
-        className="bg-gradient-to-br from-orange-500 to-orange-600 text-white"
+        className="bg-navy text-white"
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-orange-100 text-sm">Salidas Hoy</p>
+            <p className="label-col text-navy-label">Salidas Hoy</p>
             <h3 className="text-3xl font-bold mt-1">-</h3>
           </div>
-          <ArrowDown size={40} className="text-orange-200" />
+          <ArrowDown size={28} strokeWidth={1.75} className="text-navy-label" />
         </div>
       </Card>
 
@@ -66,7 +66,7 @@ export const Home = () => {
               Movimientos de Inventario
             </h2>
             <div className="space-y-4 text-gray-700">
-              <div className="bg-green-50 p-4 rounded-lg">
+              <div className="bg-green-50 p-4">
                 <h3 className="font-semibold text-green-800 flex items-center gap-2">
                   <ArrowUp size={20} />
                   Ingresos
@@ -76,7 +76,7 @@ export const Home = () => {
                   <li>• Por Orden de Desembarque</li>
                 </ul>
               </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
+              <div className="bg-orange-50 p-4">
                 <h3 className="font-semibold text-orange-800 flex items-center gap-2">
                   <ArrowDown size={20} />
                   Salidas

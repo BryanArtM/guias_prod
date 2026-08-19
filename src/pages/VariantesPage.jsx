@@ -46,7 +46,7 @@ export default function VariantesPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-5 py-4">
         <Alert variant="error" onClose={() => setError(null)}>
           {error}
         </Alert>
@@ -62,7 +62,7 @@ export default function VariantesPage() {
 
   if (catalogosFaltantes.length > 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-5 py-4">
         <Alert variant="warning">
           <div>
             <p className="font-semibold mb-2">
@@ -84,7 +84,7 @@ export default function VariantesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="px-5 py-4">
       <VariantesList
         especies={especies}
         calidades={calidades}

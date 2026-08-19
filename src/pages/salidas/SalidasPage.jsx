@@ -44,18 +44,14 @@ export default function SalidasPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-5 py-4">
         <Alert variant="error">{error}</Alert>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Salidas</h1>
-      </div>
-
+    <div className="px-5 py-4">
       <SalidasList
         especies={especies}
         variantes={variantes}

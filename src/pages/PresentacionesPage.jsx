@@ -27,7 +27,7 @@ export function PresentacionesPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6">
+      <div className="px-5 py-4">
         <Loading message="Cargando datos..." />
       </div>
     );
@@ -35,7 +35,7 @@ export function PresentacionesPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-6">
+      <div className="px-5 py-4">
         <Alert variant="error">{error}</Alert>
       </div>
     );
@@ -43,7 +43,7 @@ export function PresentacionesPage() {
 
   if (especies.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-6">
+      <div className="px-5 py-4">
         <Alert variant="warning">
           No hay especies registradas. Por favor, crea primero una especie antes
           de agregar presentaciones.
@@ -53,7 +53,7 @@ export function PresentacionesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="px-5 py-4">
       <PresentacionesList especies={especies} />
     </div>
   );

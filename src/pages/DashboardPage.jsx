@@ -105,23 +105,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="h-10 w-1 bg-blue-900 rounded-full" />
-          <div>
-            <h1
-              className="text-3xl font-bold text-gray-900"
-              style={{ fontFamily: "Outfit, sans-serif" }}
-            >
-              Panel de Control
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Monitoreo y gestión de producción pesquera en tiempo real
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="px-5 py-4">
 
       {alert && (
         <div className="mb-6">
@@ -178,9 +162,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Top 10 Variantes */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <div className="bg-surface border border-line p-6 mb-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50">
+          <div className="flex items-center justify-center w-10 h-10 bg-blue-50">
             <BarChart3 className="w-5 h-5 text-blue-900" />
           </div>
           <div>
@@ -201,11 +185,11 @@ export default function DashboardPage() {
             {stats.top10Variantes.map((variante, index) => (
               <div
                 key={variante.variante_id}
-                className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all duration-200"
+                className="flex items-center justify-between p-4 border border-line hover:border-blue-200 hover:bg-blue-50 transition-all duration-200"
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className={`flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold ${
+                    className={`flex h-7 w-7 items-center justify-center text-xs font-medium ${
                       index < 3
                         ? "bg-blue-900 text-white"
                         : "bg-gray-200 text-gray-700"
@@ -247,9 +231,9 @@ export default function DashboardPage() {
       {/* Resumen de movimientos recientes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Ingresos recientes */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-surface border border-line p-6">
           <div className="flex items-center gap-3 mb-5">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-50">
+            <div className="flex items-center justify-center w-10 h-10 bg-green-50">
               <TrendingUp className="w-5 h-5 text-green-700" />
             </div>
             <div>
@@ -268,7 +252,7 @@ export default function DashboardPage() {
           {stats.ingresosUltimos30.slice(0, 5).map((ingreso) => (
             <div
               key={ingreso.id}
-              className="flex justify-between items-center py-3 px-3 rounded-lg border border-gray-100 hover:bg-green-50 transition-colors"
+              className="flex justify-between items-center py-3 px-3 border border-line hover:bg-green-50 transition-colors"
             >
               <div>
                 <p
@@ -294,9 +278,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Salidas recientes */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-surface border border-line p-6">
           <div className="flex items-center gap-3 mb-5">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-50">
+            <div className="flex items-center justify-center w-10 h-10 bg-red-50">
               <TrendingDown className="w-5 h-5 text-red-700" />
             </div>
             <div>
@@ -315,7 +299,7 @@ export default function DashboardPage() {
           {stats.salidasUltimas30.slice(0, 5).map((salida) => (
             <div
               key={salida.id}
-              className="flex justify-between items-center py-3 px-3 rounded-lg border border-gray-100 hover:bg-red-50 transition-colors"
+              className="flex justify-between items-center py-3 px-3 border border-line hover:bg-red-50 transition-colors"
             >
               <div>
                 <p
