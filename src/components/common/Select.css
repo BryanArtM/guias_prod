@@ -1,134 +1,136 @@
-/* ========== COMPONENTE SELECT ========== */
+@layer components {
+  /* ========== COMPONENTE SELECT ========== */
 
-.select-wrapper {
-  display: flex;
-  flex-direction: column;
-}
+  .select-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
 
-.select-wrapper--full-width {
-  width: 100%;
-}
+  .select-wrapper--full-width {
+    width: 100%;
+  }
 
-/* ========== LABEL ========== */
+  /* ========== LABEL ========== */
 
-.select__label {
-  display: block;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-  margin-bottom: 0.25rem;
-}
+  .select__label {
+    display: block;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+    margin-bottom: 0.25rem;
+  }
 
-.select__required {
-  color: var(--color-crit);
-  margin-left: 0.25rem;
-}
+  .select__required {
+    color: var(--color-crit);
+    margin-left: 0.25rem;
+  }
 
-/* ========== CONTAINER ========== */
+  /* ========== CONTAINER ========== */
 
-.select__container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
+  .select__container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
 
-/* ========== SELECT ========== */
+  /* ========== SELECT ========== */
 
-.select {
-  width: 100%;
-  height: 2rem;
-  padding: 0 1.75rem 0 0.5rem;
-  border: 1px solid var(--color-line);
-  border-radius: 2px;
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  color: var(--color-ink);
-  background-color: var(--color-surface);
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  cursor: pointer;
-  transition:
-    border-color 120ms ease-out,
-    background-color 120ms ease-out;
-}
+  .select {
+    width: 100%;
+    height: 2rem;
+    padding: 0 1.75rem 0 0.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-ink);
+    background-color: var(--color-surface);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    transition:
+      border-color 120ms ease-out,
+      background-color 120ms ease-out;
+  }
 
-.select:hover:not(:disabled) {
-  border-color: var(--color-steel);
-}
+  .select:hover:not(:disabled) {
+    border-color: var(--color-steel);
+  }
 
-.select:focus {
-  border-color: var(--color-navy);
-}
+  .select:focus {
+    border-color: var(--color-navy);
+  }
 
-/* ========== ESTADOS ========== */
+  /* ========== ESTADOS ========== */
 
-.select--error {
-  border-color: var(--color-crit);
-  background-color: var(--color-crit-bg);
-}
+  .select--error {
+    border-color: var(--color-crit);
+    background-color: var(--color-crit-bg);
+  }
 
-.select--disabled {
-  background-color: var(--color-gray-100);
-  color: var(--color-ink-faint);
-  border-color: var(--color-line);
-  cursor: not-allowed;
-}
+  .select--disabled {
+    background-color: var(--color-gray-100);
+    color: var(--color-ink-faint);
+    border-color: var(--color-line);
+    cursor: not-allowed;
+  }
 
-.select--full-width {
-  width: 100%;
-}
+  .select--full-width {
+    width: 100%;
+  }
 
-/* ========== SELECT CON ICONO ========== */
+  /* ========== SELECT CON ICONO ========== */
 
-.select--with-icon {
-  padding-left: 1.875rem;
-}
+  .select--with-icon {
+    padding-left: 1.875rem;
+  }
 
-.select__icon {
-  position: absolute;
-  left: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-ink-faint);
-  pointer-events: none;
-}
+  .select__icon {
+    position: absolute;
+    left: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ink-faint);
+    pointer-events: none;
+  }
 
-.select__icon svg {
-  width: 15px;
-  height: 15px;
-}
+  .select__icon svg {
+    width: 15px;
+    height: 15px;
+  }
 
-/* ========== CHEVRON ========== */
+  /* ========== CHEVRON ========== */
 
-.select__chevron {
-  position: absolute;
-  right: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-ink-faint);
-  pointer-events: none;
-}
+  .select__chevron {
+    position: absolute;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ink-faint);
+    pointer-events: none;
+  }
 
-.select__chevron svg {
-  width: 15px;
-  height: 15px;
-}
+  .select__chevron svg {
+    width: 15px;
+    height: 15px;
+  }
 
-/* ========== MENSAJES ========== */
+  /* ========== MENSAJES ========== */
 
-.select__error {
-  font-size: var(--text-xs);
-  color: var(--color-crit);
-  margin: 0.25rem 0 0;
-}
+  .select__error {
+    font-size: var(--text-xs);
+    color: var(--color-crit);
+    margin: 0.25rem 0 0;
+  }
 
-.select__helper {
-  font-size: var(--text-xs);
-  color: var(--color-ink-muted);
-  margin: 0.25rem 0 0;
+  .select__helper {
+    font-size: var(--text-xs);
+    color: var(--color-ink-muted);
+    margin: 0.25rem 0 0;
+  }
 }

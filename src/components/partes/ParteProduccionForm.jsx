@@ -193,34 +193,30 @@ export default function ParteProduccionForm({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
-      <div className="bg-blue-900 text-white p-6 mb-6">
-        <div className="flex justify-between items-center flex-wrap gap-4">
-          <h1 className="text-2xl font-bold">
+      <div className="doc-header mb-4 bg-navy px-4 py-3 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-base font-semibold tracking-tight">
             Registro de {tipoDocumentoSeleccionado?.codigo || ""}
           </h1>
-          <div className="flex gap-4 items-center">
-            <div className="text-right">
-              <p className="text-xs text-blue-200">
-                Usuario: {formData.username || user?.username || ""}
-              </p>
-            </div>
-            <Button
-              type="submit"
-              variant="primary"
-              className="bg-surface text-blue-900 hover:bg-transparent hover:text-white"
-            >
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-navy-label">
+              Usuario:{" "}
+              <span className="num text-navy-text">
+                {formData.username || user?.username || ""}
+              </span>
+            </p>
+            <Button type="submit" variant="secondary" size="sm">
               Guardar Documento
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4">
           <Input
             label="Código Documento"
             name="codigo"
             value={formData.codigo}
             onChange={handleChange}
-            className="bg-blue-800 border-blue-700 text-white placeholder-blue-300"
           />
 
           <Input
@@ -228,14 +224,12 @@ export default function ParteProduccionForm({
             name="revision"
             value={formData.revision}
             onChange={handleChange}
-            className="bg-blue-800 border-blue-700 text-white placeholder-blue-300"
           />
           <Input
             label="Versión"
             name="version"
             value={formData.version}
             onChange={handleChange}
-            className="bg-blue-800 border-blue-700 text-white"
           />
         </div>
       </div>
@@ -281,8 +275,8 @@ export default function ParteProduccionForm({
           />
         </div>
 
-        <div className="bg-surface p-6 border border-line flex flex-col">
-          <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+        <div className="flex flex-col border border-line bg-surface p-3">
+          <h2 className="label-col mb-3 border-b border-line pb-1.5">
             Observaciones
           </h2>
           <textarea

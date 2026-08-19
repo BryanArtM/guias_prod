@@ -1,142 +1,144 @@
-/* ========== COMPONENTE INPUT ========== */
+@layer components {
+  /* ========== COMPONENTE INPUT ========== */
 
-.input-wrapper {
-  display: flex;
-  flex-direction: column;
-}
+  .input-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
 
-.input-wrapper--full-width {
-  width: 100%;
-}
+  .input-wrapper--full-width {
+    width: 100%;
+  }
 
-/* ========== LABEL ========== */
+  /* ========== LABEL ========== */
 
-.input__label {
-  display: block;
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-  margin-bottom: 0.25rem;
-  font-family: var(--font-sans);
-}
+  .input__label {
+    display: block;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+    margin-bottom: 0.25rem;
+    font-family: var(--font-sans);
+  }
 
-.input__required {
-  color: var(--color-crit);
-  margin-left: 0.25rem;
-}
+  .input__required {
+    color: var(--color-crit);
+    margin-left: 0.25rem;
+  }
 
-/* ========== CONTAINER ========== */
+  /* ========== CONTAINER ========== */
 
-.input__container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
+  .input__container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
 
-/* ========== INPUT ========== */
+  /* ========== INPUT ========== */
 
-.input {
-  width: 100%;
-  height: 2rem;
-  padding: 0 0.5rem;
-  border: 1px solid var(--color-line);
-  border-radius: 2px;
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  color: var(--color-ink);
-  background-color: var(--color-surface);
-  transition:
-    border-color 120ms ease-out,
-    background-color 120ms ease-out;
-}
+  .input {
+    width: 100%;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    color: var(--color-ink);
+    background-color: var(--color-surface);
+    transition:
+      border-color 120ms ease-out,
+      background-color 120ms ease-out;
+  }
 
-.input::placeholder {
-  color: var(--color-ink-faint);
-}
+  .input::placeholder {
+    color: var(--color-ink-faint);
+  }
 
-.input:hover:not(:disabled) {
-  border-color: var(--color-steel);
-}
+  .input:hover:not(:disabled) {
+    border-color: var(--color-steel);
+  }
 
-.input:focus {
-  border-color: var(--color-navy);
-}
+  .input:focus {
+    border-color: var(--color-navy);
+  }
 
-/* ========== ESTADOS ========== */
+  /* ========== ESTADOS ========== */
 
-.input--error {
-  border-color: var(--color-crit);
-  background-color: var(--color-crit-bg);
-}
+  .input--error {
+    border-color: var(--color-crit);
+    background-color: var(--color-crit-bg);
+  }
 
-.input--disabled {
-  background-color: var(--color-gray-100);
-  color: var(--color-ink-faint);
-  border-color: var(--color-line);
-  cursor: not-allowed;
-}
+  .input--disabled {
+    background-color: var(--color-gray-100);
+    color: var(--color-ink-faint);
+    border-color: var(--color-line);
+    cursor: not-allowed;
+  }
 
-.input--full-width {
-  width: 100%;
-}
+  .input--full-width {
+    width: 100%;
+  }
 
-/* ========== INPUT CON ICONOS ========== */
+  /* ========== INPUT CON ICONOS ========== */
 
-.input--with-icon-left {
-  padding-left: 1.875rem;
-}
+  .input--with-icon-left {
+    padding-left: 1.875rem;
+  }
 
-.input--with-icon-right {
-  padding-right: 1.875rem;
-}
+  .input--with-icon-right {
+    padding-right: 1.875rem;
+  }
 
-.input__icon {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-ink-faint);
-  pointer-events: none;
-}
+  .input__icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ink-faint);
+    pointer-events: none;
+  }
 
-.input__icon--left {
-  left: 0.5rem;
-}
+  .input__icon--left {
+    left: 0.5rem;
+  }
 
-.input__icon--right {
-  right: 0.5rem;
-}
+  .input__icon--right {
+    right: 0.5rem;
+  }
 
-.input__icon svg {
-  width: 15px;
-  height: 15px;
-}
+  .input__icon svg {
+    width: 15px;
+    height: 15px;
+  }
 
-/* ========== MENSAJES ========== */
+  /* ========== MENSAJES ========== */
 
-.input__error {
-  font-size: var(--text-xs);
-  color: var(--color-crit);
-  margin: 0.25rem 0 0;
-}
+  .input__error {
+    font-size: var(--text-xs);
+    color: var(--color-crit);
+    margin: 0.25rem 0 0;
+  }
 
-.input__helper {
-  font-size: var(--text-xs);
-  color: var(--color-ink-muted);
-  margin: 0.25rem 0 0;
-}
+  .input__helper {
+    font-size: var(--text-xs);
+    color: var(--color-ink-muted);
+    margin: 0.25rem 0 0;
+  }
 
-/* ========== VARIANTES DE TAMAÑO ========== */
+  /* ========== VARIANTES DE TAMAÑO ========== */
 
-.input--sm {
-  height: 1.75rem;
-  font-size: var(--text-xs);
-}
+  .input--sm {
+    height: 1.75rem;
+    font-size: var(--text-xs);
+  }
 
-.input--lg {
-  height: 2.375rem;
-  font-size: var(--text-base);
-  padding: 0 0.75rem;
+  .input--lg {
+    height: 2.375rem;
+    font-size: var(--text-base);
+    padding: 0 0.75rem;
+  }
 }

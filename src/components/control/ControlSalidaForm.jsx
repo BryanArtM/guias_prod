@@ -246,29 +246,31 @@ export default function ControlSalidaForm({
         </Alert>
       )}
 
-      <div className="bg-blue-900 text-white p-6 mb-6">
-        <div className="flex justify-between items-center flex-wrap gap-4">
-          <h1 className="text-2xl font-bold">Registro de {tipoDocumento}</h1>
-          <div className="flex gap-4 items-center">
-            <div className="text-right">
-              <p className="text-xs text-blue-200">
-                Usuario: {formData.usuario_sistema}
-              </p>
-            </div>
-
+      <div className="doc-header mb-4 bg-navy px-4 py-3 text-white">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-base font-semibold tracking-tight">
+            Registro de {tipoDocumento}
+          </h1>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-navy-label">
+              Usuario:{" "}
+              <span className="num text-navy-text">
+                {formData.usuario_sistema}
+              </span>
+            </p>
             <Button
               type="button"
-              variant="secondary"
-              className="bg-transparent border-white text-white hover:bg-blue-800 hover:text-blue-950"
+              variant="ghost"
+              size="sm"
               onClick={onCancel}
+              className="border-steel bg-transparent text-navy-text hover:bg-navy-hover hover:text-white"
             >
               Cancelar
             </Button>
-
             <Button
               type="submit"
-              variant="primary"
-              className="bg-surface text-blue-900 hover:bg-transparent hover:text-white"
+              variant="secondary"
+              size="sm"
               disabled={cargando}
             >
               {cargando ? "Guardando..." : "Guardar Documento"}

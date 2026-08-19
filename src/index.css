@@ -7,7 +7,7 @@
   --color-navy-hover: #1b3a57;
   --color-navy-line: #1b3a57;
   --color-navy-text: #c3ced9;
-  --color-navy-label: #6f8398;
+  --color-navy-label: #8fa3b5;
   --color-steel: #4a6478;
   --color-canvas: #f0f2f4;
   --color-surface: #ffffff;
@@ -214,6 +214,30 @@
   [disabled] {
     color: var(--color-ink-faint);
     cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* Banda de cabecera del documento: los campos van sobre fondo navy */
+  .doc-header .input__label,
+  .doc-header .select__label {
+    color: var(--color-navy-label);
+  }
+
+  .doc-header .input,
+  .doc-header .select {
+    background-color: var(--color-navy-hover);
+    border-color: var(--color-steel);
+    color: #ffffff;
+  }
+
+  .doc-header .input::placeholder {
+    color: var(--color-navy-label);
+  }
+
+  .doc-header .input:hover:not(:disabled),
+  .doc-header .select:hover:not(:disabled) {
+    border-color: var(--color-navy-text);
   }
 }
 

@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Select } from "@/components/common";
+import {
+  TableModular,
+  TableHeader,
+  TableHead,
+} from "@/components/common/Table";
 import { ChevronDown, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
 
 const FILAS_INICIALES_POR_PRESENTACION = 10;
@@ -366,8 +371,8 @@ export default function PackedProductSection({
   );
 
   return (
-    <div className="bg-surface p-6 border border-line mb-6">
-      <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+    <div className="mb-4 border border-line bg-surface p-3">
+      <h2 className="label-col mb-3 border-b border-line pb-1.5">
         Producto empacado
       </h2>
 
@@ -376,7 +381,7 @@ export default function PackedProductSection({
           Primero seleccione una especie para ver sus presentaciones.
         </p>
       ) : presentaciones.length === 0 ? (
-        <p className="text-sm text-amber-600 py-4">
+        <p className="py-3 text-sm text-warn">
           Esta especie no tiene presentaciones con variantes registradas.
         </p>
       ) : (
@@ -409,7 +414,7 @@ export default function PackedProductSection({
                   onClick={() => togglePresentacion(presentacion)}
                   className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                 >
-                  <span className="flex items-center gap-2 font-semibold text-gray-800">
+                  <span className="flex items-center gap-2 font-medium text-ink">
                     {abierta ? (
                       <ChevronDown size={16} />
                     ) : (
@@ -426,23 +431,23 @@ export default function PackedProductSection({
 
                 {abierta && (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left border-collapse">
-                      <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-bold">
+                    <TableModular className="table--bordered text-left">
+                      <TableHeader>
                         <tr>
-                          <th className="p-2 border">Variante</th>
-                          <th className="p-2 border w-16 text-center">
+                          <TableHead>Variante</TableHead>
+                          <TableHead className="w-16 text-center">
                             Ensunchado
-                          </th>
-                          <th className="p-2 border w-24">Peso Und</th>
-                          <th className="p-2 border w-20">Carro 1</th>
-                          <th className="p-2 border w-20">Carro 2</th>
-                          <th className="p-2 border w-20">Carro 3</th>
-                          <th className="p-2 border w-20">Carro 4</th>
-                          <th className="p-2 border">Total Neto (kg)</th>
-                          <th className="p-2 border">Rend. (%)</th>
-                          <th className="p-2 border w-10"></th>
+                          </TableHead>
+                          <TableHead className="w-24">Peso Und</TableHead>
+                          <TableHead className="w-20">Carro 1</TableHead>
+                          <TableHead className="w-20">Carro 2</TableHead>
+                          <TableHead className="w-20">Carro 3</TableHead>
+                          <TableHead className="w-20">Carro 4</TableHead>
+                          <TableHead>Total Neto (kg)</TableHead>
+                          <TableHead>Rend. (%)</TableHead>
+                          <TableHead className="w-10"></TableHead>
                         </tr>
-                      </thead>
+                      </TableHeader>
                       <tbody>
                         {filas.map(({ producto: p, index }, posEnPresentacion) => {
                           const varianteActual = varianteById.get(
@@ -690,7 +695,7 @@ export default function PackedProductSection({
                           );
                         })}
                       </tbody>
-                    </table>
+                    </TableModular>
 
                     <div className="p-2 border-t border-line">
                       <Button

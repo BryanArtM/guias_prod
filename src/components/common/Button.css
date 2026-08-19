@@ -1,174 +1,176 @@
-/* ========== COMPONENTE BUTTON ========== */
+@layer components {
+  /* ========== COMPONENTE BUTTON ========== */
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-weight: 500;
-  text-decoration: none;
-  white-space: nowrap;
-  user-select: none;
-  transition:
-    background-color 120ms ease-out,
-    border-color 120ms ease-out,
-    color 120ms ease-out;
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-/* ========== TAMAÑOS ========== */
-
-.btn--sm {
-  height: 1.75rem;
-  padding: 0 0.625rem;
-  font-size: var(--text-xs);
-}
-
-.btn--md {
-  height: 2rem;
-  padding: 0 0.75rem;
-  font-size: var(--text-sm);
-}
-
-.btn--lg {
-  height: 2.375rem;
-  padding: 0 1rem;
-  font-size: var(--text-base);
-}
-
-/* ========== VARIANTES ========== */
-
-.btn--primary {
-  background-color: var(--color-navy);
-  border-color: var(--color-navy);
-  color: #ffffff;
-}
-.btn--primary:hover:not(.btn--disabled) {
-  background-color: var(--color-navy-hover);
-  border-color: var(--color-navy-hover);
-}
-.btn--primary:active:not(.btn--disabled) {
-  background-color: #0a1929;
-}
-
-.btn--secondary {
-  background-color: var(--color-surface);
-  border-color: var(--color-navy);
-  color: var(--color-navy);
-}
-.btn--secondary:hover:not(.btn--disabled) {
-  background-color: #edf1f5;
-}
-.btn--secondary:active:not(.btn--disabled) {
-  background-color: #dce4ec;
-}
-
-.btn--ghost {
-  background-color: var(--color-surface);
-  border-color: var(--color-line);
-  color: var(--color-ink-muted);
-}
-.btn--ghost:hover:not(.btn--disabled) {
-  border-color: var(--color-steel);
-  color: var(--color-ink);
-}
-
-.btn--success {
-  background-color: var(--color-ok);
-  border-color: var(--color-ok);
-  color: #ffffff;
-}
-.btn--success:hover:not(.btn--disabled) {
-  background-color: #0b5a51;
-  border-color: #0b5a51;
-}
-
-.btn--danger {
-  background-color: var(--color-crit);
-  border-color: var(--color-crit);
-  color: #ffffff;
-}
-.btn--danger:hover:not(.btn--disabled) {
-  background-color: #871f1f;
-  border-color: #871f1f;
-}
-
-.btn--warning {
-  background-color: var(--color-warn-line);
-  border-color: var(--color-warn-line);
-  color: #ffffff;
-}
-.btn--warning:hover:not(.btn--disabled) {
-  background-color: var(--color-warn);
-  border-color: var(--color-warn);
-}
-
-.btn--info {
-  background-color: var(--color-steel);
-  border-color: var(--color-steel);
-  color: #ffffff;
-}
-.btn--info:hover:not(.btn--disabled) {
-  background-color: #35506a;
-  border-color: #35506a;
-}
-
-/* ========== ESTADOS ========== */
-
-/* Gris terciario en vez de opacidad, para que siga siendo legible en planta. */
-.btn--disabled {
-  background-color: var(--color-gray-100);
-  border-color: var(--color-line);
-  color: var(--color-ink-faint);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.btn--full-width {
-  width: 100%;
-}
-
-/* Boton de solo icono: cuadrado, sin padding lateral. */
-.btn--icon-only {
-  padding: 0;
-  aspect-ratio: 1;
-}
-
-/* ========== SPINNER DE CARGA ========== */
-
-.btn__spinner {
-  display: inline-block;
-  width: 0.875em;
-  height: 0.875em;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: btn-spinner-rotate 0.6s linear infinite;
-}
-
-@keyframes btn-spinner-rotate {
-  to {
-    transform: rotate(360deg);
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    user-select: none;
+    transition:
+      background-color 120ms ease-out,
+      border-color 120ms ease-out,
+      color 120ms ease-out;
   }
-}
 
-/* ========== ICONOS ========== */
+  .btn:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
 
-.btn__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
+  /* ========== TAMAÑOS ========== */
 
-.btn__icon svg {
-  width: 15px;
-  height: 15px;
+  .btn--sm {
+    height: 1.75rem;
+    padding: 0 0.625rem;
+    font-size: var(--text-xs);
+  }
+
+  .btn--md {
+    height: 2rem;
+    padding: 0 0.75rem;
+    font-size: var(--text-sm);
+  }
+
+  .btn--lg {
+    height: 2.375rem;
+    padding: 0 1rem;
+    font-size: var(--text-base);
+  }
+
+  /* ========== VARIANTES ========== */
+
+  .btn--primary {
+    background-color: var(--color-navy);
+    border-color: var(--color-navy);
+    color: #ffffff;
+  }
+  .btn--primary:hover:not(.btn--disabled) {
+    background-color: var(--color-navy-hover);
+    border-color: var(--color-navy-hover);
+  }
+  .btn--primary:active:not(.btn--disabled) {
+    background-color: #0a1929;
+  }
+
+  .btn--secondary {
+    background-color: var(--color-surface);
+    border-color: var(--color-navy);
+    color: var(--color-navy);
+  }
+  .btn--secondary:hover:not(.btn--disabled) {
+    background-color: #edf1f5;
+  }
+  .btn--secondary:active:not(.btn--disabled) {
+    background-color: #dce4ec;
+  }
+
+  .btn--ghost {
+    background-color: var(--color-surface);
+    border-color: var(--color-line);
+    color: var(--color-ink-muted);
+  }
+  .btn--ghost:hover:not(.btn--disabled) {
+    border-color: var(--color-steel);
+    color: var(--color-ink);
+  }
+
+  .btn--success {
+    background-color: var(--color-ok);
+    border-color: var(--color-ok);
+    color: #ffffff;
+  }
+  .btn--success:hover:not(.btn--disabled) {
+    background-color: #0b5a51;
+    border-color: #0b5a51;
+  }
+
+  .btn--danger {
+    background-color: var(--color-crit);
+    border-color: var(--color-crit);
+    color: #ffffff;
+  }
+  .btn--danger:hover:not(.btn--disabled) {
+    background-color: #871f1f;
+    border-color: #871f1f;
+  }
+
+  .btn--warning {
+    background-color: var(--color-warn-line);
+    border-color: var(--color-warn-line);
+    color: #ffffff;
+  }
+  .btn--warning:hover:not(.btn--disabled) {
+    background-color: var(--color-warn);
+    border-color: var(--color-warn);
+  }
+
+  .btn--info {
+    background-color: var(--color-steel);
+    border-color: var(--color-steel);
+    color: #ffffff;
+  }
+  .btn--info:hover:not(.btn--disabled) {
+    background-color: #35506a;
+    border-color: #35506a;
+  }
+
+  /* ========== ESTADOS ========== */
+
+  /* Gris terciario en vez de opacidad, para que siga siendo legible en planta. */
+  .btn--disabled {
+    background-color: var(--color-gray-100);
+    border-color: var(--color-line);
+    color: var(--color-ink-faint);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .btn--full-width {
+    width: 100%;
+  }
+
+  /* Boton de solo icono: cuadrado, sin padding lateral. */
+  .btn--icon-only {
+    padding: 0;
+    aspect-ratio: 1;
+  }
+
+  /* ========== SPINNER DE CARGA ========== */
+
+  .btn__spinner {
+    display: inline-block;
+    width: 0.875em;
+    height: 0.875em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: btn-spinner-rotate 0.6s linear infinite;
+  }
+
+  @keyframes btn-spinner-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ========== ICONOS ========== */
+
+  .btn__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn__icon svg {
+    width: 15px;
+    height: 15px;
+  }
 }

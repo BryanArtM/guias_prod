@@ -1,99 +1,101 @@
-/* ========== COMPONENTE LOADING ========== */
+@layer components {
+  /* ========== COMPONENTE LOADING ========== */
 
-.loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.625rem;
-}
-
-.loading--fullscreen {
-  position: fixed;
-  inset: 0;
-  background-color: rgb(240 242 244 / 0.92);
-  z-index: 1050;
-}
-
-.loading__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.625rem;
-}
-
-/* ========== SPINNER ========== */
-
-.loading__spinner {
-  display: inline-block;
-  position: relative;
-}
-
-.loading__spinner-circle {
-  position: relative;
-  border-radius: 50%;
-  border-style: solid;
-  animation: loading-rotate 0.8s linear infinite;
-}
-
-@keyframes loading-rotate {
-  to {
-    transform: rotate(360deg);
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
   }
-}
 
-/* ========== TAMAÑOS ========== */
+  .loading--fullscreen {
+    position: fixed;
+    inset: 0;
+    background-color: rgb(240 242 244 / 0.92);
+    z-index: 1050;
+  }
 
-.loading__spinner--sm .loading__spinner-circle {
-  width: 1rem;
-  height: 1rem;
-  border-width: 2px;
-}
+  .loading__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+  }
 
-.loading__spinner--md .loading__spinner-circle {
-  width: 1.5rem;
-  height: 1.5rem;
-  border-width: 2px;
-}
+  /* ========== SPINNER ========== */
 
-.loading__spinner--lg .loading__spinner-circle {
-  width: 2rem;
-  height: 2rem;
-  border-width: 3px;
-}
+  .loading__spinner {
+    display: inline-block;
+    position: relative;
+  }
 
-.loading__spinner--xl .loading__spinner-circle {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-width: 3px;
-}
+  .loading__spinner-circle {
+    position: relative;
+    border-radius: 50%;
+    border-style: solid;
+    animation: loading-rotate 0.8s linear infinite;
+  }
 
-/* ========== VARIANTES DE COLOR ========== */
+  @keyframes loading-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
-.loading__spinner--primary .loading__spinner-circle {
-  border-color: var(--color-line);
-  border-top-color: var(--color-navy);
-}
+  /* ========== TAMAÑOS ========== */
 
-.loading__spinner--secondary .loading__spinner-circle {
-  border-color: var(--color-line);
-  border-top-color: var(--color-steel);
-}
+  .loading__spinner--sm .loading__spinner-circle {
+    width: 1rem;
+    height: 1rem;
+    border-width: 2px;
+  }
 
-.loading__spinner--white .loading__spinner-circle {
-  border-color: rgb(255 255 255 / 0.3);
-  border-top-color: #ffffff;
-}
+  .loading__spinner--md .loading__spinner-circle {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 2px;
+  }
 
-/* ========== TEXTO ========== */
+  .loading__spinner--lg .loading__spinner-circle {
+    width: 2rem;
+    height: 2rem;
+    border-width: 3px;
+  }
 
-.loading__text {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-ink-muted);
-  text-align: center;
-}
+  .loading__spinner--xl .loading__spinner-circle {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-width: 3px;
+  }
 
-.loading--fullscreen .loading__text {
-  color: var(--color-ink);
+  /* ========== VARIANTES DE COLOR ========== */
+
+  .loading__spinner--primary .loading__spinner-circle {
+    border-color: var(--color-line);
+    border-top-color: var(--color-navy);
+  }
+
+  .loading__spinner--secondary .loading__spinner-circle {
+    border-color: var(--color-line);
+    border-top-color: var(--color-steel);
+  }
+
+  .loading__spinner--white .loading__spinner-circle {
+    border-color: rgb(255 255 255 / 0.3);
+    border-top-color: #ffffff;
+  }
+
+  /* ========== TEXTO ========== */
+
+  .loading__text {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--color-ink-muted);
+    text-align: center;
+  }
+
+  .loading--fullscreen .loading__text {
+    color: var(--color-ink);
+  }
 }

@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Select } from "@/components/common";
+import { Alert, Badge, Button, Select } from "@/components/common";
+import {
+  TableModular,
+  TableHeader,
+  TableHead,
+} from "@/components/common/Table";
 import { ChevronDown, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
 
 const FILAS_INICIALES_POR_PRESENTACION = 5;
@@ -276,9 +281,9 @@ export default function ControlItemsSection({
   };
 
   return (
-    <div className="bg-surface p-6 border border-line mb-6">
-      <div className="flex items-center justify-between gap-4 mb-4 border-b pb-2">
-        <h2 className="text-lg font-bold text-gray-800">Lista de salida</h2>
+    <div className="mb-4 border border-line bg-surface p-3">
+      <div className="mb-3 flex items-center justify-between gap-4 border-b border-line pb-1.5">
+        <h2 className="label-col">Lista de salida</h2>
         <div className="text-sm text-gray-600">
           Suma cantidad: <span className="font-semibold">{sumaCantidad}</span> |{" "}
           Suma total kg:{" "}
@@ -287,9 +292,9 @@ export default function ControlItemsSection({
       </div>
 
       {error && (
-        <div className="mb-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <Alert variant="error" className="mb-3">
           {error}
-        </div>
+        </Alert>
       )}
 
       {!especieId ? (
@@ -297,9 +302,9 @@ export default function ControlItemsSection({
           Primero seleccione una especie para ver sus presentaciones.
         </p>
       ) : presentaciones.length === 0 ? (
-        <p className="text-sm text-amber-600 py-4">
+        <Alert variant="warning">
           Esta especie no tiene existencias registradas para despachar.
-        </p>
+        </Alert>
       ) : (
         <div className="space-y-3">
           {presentaciones.map((presentacion) => {
@@ -332,7 +337,7 @@ export default function ControlItemsSection({
                   onClick={() => togglePresentacion(presentacion)}
                   className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                 >
-                  <span className="flex items-center gap-2 font-semibold text-gray-800">
+                  <span className="flex items-center gap-2 font-medium text-ink">
                     {abierta ? (
                       <ChevronDown size={16} />
                     ) : (
@@ -419,20 +424,20 @@ export default function ControlItemsSection({
                     </div>
 
                     <div className="overflow-x-auto">
-                      <table className="w-full text-sm text-left border-collapse">
-                        <thead className="bg-gray-50 text-gray-600 uppercase text-xs font-bold">
+                      <TableModular className="table--bordered text-left">
+                        <TableHeader>
                           <tr>
-                            <th className="p-2 border w-12">Item</th>
-                            <th className="p-2 border">Variante</th>
-                            <th className="p-2 border w-40">Fecha Ingreso</th>
-                            <th className="p-2 border w-28">Disponible</th>
-                            <th className="p-2 border">Cód. Trazabilidad</th>
-                            <th className="p-2 border w-24">Cantidad</th>
-                            <th className="p-2 border w-28">Peso Unidad</th>
-                            <th className="p-2 border w-28">Total Kg</th>
-                            <th className="p-2 border w-12"></th>
+                            <TableHead className="w-12">Item</TableHead>
+                            <TableHead>Variante</TableHead>
+                            <TableHead className="w-40">Fecha Ingreso</TableHead>
+                            <TableHead className="w-28">Disponible</TableHead>
+                            <TableHead>Cód. Trazabilidad</TableHead>
+                            <TableHead className="w-24">Cantidad</TableHead>
+                            <TableHead className="w-28">Peso Unidad</TableHead>
+                            <TableHead className="w-28">Total Kg</TableHead>
+                            <TableHead className="w-12"></TableHead>
                           </tr>
-                        </thead>
+                        </TableHeader>
                         <tbody>
                           {visibles.length === 0 ? (
                             <tr>
@@ -548,8 +553,8 @@ export default function ControlItemsSection({
                                       <span
                                         className={
                                           excede
-                                            ? "text-red-600 font-semibold"
-                                            : "text-gray-600"
+                                            ? "font-medium text-crit"
+                                            : "text-ink-muted"
                                         }
                                       >
                                         {lote.stock_cajas} cajas
@@ -557,9 +562,7 @@ export default function ControlItemsSection({
                                         {lote.stock_kg.toFixed(2)} kg
                                       </span>
                                     ) : (
-                                      <span className="text-amber-600">
-                                        Lote sin stock
-                                      </span>
+                                      <Badge variant="crit">Sin stock</Badge>
                                     )}
                                   </td>
                                   <td className="p-1 border">
@@ -631,7 +634,7 @@ export default function ControlItemsSection({
                             })
                           )}
                         </tbody>
-                      </table>
+                      </TableModular>
 
                       <div className="p-2 border-t border-line">
                         <Button
