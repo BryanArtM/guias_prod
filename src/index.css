@@ -1,6 +1,14 @@
+@import "tailwindcss";
 @import "./styles/theme.css";
 @import "./styles/animations.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
