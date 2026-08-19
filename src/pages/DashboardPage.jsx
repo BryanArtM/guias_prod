@@ -8,8 +8,14 @@ import {
   AlertTriangle,
   CheckCircle,
 } from "lucide-react";
-import { StatsCard } from "@/components/dashboard";
-import { Loading, Alert } from "@/components/common";
+import PropTypes from "prop-types";
+import {
+  Alert,
+  Loading,
+  Panel,
+  ProgressBar,
+  StatCard,
+} from "@/components/common";
 import {
   obtenerEspecies,
   obtenerVariantesCompletas,
@@ -104,226 +110,149 @@ export default function DashboardPage() {
     return <Loading mensaje="Cargando estadísticas..." />;
   }
 
+  // El KPI mas alto fija la escala de las barras del ranking
+  const stockMaximo = stats.top10Variantes.reduce(
+    (maximo, variante) => Math.max(maximo, variante.kg_stock),
+    0,
+  );
+
   return (
     <div className="px-5 py-4">
-
       {alert && (
-        <div className="mb-6">
-          <Alert variant={alert.type} onClose={() => setAlert(null)}>
-            {alert.message}
-          </Alert>
-        </div>
+        <Alert variant={alert.type} onClose={() => setAlert(null)} className="mb-4">
+          {alert.message}
+        </Alert>
       )}
 
-      {/* Grid de estadísticas principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title="Total Especies"
-          value={stats.totalEspecies}
-          icon={Fish}
-          color="slate"
-        />
-        <StatsCard
-          title="Variantes Activas"
-          value={stats.totalVariantes}
-          icon={Package}
-          color="slate"
-        />
-        <StatsCard
-          title="Ingresos (30 días)"
+      <div className="mb-4 grid grid-cols-2 gap-px border border-line bg-line lg:grid-cols-6">
+        <StatCard label="Especies" value={stats.totalEspecies} icon={Fish} />
+        <StatCard label="Variantes" value={stats.totalVariantes} icon={Package} />
+        <StatCard
+          label="Ingresos"
           value={stats.totalIngresos}
+          nota="Últimos 30 días"
           icon={TrendingUp}
-          color="zinc"
         />
-        <StatsCard
-          title="Salidas (30 días)"
+        <StatCard
+          label="Salidas"
           value={stats.totalSalidas}
+          nota="Últimos 30 días"
           icon={TrendingDown}
-          color="zinc"
         />
-      </div>
-
-      {/* Grid de stock */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <StatsCard
-          title="Stock Crítico"
+        <StatCard
+          label="Stock crítico"
           value={stats.stockCritico}
+          estado={stats.stockCritico > 0 ? "crit" : "ok"}
+          nota="Bajo 10 kg"
           icon={AlertTriangle}
-          color="slate"
-          subtitle="Variantes con menos de 10 kg"
         />
-        <StatsCard
-          title="Stock Normal"
+        <StatCard
+          label="Stock normal"
           value={stats.stockNormal}
+          estado="ok"
+          nota="10 kg o más"
           icon={CheckCircle}
-          color="zinc"
-          subtitle="Variantes con 10 kg o más"
         />
       </div>
 
-      {/* Top 10 Variantes */}
-      <div className="bg-surface border border-line p-6 mb-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-10 h-10 bg-blue-50">
-            <BarChart3 className="w-5 h-5 text-blue-900" />
-          </div>
-          <div>
-            <h2
-              className="text-lg font-bold text-gray-900"
-              style={{ fontFamily: "Outfit, sans-serif" }}
-            >
-              Top 10 Variantes con Mayor Stock
-            </h2>
-            <p className="text-xs text-gray-500">
-              Productos con mayor inventario disponible
-            </p>
-          </div>
-        </div>
-
+      <Panel
+        title="Top 10 variantes con mayor stock"
+        actions={<BarChart3 size={15} strokeWidth={1.75} className="text-steel" />}
+        padding="none"
+        className="mb-4"
+      >
         {stats.top10Variantes.length > 0 ? (
-          <div className="space-y-2">
-            {stats.top10Variantes.map((variante, index) => (
-              <div
-                key={variante.variante_id}
-                className="flex items-center justify-between p-4 border border-line hover:border-blue-200 hover:bg-blue-50 transition-all duration-200"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`flex h-7 w-7 items-center justify-center text-xs font-medium ${
-                      index < 3
-                        ? "bg-blue-900 text-white"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
-                    style={{ fontFamily: "Outfit, sans-serif" }}
-                  >
-                    {index + 1}
-                  </div>
-                  <div>
-                    <p
-                      className="text-sm font-bold text-blue-900"
-                      style={{ fontFamily: "Roboto Mono, monospace" }}
-                    >
-                      {variante.codigo_completo}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p
-                    className="text-lg font-bold text-gray-900"
-                    style={{ fontFamily: "Outfit, sans-serif" }}
-                  >
-                    {variante.kg_stock.toFixed(2)} kg
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {variante.cajas_stock} cajas
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <table className="w-full">
+            <tbody>
+              {stats.top10Variantes.map((variante, indice) => (
+                <tr
+                  key={variante.variante_id}
+                  className="border-b border-line last:border-b-0"
+                >
+                  <td className="num w-10 px-3 py-1.5 text-center text-ink-faint">
+                    {indice + 1}
+                  </td>
+                  <td className="num px-2 py-1.5 font-medium text-navy">
+                    {variante.codigo_completo}
+                  </td>
+                  <td className="w-1/3 px-2 py-1.5">
+                    <ProgressBar
+                      value={variante.kg_stock}
+                      max={stockMaximo}
+                      mostrarValor={false}
+                    />
+                  </td>
+                  <td className="px-2 py-1.5 text-right font-medium">
+                    {variante.kg_stock.toFixed(2)}
+                    <span className="ml-1 text-xs text-ink-faint">kg</span>
+                  </td>
+                  <td className="px-3 py-1.5 text-right text-ink-muted">
+                    {variante.cajas_stock}
+                    <span className="ml-1 text-xs text-ink-faint">cajas</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : (
-          <p className="text-gray-500 text-center py-12">
+          <p className="px-3 py-6 text-center text-ink-muted">
             No hay variantes con stock disponible
           </p>
         )}
-      </div>
+      </Panel>
 
-      {/* Resumen de movimientos recientes */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Ingresos recientes */}
-        <div className="bg-surface border border-line p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex items-center justify-center w-10 h-10 bg-green-50">
-              <TrendingUp className="w-5 h-5 text-green-700" />
-            </div>
-            <div>
-              <h2
-                className="text-lg font-bold text-gray-900"
-                style={{ fontFamily: "Outfit, sans-serif" }}
-              >
-                Últimos 5 Ingresos
-              </h2>
-              <p className="text-xs text-gray-500">
-                Entradas recientes al inventario
-              </p>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel title="Últimos 5 ingresos" padding="none">
+          <MovimientosRecientes
+            movimientos={stats.ingresosUltimos30.slice(0, 5)}
+            obtenerCodigo={(m) => m.codigo}
+            vacio="Sin ingresos en los últimos 30 días"
+          />
+        </Panel>
 
-          {stats.ingresosUltimos30.slice(0, 5).map((ingreso) => (
-            <div
-              key={ingreso.id}
-              className="flex justify-between items-center py-3 px-3 border border-line hover:bg-green-50 transition-colors"
-            >
-              <div>
-                <p
-                  className="text-sm font-medium text-gray-700"
-                  style={{ fontFamily: "Roboto Mono, monospace" }}
-                >
-                  {ingreso.fecha}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {ingreso.codigo || "Sin código"}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-green-700">
-                  {ingreso.especie_nombre || "—"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {ingreso.cliente || "Sin cliente"}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Salidas recientes */}
-        <div className="bg-surface border border-line p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex items-center justify-center w-10 h-10 bg-red-50">
-              <TrendingDown className="w-5 h-5 text-red-700" />
-            </div>
-            <div>
-              <h2
-                className="text-lg font-bold text-gray-900"
-                style={{ fontFamily: "Outfit, sans-serif" }}
-              >
-                Últimas 5 Salidas
-              </h2>
-              <p className="text-xs text-gray-500">
-                Despachos recientes de inventario
-              </p>
-            </div>
-          </div>
-
-          {stats.salidasUltimas30.slice(0, 5).map((salida) => (
-            <div
-              key={salida.id}
-              className="flex justify-between items-center py-3 px-3 border border-line hover:bg-red-50 transition-colors"
-            >
-              <div>
-                <p
-                  className="text-sm font-medium text-gray-700"
-                  style={{ fontFamily: "Roboto Mono, monospace" }}
-                >
-                  {salida.fecha}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {salida.numero_control || "Sin código"}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-red-700">
-                  {salida.especie_nombre || "—"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {salida.cliente || "Sin cliente"}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <Panel title="Últimas 5 salidas" padding="none">
+          <MovimientosRecientes
+            movimientos={stats.salidasUltimas30.slice(0, 5)}
+            obtenerCodigo={(m) => m.numero_control}
+            vacio="Sin salidas en los últimos 30 días"
+          />
+        </Panel>
       </div>
     </div>
   );
 }
+
+function MovimientosRecientes({ movimientos, obtenerCodigo, vacio }) {
+  if (movimientos.length === 0) {
+    return <p className="px-3 py-6 text-center text-ink-muted">{vacio}</p>;
+  }
+
+  return (
+    <table className="w-full">
+      <tbody>
+        {movimientos.map((movimiento) => (
+          <tr key={movimiento.id} className="border-b border-line last:border-b-0">
+            <td className="num px-3 py-1.5 whitespace-nowrap">
+              {movimiento.fecha}
+            </td>
+            <td className="num px-2 py-1.5 text-ink-muted">
+              {obtenerCodigo(movimiento) || "Sin código"}
+            </td>
+            <td className="px-2 py-1.5 font-medium">
+              {movimiento.especie_nombre || "—"}
+            </td>
+            <td className="truncate px-3 py-1.5 text-right text-ink-muted">
+              {movimiento.cliente || "Sin cliente"}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+MovimientosRecientes.propTypes = {
+  movimientos: PropTypes.arrayOf(PropTypes.object).isRequired,
+  obtenerCodigo: PropTypes.func.isRequired,
+  vacio: PropTypes.string.isRequired,
+};

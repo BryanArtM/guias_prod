@@ -319,7 +319,9 @@ export default function StockList() {
                             : undefined
                         }
                       >
-                        {formatearFecha(masAntiguo.fecha_ingreso)}
+                        <span className="num">
+                          {formatearFecha(masAntiguo.fecha_ingreso)}
+                        </span>
                         {dias != null && (
                           <span className="text-xs text-gray-500">
                             {" "}

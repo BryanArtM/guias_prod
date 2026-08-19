@@ -8,7 +8,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Alert, Select, Pagination } from "@/components/common";
+import { Badge, Button, Alert, Select, Pagination } from "@/components/common";
 import { PrintButtonIngreso } from "@/components/ingresos/ImpresionParteProduccion";
 import { Trash2, Filter, Pencil, Eye } from "lucide-react";
 import {
@@ -178,12 +178,10 @@ export default function IngresosList({
                     <TableCell className="font-mono text-sm text-blue-700">
                       {ingreso.codigo || "-"}
                     </TableCell>
-                    <TableCell>{ingreso.fecha}</TableCell>
+                    <TableCell className="num">{ingreso.fecha}</TableCell>
                     <TableCell>{ingreso.cliente || "-"}</TableCell>
                     <TableCell>
-                      <span className="inline-block px-2 py-1 text-xs text-green-800">
-                        {ingreso.tipo_documento_codigo}
-                      </span>
+                      <Badge>{ingreso.tipo_documento_codigo}</Badge>
                     </TableCell>
                     <TableCell>{ingreso.especie_nombre || "-"}</TableCell>
                     <TableCell className="text-center gap-5 flex justify-center">

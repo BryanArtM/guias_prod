@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import {
-  Home,
   DashboardPage,
   EspeciesPage,
   PresentacionesPage,
@@ -39,16 +38,7 @@ function App() {
         />
 
         {/* Rutas protegidas */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <Home />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route
           path="/dashboard"
           element={
@@ -199,16 +189,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <Home />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -8,7 +8,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Alert, Select, Pagination } from "@/components/common";
+import { Badge, Button, Alert, Select, Pagination } from "@/components/common";
 import { Trash2, Filter, Pencil, Eye } from "lucide-react";
 import { obtenerSalidasPaginadas, contarSalidas } from "@/services";
 import { controlService } from "@/services";
@@ -174,12 +174,10 @@ export default function SalidasList({
                     <TableCell className="font-mono text-sm text-blue-700">
                       {salida.numero_control}
                     </TableCell>
-                    <TableCell>{salida.fecha}</TableCell>
+                    <TableCell className="num">{salida.fecha}</TableCell>
                     <TableCell>{salida.cliente}</TableCell>
                     <TableCell>
-                      <span className="inline-block px-2 py-1 text-xs text-red-800">
-                        {salida.tipo_documento_codigo}
-                      </span>
+                      <Badge>{salida.tipo_documento_codigo}</Badge>
                     </TableCell>
                     <TableCell>{salida.especie_nombre}</TableCell>
                     <TableCell className="text-center gap-5 flex justify-center">

@@ -193,6 +193,17 @@
     font-variant-numeric: tabular-nums;
   }
 
+
+  td.text-right,
+  td.text-center {
+    font-family: var(--font-mono);
+  }
+
+  td.text-right :is(button, a, select, label),
+  td.text-center :is(button, a, select, label) {
+    font-family: var(--font-sans);
+  }
+
   code,
   kbd,
   samp {

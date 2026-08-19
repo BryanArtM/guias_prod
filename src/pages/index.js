@@ -1,4 +1,3 @@
-export { Home } from "./Home";
 export { default as DashboardPage } from "./DashboardPage";
 export { EspeciesPage } from "./EspeciesPage";
 export { PresentacionesPage } from "./PresentacionesPage";

@@ -63,27 +63,23 @@ export default function ReportesPage() {
       <div className="border border-line bg-surface px-3 py-3">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Desde
-            </label>
+            <label className="label-col mb-1 block">Desde</label>
             <input
               type="date"
               value={desde}
               onChange={(e) => setDesde(e.target.value)}
               disabled={!reporte.usaRango}
-              className="w-full px-3 py-2 border border-line focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
+              className="input"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Hasta
-            </label>
+            <label className="label-col mb-1 block">Hasta</label>
             <input
               type="date"
               value={hasta}
               onChange={(e) => setHasta(e.target.value)}
               disabled={!reporte.usaRango}
-              className="w-full px-3 py-2 border border-line focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
+              className="input"
             />
           </div>
           <Select
@@ -99,7 +95,7 @@ export default function ReportesPage() {
             ))}
           </Select>
           {!reporte.usaRango && (
-            <p className="text-xs text-gray-500 pb-2">
+            <p className="pb-1.5 text-xs text-ink-muted">
               Este reporte muestra la situación actual, no depende del rango de
               fechas.
             </p>
@@ -108,7 +104,7 @@ export default function ReportesPage() {
       </div>
 
       {/* Selector de reporte */}
-      <nav className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border-x border-b border-line">
+      <nav className="grid grid-cols-2 gap-px border-x border-b border-line bg-line lg:grid-cols-4">
         {REPORTES.map((r) => {
           const Icono = r.icono;
           const activo = r.id === reporteActivo;
@@ -117,21 +113,21 @@ export default function ReportesPage() {
               key={r.id}
               type="button"
               onClick={() => setReporteActivo(r.id)}
-              className={`text-left px-4 py-3 transition-colors ${
+              className={`border-t-2 px-3 py-2 text-left transition-colors ${
                 activo
-                  ? "bg-white border-t-2 border-t-blue-900"
-                  : "bg-gray-50 hover:bg-white border-t-2 border-t-transparent"
+                  ? "border-t-navy bg-surface"
+                  : "border-t-transparent bg-gray-50 hover:bg-surface"
               }`}
             >
               <span
-                className={`flex items-center gap-2 font-semibold text-sm ${
-                  activo ? "text-blue-900" : "text-gray-700"
+                className={`flex items-center gap-2 text-xs font-medium tracking-[0.08em] uppercase ${
+                  activo ? "text-navy" : "text-ink-muted"
                 }`}
               >
-                <Icono className="w-4 h-4" />
+                <Icono size={14} strokeWidth={1.75} />
                 {r.nombre}
               </span>
-              <span className="block text-xs text-gray-500 mt-0.5">
+              <span className="mt-0.5 block text-xs text-ink-faint normal-case">
                 {r.descripcion}
               </span>
             </button>
@@ -139,7 +135,7 @@ export default function ReportesPage() {
         })}
       </nav>
 
-      <div className="bg-surface border-x border-b border-line px-6 py-6">
+      <div className="border-x border-b border-line bg-surface px-3 py-3">
         {reporteActivo === "movimiento" && (
           <ReporteMovimientoDiario
             desde={desde}
