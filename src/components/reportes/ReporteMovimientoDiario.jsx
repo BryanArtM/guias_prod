@@ -507,7 +507,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
       })}
 
       <section className="bg-surface border border-line p-5">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">
+        <h3 className="label-col mb-3">
           Producción acumulada por presentación
         </h3>
         <BarrasHorizontales

@@ -181,7 +181,7 @@ export default function ReporteAntiguedad({ especieId }) {
       </div>
 
       <section className="bg-surface border border-line p-5 mb-6">
-        <h3 className="text-sm font-semibold text-gray-800 mb-4">
+        <h3 className="label-col mb-3">
           Distribución por tramo de antigüedad
         </h3>
         <BarrasHorizontales
@@ -265,7 +265,7 @@ export default function ReporteAntiguedad({ especieId }) {
       </section>
 
       <section>
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">
+        <h3 className="label-col mb-2">
           Lotes ordenados por antigüedad
         </h3>
         <div className="overflow-x-auto border border-line">

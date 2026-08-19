@@ -254,7 +254,7 @@ export default function ReporteHistorialMovimientos({
           </div>
 
           <section className="bg-surface border border-line p-5 mb-6">
-            <h3 className="text-sm font-semibold text-gray-800 mb-4">
+            <h3 className="label-col mb-3">
               Evolución del saldo — {varianteElegida?.codigo_completo}
             </h3>
             <GraficoSaldo

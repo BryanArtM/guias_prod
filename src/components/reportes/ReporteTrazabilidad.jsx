@@ -365,7 +365,7 @@ export default function ReporteTrazabilidad({ especieId }) {
           </div>
 
           <section className="bg-surface border border-line p-5 mb-6">
-            <h3 className="text-sm font-semibold text-gray-800 mb-4">
+            <h3 className="label-col mb-3">
               Recorrido del lote
             </h3>
             <DiagramaFlujo
@@ -381,7 +381,7 @@ export default function ReporteTrazabilidad({ especieId }) {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <section className="bg-surface border border-line p-5">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <h3 className="label-col mb-3 flex items-center gap-2">
                 <Package className="w-4 h-4 text-gray-500" />
                 Origen
               </h3>
@@ -474,7 +474,7 @@ export default function ReporteTrazabilidad({ especieId }) {
             </section>
 
             <section className="bg-surface border border-line p-5">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <h3 className="label-col mb-3 flex items-center gap-2">
                 <Users className="w-4 h-4 text-gray-500" />
                 Destinos
               </h3>

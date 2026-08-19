@@ -150,7 +150,7 @@ export default function CatalogoManager({
       )}
 
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">{titulo}</h2>
+        <h2 className="label-col">{titulo}</h2>
         <Button
           onClick={() => abrirModal()}
           icon={<Plus className="w-4 h-4" />}
