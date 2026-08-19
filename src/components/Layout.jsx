@@ -1,29 +1,70 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  Package,
-  Home,
-  LogOut,
-  User,
-  Fish,
-  Box,
-  Archive,
-  ArrowUp,
-  ArrowDown,
-  BarChart3,
-  FileText,
-  Anchor,
-} from "lucide-react";
+import { LogOut, Ship, User } from "lucide-react";
 import { useAuthStore } from "@/stores";
+import { NAV_GROUPS, resolverTituloPagina } from "@/components/navigation";
 import PropTypes from "prop-types";
+
+const FORMATO_RELOJ = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
+
+const Reloj = () => {
+  const [ahora, setAhora] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setAhora(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <time className="num text-xs text-ink-muted" dateTime={ahora.toISOString()}>
+      {FORMATO_RELOJ.format(ahora)}
+    </time>
+  );
+};
+
+const NavItem = ({ item, activo }) => {
+  const Icon = item.icon;
+
+  return (
+    <Link
+      to={item.path}
+      aria-current={activo ? "page" : undefined}
+      className={`flex h-8 items-center gap-2.5 border-l-[3px] pr-3 pl-3.5 text-sm transition-colors ${
+        activo
+          ? "border-l-white bg-navy-hover font-medium text-white"
+          : "border-l-transparent text-navy-text hover:bg-navy-hover hover:text-white"
+      }`}
+    >
+      <Icon size={16} strokeWidth={1.75} className="shrink-0" />
+      <span className="truncate">{item.label}</span>
+    </Link>
+  );
+};
+
+NavItem.propTypes = {
+  item: PropTypes.shape({
+    path: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    icon: PropTypes.elementType.isRequired,
+  }).isRequired,
+  activo: PropTypes.bool.isRequired,
+};
 
 export const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const esActivo = (path) =>
+    location.pathname === path ||
+    (path === "/dashboard" && location.pathname === "/");
 
   const handleLogout = () => {
     logout();
@@ -31,238 +72,79 @@ export const Layout = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Sidebar Profesional */}
-      <aside
-        className="w-64 flex flex-col bg-white border-r border-gray-200"
-        style={{
-          boxShadow: "2px 0 8px rgba(15, 23, 42, 0.08)",
-        }}
-      >
-        {/* Header Corporativo */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-br from-blue-900 to-blue-800">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex items-center justify-center w-10 h-10 rounded-lg bg-white"
-              style={{
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-              }}
-            >
-              <Anchor size={24} className="text-blue-900" />
-            </div>
-            <div>
-              <h1
-                className="text-sm font-bold text-white leading-tight tracking-tight"
-                style={{ fontFamily: "Outfit, sans-serif" }}
-              >
-                SISTEMA PESQUERO
-              </h1>
-              <p className="text-xs text-blue-200 font-medium">
-                Control de Producción
-              </p>
-            </div>
-          </div>
+    <div className="flex h-screen overflow-hidden bg-canvas">
+      <aside className="flex w-[228px] shrink-0 flex-col border-r border-navy-line bg-navy">
+        <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-navy-line px-3.5">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-steel text-navy-text">
+            <Ship size={16} strokeWidth={1.75} />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold tracking-tight text-white">
+              SISTEMA PESQUERO
+            </span>
+            <span className="label-col block truncate text-navy-label">
+              Control de Producción
+            </span>
+          </span>
         </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <Link
-            to="/dashboard"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/dashboard") || isActive("/")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Home size={18} />
-            <span className="font-medium text-sm">Dashboard</span>
-          </Link>
-
-          <div className="mt-5 mb-2 px-3">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Catálogos
-            </h3>
-            <div className="mt-2 h-px bg-gray-200" />
-          </div>
-
-          <Link
-            to="/especies"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/especies")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Fish size={18} />
-            <span className="font-medium text-sm">Especies</span>
-          </Link>
-
-          <Link
-            to="/presentaciones"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/presentaciones")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Box size={18} />
-            <span className="font-medium text-sm">Presentaciones</span>
-          </Link>
-
-          <Link
-            to="/variantes"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/variantes")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Package size={18} />
-            <span className="font-medium text-sm">Variantes</span>
-          </Link>
-
-          <Link
-            to="/catalogos"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/catalogos")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <Archive size={18} />
-            <span className="font-medium text-sm">Otros Catálogos</span>
-          </Link>
-
-          <div className="mt-5 mb-2 px-3">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Documentos de Ingreso
-            </h3>
-            <div className="mt-2 h-px bg-gray-200" />
-          </div>
-
-          <Link
-            to="/partes/nuevo"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 
-              ${
-                location.pathname === "/partes/nuevo"
-                  ? "bg-blue-900 text-white shadow-sm"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-          >
-            <FileText size={18} />
-            <span className="font-medium text-sm">Nuevo Ingreso</span>
-          </Link>
-
-          <div className="mt-5 mb-2 px-3">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Documentos de Salida
-            </h3>
-            <div className="mt-2 h-px bg-gray-200" />
-          </div>
-
-          <Link
-            to="/control/nuevo"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/control/nuevo")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <FileText size={18} />
-            <span className="font-medium text-sm">Nueva Salida</span>
-          </Link>
-
-          <div className="mt-5 mb-2 px-3">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Movimientos
-            </h3>
-            <div className="mt-2 h-px bg-gray-200" />
-          </div>
-
-          <Link
-            to="/ingresos"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/ingresos")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <ArrowUp size={18} />
-            <span className="font-medium text-sm">Ingresos</span>
-          </Link>
-
-          <Link
-            to="/salidas"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/salidas")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <ArrowDown size={18} />
-            <span className="font-medium text-sm">Salidas</span>
-          </Link>
-
-          <div className="mt-5 mb-2 px-3">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Consultas
-            </h3>
-            <div className="mt-2 h-px bg-gray-200" />
-          </div>
-
-          <Link
-            to="/stock"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/stock")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <BarChart3 size={18} />
-            <span className="font-medium text-sm">Stock Actual</span>
-          </Link>
-
-          <Link
-            to="/reportes"
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 transition-all duration-200 ${
-              isActive("/reportes")
-                ? "bg-blue-900 text-white shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <FileText size={18} />
-            <span className="font-medium text-sm">Reportes</span>
-          </Link>
+        <nav className="flex-1 overflow-y-auto py-2">
+          {NAV_GROUPS.map((grupo, indice) => (
+            <div key={grupo.label ?? `grupo-${indice}`}>
+              {grupo.label && (
+                <h2 className="label-col mt-4 mb-1 px-3.5 text-navy-label">
+                  {grupo.label}
+                </h2>
+              )}
+              {grupo.items.map((item) => (
+                <NavItem
+                  key={item.path}
+                  item={item}
+                  activo={esActivo(item.path)}
+                />
+              ))}
+            </div>
+          ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center gap-3 mb-3 px-2">
-            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-100">
-              <User size={18} className="text-blue-900" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
+        <div className="shrink-0 border-t border-navy-line px-3.5 py-3">
+          <div className="mb-3 flex items-center gap-2.5">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-steel text-navy-text">
+              <User size={15} strokeWidth={1.75} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm text-white">
                 {user?.username}
-              </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            </div>
+              </span>
+              <span className="block truncate text-xs text-navy-label">
+                {user?.email}
+              </span>
+            </span>
           </div>
           <button
+            type="button"
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400"
+            className="flex w-full items-center justify-center gap-2 border border-steel px-3 py-1.5 text-sm text-navy-text transition-colors hover:bg-navy-hover hover:text-white"
           >
-            <LogOut size={16} className="text-gray-700" />
-            <span className="text-sm font-medium text-gray-700">
-              Cerrar Sesión
-            </span>
+            <LogOut size={14} strokeWidth={1.75} />
+            Cerrar sesión
           </button>
-          <p className="text-xs text-gray-400 text-center mt-3 font-mono">
-            v2.0.0 | 2026
+          <p className="num mt-3 text-center text-xs text-navy-label">
+            v2.0.0
           </p>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-line bg-surface px-5">
+          <h1 className="truncate text-base font-semibold text-ink">
+            {resolverTituloPagina(location.pathname)}
+          </h1>
+          <Reloj />
+        </header>
+
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
     </div>
   );
 };

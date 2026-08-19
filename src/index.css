@@ -1,14 +1,231 @@
 @import "tailwindcss";
-@import "./styles/theme.css";
-@import "./styles/animations.css";
+@import "./styles/legacy-tokens.css";
 
+/* ==========================================================================
+   Sistema visual industrial
+   Colores planos, radio de 2px, bordes de 1px, densidad alta.
+   Las rampas de gray/blue/red/green/amber/orange de Tailwind estan
+   redefinidas para que las pantallas que aun no se migraron hablen el mismo
+   lenguaje visual en vez de mezclar dos paletas.
+   ========================================================================== */
+
+@theme {
+  /* ---------- Tokens semanticos ---------- */
+  --color-navy: #0f2439;
+  --color-navy-hover: #1b3a57;
+  --color-navy-line: #1b3a57;
+  --color-navy-text: #c3ced9;
+  --color-navy-label: #6f8398;
+  --color-steel: #4a6478;
+  --color-canvas: #f0f2f4;
+  --color-surface: #ffffff;
+  --color-line: #d3d7da;
+
+  --color-ink: #14283d;
+  --color-ink-muted: #5b6b78;
+  --color-ink-faint: #808a93;
+
+  --color-ok: #0d6e63;
+  --color-ok-bg: #e2f3f1;
+  --color-warn: #9a5b00;
+  --color-warn-bg: #fcebd1;
+  --color-warn-line: #b45309;
+  --color-crit: #a32626;
+  --color-crit-bg: #f8dede;
+  --color-focus: #2f6690;
+
+  /* ---------- Neutros ---------- */
+  --color-gray-50: #f7f8f9;
+  --color-gray-100: #f0f2f4;
+  --color-gray-200: #e3e6e8;
+  --color-gray-300: #d3d7da;
+  --color-gray-400: #a9b1b7;
+  --color-gray-500: #808a93;
+  --color-gray-600: #5b6b78;
+  --color-gray-700: #4a6478;
+  --color-gray-800: #2a3f52;
+  --color-gray-900: #14283d;
+  --color-gray-950: #0f2439;
+
+  /* ---------- Azul remapeado a navy/acero ---------- */
+  --color-blue-50: #edf1f5;
+  --color-blue-100: #dce4ec;
+  --color-blue-200: #c0cdd9;
+  --color-blue-300: #9db0c1;
+  --color-blue-400: #7591a8;
+  --color-blue-500: #4a6478;
+  --color-blue-600: #35506a;
+  --color-blue-700: #2a4560;
+  --color-blue-800: #1b3a57;
+  --color-blue-900: #0f2439;
+  --color-blue-950: #0a1929;
+
+  /* ---------- Verde remapeado a exito frio ---------- */
+  --color-green-50: #e2f3f1;
+  --color-green-100: #c7e7e3;
+  --color-green-200: #a0d6cf;
+  --color-green-300: #6fbfb5;
+  --color-green-400: #3f9e93;
+  --color-green-500: #178c7f;
+  --color-green-600: #0d6e63;
+  --color-green-700: #0b5a51;
+  --color-green-800: #094740;
+  --color-green-900: #073833;
+  --color-green-950: #04241f;
+
+  /* ---------- Rojo remapeado a critico ---------- */
+  --color-red-50: #f8dede;
+  --color-red-100: #f1c4c4;
+  --color-red-200: #e5a0a0;
+  --color-red-300: #d67878;
+  --color-red-400: #c45252;
+  --color-red-500: #b33636;
+  --color-red-600: #a32626;
+  --color-red-700: #871f1f;
+  --color-red-800: #6c1919;
+  --color-red-900: #571414;
+  --color-red-950: #370c0c;
+
+  /* ---------- Ambar remapeado a alerta ---------- */
+  --color-amber-50: #fcebd1;
+  --color-amber-100: #f8dcb0;
+  --color-amber-200: #f0c47e;
+  --color-amber-300: #e4a64a;
+  --color-amber-400: #d48a1f;
+  --color-amber-500: #c2610a;
+  --color-amber-600: #b45309;
+  --color-amber-700: #9a5b00;
+  --color-amber-800: #7c4900;
+  --color-amber-900: #653c00;
+  --color-amber-950: #3f2500;
+
+  --color-orange-50: #fcebd1;
+  --color-orange-100: #f8dcb0;
+  --color-orange-200: #f0c47e;
+  --color-orange-300: #e4a64a;
+  --color-orange-400: #d48a1f;
+  --color-orange-500: #c2610a;
+  --color-orange-600: #b45309;
+  --color-orange-700: #9a5b00;
+  --color-orange-800: #7c4900;
+  --color-orange-900: #653c00;
+  --color-orange-950: #3f2500;
+
+  /* ---------- Tipografia ---------- */
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+
+  --text-xs: 11px;
+  --text-xs--line-height: 1.35;
+  --text-sm: 13px;
+  --text-sm--line-height: 1.4;
+  --text-base: 14px;
+  --text-base--line-height: 1.4;
+  --text-lg: 16px;
+  --text-lg--line-height: 1.35;
+  --text-xl: 18px;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 20px;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 24px;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 30px;
+  --text-4xl--line-height: 1.1;
+  --text-5xl: 36px;
+  --text-5xl--line-height: 1.1;
+
+  /* ---------- Geometria: nada redondeado ---------- */
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 2px;
+  --radius-4xl: 2px;
+
+  /* ---------- Sombras: como maximo una linea de 1px ---------- */
+  --shadow-2xs: 0 1px 0 0 rgb(15 36 57 / 0.05);
+  --shadow-xs: 0 1px 0 0 rgb(15 36 57 / 0.05);
+  --shadow-sm: 0 1px 0 0 rgb(15 36 57 / 0.06);
+  --shadow-md: 0 1px 0 0 rgb(15 36 57 / 0.06);
+  --shadow-lg: 0 1px 0 0 rgb(15 36 57 / 0.08);
+  --shadow-xl: 0 1px 0 0 rgb(15 36 57 / 0.08);
+  --shadow-2xl: 0 1px 0 0 rgb(15 36 57 / 0.1);
+
+  --default-transition-duration: 120ms;
+}
 
 @layer base {
+  /* Borde neutro de 1px por defecto en todo. En v4 el default es currentColor. */
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-line);
   }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+
+  /* Foco siempre visible: la planta se opera con teclado. */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Toda cifra alineada por columna, en ambas fuentes. */
+  th,
+  td,
+  input,
+  select,
+  textarea {
+    font-variant-numeric: tabular-nums;
+  }
+
+  code,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  [disabled] {
+    color: var(--color-ink-faint);
+    cursor: not-allowed;
+  }
+}
+
+/* Label de columna o de seccion: mayusculas, tracking amplio, color terciario. */
+@utility label-col {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* Cualquier dato tabular: kg, temperaturas, codigos, lotes, timestamps. */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
