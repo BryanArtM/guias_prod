@@ -297,7 +297,7 @@ export default function ReporteTrazabilidad({ especieId }) {
   if (cargando) return <Cargando />;
   if (error) {
     return (
-      <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         {error}
       </div>
     );
@@ -315,7 +315,7 @@ export default function ReporteTrazabilidad({ especieId }) {
         descripcion="Recorrido completo de una partida: de qué documento y embarcación proviene, y a qué clientes se despachó."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white border border-gray-200 rounded-lg p-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-surface border border-line p-4 mb-6">
         <Input
           label="Buscar por código de trazabilidad o variante"
           value={busquedaCodigo}
@@ -364,7 +364,7 @@ export default function ReporteTrazabilidad({ especieId }) {
             />
           </div>
 
-          <section className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
+          <section className="bg-surface border border-line p-5 mb-6">
             <h3 className="text-sm font-semibold text-gray-800 mb-4">
               Recorrido del lote
             </h3>
@@ -380,14 +380,14 @@ export default function ReporteTrazabilidad({ especieId }) {
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <section className="bg-white border border-gray-200 rounded-lg p-5">
+            <section className="bg-surface border border-line p-5">
               <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <Package className="w-4 h-4 text-gray-500" />
                 Origen
               </h3>
               {detalleOrigen ? (
                 <dl className="space-y-2 text-sm">
-                  <div className="flex justify-between gap-4 border-b border-gray-100 pb-2">
+                  <div className="flex justify-between gap-4 border-b border-line pb-2">
                     <dt className="text-gray-500">Documento</dt>
                     <dd className="font-mono text-gray-900">
                       {detalleOrigen.codigo ?? "-"}
@@ -398,17 +398,17 @@ export default function ReporteTrazabilidad({ especieId }) {
                       )}
                     </dd>
                   </div>
-                  <div className="flex justify-between gap-4 border-b border-gray-100 pb-2">
+                  <div className="flex justify-between gap-4 border-b border-line pb-2">
                     <dt className="text-gray-500">Fecha de producción</dt>
                     <dd className="text-gray-900">
                       {formatearFecha(detalleOrigen.fecha)}
                     </dd>
                   </div>
-                  <div className="flex justify-between gap-4 border-b border-gray-100 pb-2">
+                  <div className="flex justify-between gap-4 border-b border-line pb-2">
                     <dt className="text-gray-500">Turno</dt>
                     <dd className="text-gray-900">{detalleOrigen.turno ?? "-"}</dd>
                   </div>
-                  <div className="flex justify-between gap-4 border-b border-gray-100 pb-2">
+                  <div className="flex justify-between gap-4 border-b border-line pb-2">
                     <dt className="text-gray-500">Cód. trazabilidad</dt>
                     <dd className="font-mono text-gray-900">
                       {detalleOrigen.codigo_trazabilidad ?? "-"}
@@ -428,7 +428,7 @@ export default function ReporteTrazabilidad({ especieId }) {
                         {embarcaciones.map((e, i) => (
                           <li
                             key={i}
-                            className="flex justify-between gap-4 text-sm bg-gray-50 rounded px-2 py-1.5"
+                            className="flex justify-between gap-4 text-sm bg-gray-50 px-2 py-1.5"
                           >
                             <span className="text-gray-800">
                               {e.nombre_embarcacion_pesquera ?? "Sin nombre"}
@@ -456,7 +456,7 @@ export default function ReporteTrazabilidad({ especieId }) {
                         {detalleOrigen.transportes.map((t, i) => (
                           <li
                             key={i}
-                            className="text-sm bg-gray-50 rounded px-2 py-1.5 text-gray-700"
+                            className="text-sm bg-gray-50 px-2 py-1.5 text-gray-700"
                           >
                             Guía {t.num_guia ?? "-"} · Carro {t.num_carro ?? "-"} ·
                             Placa {t.placa ?? "-"}
@@ -473,7 +473,7 @@ export default function ReporteTrazabilidad({ especieId }) {
               )}
             </section>
 
-            <section className="bg-white border border-gray-200 rounded-lg p-5">
+            <section className="bg-surface border border-line p-5">
               <h3 className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <Users className="w-4 h-4 text-gray-500" />
                 Destinos
@@ -486,26 +486,26 @@ export default function ReporteTrazabilidad({ especieId }) {
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="text-xs uppercase text-gray-500">
-                      <th className="text-left pb-2 border-b border-gray-200">
+                      <th className="text-left pb-2 border-b border-line">
                         Fecha
                       </th>
-                      <th className="text-left pb-2 border-b border-gray-200">
+                      <th className="text-left pb-2 border-b border-line">
                         Documento
                       </th>
-                      <th className="text-left pb-2 border-b border-gray-200">
+                      <th className="text-left pb-2 border-b border-line">
                         Cliente
                       </th>
-                      <th className="text-right pb-2 border-b border-gray-200">
+                      <th className="text-right pb-2 border-b border-line">
                         Cajas
                       </th>
-                      <th className="text-right pb-2 border-b border-gray-200">
+                      <th className="text-right pb-2 border-b border-line">
                         Kg
                       </th>
                     </tr>
                   </thead>
                   <tbody>
                     {destinos.map((d, i) => (
-                      <tr key={i} className="border-b border-gray-100">
+                      <tr key={i} className="border-b border-line">
                         <td className="py-2 whitespace-nowrap">
                           {formatearFecha(d.fecha)}
                         </td>
@@ -526,7 +526,7 @@ export default function ReporteTrazabilidad({ especieId }) {
               )}
 
               {lote.codigos_trazabilidad.size > 0 && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="mt-4 pt-4 border-t border-line">
                   <p className="text-gray-500 flex items-center gap-2 mb-2 text-sm">
                     <Anchor className="w-4 h-4" /> Códigos de trazabilidad
                   </p>
@@ -534,7 +534,7 @@ export default function ReporteTrazabilidad({ especieId }) {
                     {[...lote.codigos_trazabilidad].map((c) => (
                       <span
                         key={c}
-                        className="font-mono text-xs bg-blue-50 text-blue-900 border border-blue-200 rounded px-2 py-0.5"
+                        className="font-mono text-xs bg-blue-50 text-blue-900 border border-blue-200 px-2 py-0.5"
                       >
                         {c}
                       </span>

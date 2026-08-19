@@ -276,7 +276,7 @@ export default function ControlItemsSection({
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-surface p-6 border border-line mb-6">
       <div className="flex items-center justify-between gap-4 mb-4 border-b pb-2">
         <h2 className="text-lg font-bold text-gray-800">Lista de salida</h2>
         <div className="text-sm text-gray-600">
@@ -287,7 +287,7 @@ export default function ControlItemsSection({
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mb-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -325,7 +325,7 @@ export default function ControlItemsSection({
             return (
               <div
                 key={presentacion.presentacion_id}
-                className="border border-gray-200 rounded-lg overflow-hidden"
+                className="border border-line overflow-hidden"
               >
                 <button
                   type="button"
@@ -352,7 +352,7 @@ export default function ControlItemsSection({
                 {abierta && (
                   <div>
                     {/* Filtros por calidad y calibre */}
-                    <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-white border-b border-gray-100">
+                    <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-surface border-b border-line">
                       <div className="min-w-[180px]">
                         <Select
                           label="Calidad"
@@ -515,7 +515,7 @@ export default function ControlItemsSection({
                                         onClick={() =>
                                           setFilaEditandoIndex(index)
                                         }
-                                        className="w-full text-left px-1 py-1 rounded hover:bg-blue-50 flex items-center gap-1 group"
+                                        className="w-full text-left px-1 py-1 hover:bg-blue-50 flex items-center gap-1 group"
                                         title="Cambiar lote"
                                       >
                                         <span className="truncate">
@@ -633,7 +633,7 @@ export default function ControlItemsSection({
                         </tbody>
                       </table>
 
-                      <div className="p-2 border-t border-gray-100">
+                      <div className="p-2 border-t border-line">
                         <Button
                           type="button"
                           variant="secondary"
@@ -661,7 +661,7 @@ export default function ControlItemsSection({
       )}
 
       {items.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-4 bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 font-bold text-sm">
+        <div className="mt-4 flex flex-wrap items-center gap-4 bg-gray-50 border border-line px-4 py-3 font-bold text-sm">
           <span>TOTALES:</span>
           <span className="text-blue-800">{sumaCantidad} cajas</span>
           <span className="text-blue-800">{sumaTotalKg.toFixed(2)} kg</span>
@@ -678,10 +678,10 @@ export default function ControlItemsSection({
               key={m.id}
               type="button"
               onClick={() => onChangeMotivoSalida(m.id)}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+              className={`border px-2.5 py-1 text-xs font-medium tracking-[0.06em] uppercase transition-colors ${
                 motivoSalida === m.id
-                  ? "bg-blue-900 text-white border-blue-900"
-                  : "text-gray-600 border-gray-300 hover:border-blue-400"
+                  ? "border-navy bg-navy text-white"
+                  : "border-line text-ink-muted hover:border-steel hover:text-ink"
               }`}
             >
               {m.codigo}

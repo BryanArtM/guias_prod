@@ -246,7 +246,7 @@ export default function ControlSalidaForm({
         </Alert>
       )}
 
-      <div className="bg-blue-900 text-white p-6 rounded-t-xl shadow-md mb-6">
+      <div className="bg-blue-900 text-white p-6 mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <h1 className="text-2xl font-bold">Registro de {tipoDocumento}</h1>
           <div className="flex gap-4 items-center">
@@ -268,7 +268,7 @@ export default function ControlSalidaForm({
             <Button
               type="submit"
               variant="primary"
-              className="bg-white text-blue-900 hover:bg-transparent hover:text-white"
+              className="bg-surface text-blue-900 hover:bg-transparent hover:text-white"
               disabled={cargando}
             >
               {cargando ? "Guardando..." : "Guardar Documento"}

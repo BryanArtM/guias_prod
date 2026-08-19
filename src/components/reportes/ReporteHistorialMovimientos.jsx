@@ -160,7 +160,7 @@ export default function ReporteHistorialMovimientos({
         acciones={
           varianteId && (
             <>
-              <div className="flex rounded-md border border-gray-300 overflow-hidden">
+              <div className="flex border border-line overflow-hidden">
                 {[UNIDAD_KG, UNIDAD_CAJAS].map((u) => (
                   <button
                     key={u}
@@ -189,7 +189,7 @@ export default function ReporteHistorialMovimientos({
         }
       />
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 max-w-xl">
+      <div className="bg-surface border border-line p-4 mb-6 max-w-xl">
         <Select
           label="Variante a consultar"
           value={varianteId}
@@ -205,13 +205,13 @@ export default function ReporteHistorialMovimientos({
       </div>
 
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mb-4">
+        <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mb-4">
           {error}
         </div>
       )}
 
       {avisoExport && (
-        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900 flex items-start justify-between gap-4">
+        <div className="mb-4 border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900 flex items-start justify-between gap-4">
           <span className="break-all">{avisoExport}</span>
           <button
             type="button"
@@ -253,7 +253,7 @@ export default function ReporteHistorialMovimientos({
             />
           </div>
 
-          <section className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
+          <section className="bg-surface border border-line p-5 mb-6">
             <h3 className="text-sm font-semibold text-gray-800 mb-4">
               Evolución del saldo — {varianteElegida?.codigo_completo}
             </h3>
@@ -266,42 +266,42 @@ export default function ReporteHistorialMovimientos({
             />
           </section>
 
-          <div className="overflow-x-auto border border-gray-300 rounded-lg">
+          <div className="overflow-x-auto border border-line">
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                     Fecha
                   </th>
-                  <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                     Movimiento
                   </th>
-                  <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                     Documento
                   </th>
-                  <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                     Cliente
                   </th>
-                  <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                     Lote
                   </th>
-                  <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                     Entrada
                   </th>
-                  <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                     Salida
                   </th>
-                  <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                  <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                     Saldo
                   </th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="bg-gray-50 text-gray-600">
-                  <td className="border-b border-gray-200 px-3 py-2" colSpan={7}>
+                  <td className="border-b border-line px-3 py-2" colSpan={7}>
                     Saldo inicial del período
                   </td>
-                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums font-medium">
+                  <td className="border-b border-line px-3 py-2 text-right tabular-nums font-medium">
                     {formatearCelda(saldoInicial, unidad)}
                   </td>
                 </tr>
@@ -310,10 +310,10 @@ export default function ReporteHistorialMovimientos({
                     key={`${linea.tipo}-${linea.documento_id}-${indice}`}
                     className="hover:bg-gray-50"
                   >
-                    <td className="border-b border-gray-200 px-3 py-2 whitespace-nowrap">
+                    <td className="border-b border-line px-3 py-2 whitespace-nowrap">
                       {formatearFecha(linea.fecha)}
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2">
+                    <td className="border-b border-line px-3 py-2">
                       <span
                         className={`inline-flex items-center gap-1 text-xs font-medium ${
                           linea.tipo === "INGRESO"
@@ -334,23 +334,23 @@ export default function ReporteHistorialMovimientos({
                         )}
                       </span>
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2 font-mono text-xs">
+                    <td className="border-b border-line px-3 py-2 font-mono text-xs">
                       {linea.documento_codigo ?? "-"}
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2 text-gray-600">
+                    <td className="border-b border-line px-3 py-2 text-gray-600">
                       {linea.cliente ?? "-"}
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2 text-gray-600 whitespace-nowrap">
+                    <td className="border-b border-line px-3 py-2 text-gray-600 whitespace-nowrap">
                       {formatearFecha(linea.fecha_lote)}
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums text-blue-800">
+                    <td className="border-b border-line px-3 py-2 text-right tabular-nums text-blue-800">
                       {linea.entrada ? formatearCelda(linea.entrada, unidad) : "-"}
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                    <td className="border-b border-line px-3 py-2 text-right tabular-nums">
                       {linea.salida ? formatearCelda(linea.salida, unidad) : "-"}
                     </td>
                     <td
-                      className={`border-b border-gray-200 px-3 py-2 text-right tabular-nums font-semibold ${
+                      className={`border-b border-line px-3 py-2 text-right tabular-nums font-semibold ${
                         linea.saldo < 0 ? "text-red-700" : "text-gray-900"
                       }`}
                     >

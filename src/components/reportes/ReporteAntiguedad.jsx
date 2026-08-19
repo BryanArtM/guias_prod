@@ -112,7 +112,7 @@ export default function ReporteAntiguedad({ especieId }) {
   if (cargando) return <Cargando />;
   if (error) {
     return (
-      <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         {error}
       </div>
     );
@@ -139,7 +139,7 @@ export default function ReporteAntiguedad({ especieId }) {
       />
 
       {avisoExport && (
-        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900 flex items-start justify-between gap-4">
+        <div className="mb-4 border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900 flex items-start justify-between gap-4">
           <span className="break-all">{avisoExport}</span>
           <button
             type="button"
@@ -180,7 +180,7 @@ export default function ReporteAntiguedad({ especieId }) {
         />
       </div>
 
-      <section className="bg-white border border-gray-200 rounded-lg p-5 mb-6">
+      <section className="bg-surface border border-line p-5 mb-6">
         <h3 className="text-sm font-semibold text-gray-800 mb-4">
           Distribución por tramo de antigüedad
         </h3>
@@ -195,23 +195,23 @@ export default function ReporteAntiguedad({ especieId }) {
       </section>
 
       <section className="mb-6">
-        <div className="overflow-x-auto border border-gray-300 rounded-lg">
+        <div className="overflow-x-auto border border-line">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-gray-50">
-                <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                   Tramo
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                   Lotes
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                   Cajas
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                   Kg
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                   % del total
                 </th>
               </tr>
@@ -219,25 +219,25 @@ export default function ReporteAntiguedad({ especieId }) {
             <tbody>
               {resumen.map((tramo) => (
                 <tr key={tramo.etiqueta} className="hover:bg-gray-50">
-                  <td className="border-b border-gray-200 px-3 py-2">
+                  <td className="border-b border-line px-3 py-2">
                     <span className="inline-flex items-center gap-2">
                       <span
-                        className="inline-block w-3 h-3 rounded-sm"
+                        className="inline-block w-3 h-3"
                         style={{ backgroundColor: tramo.color }}
                       />
                       {tramo.etiqueta}
                     </span>
                   </td>
-                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                  <td className="border-b border-line px-3 py-2 text-right tabular-nums">
                     {tramo.lotes || "-"}
                   </td>
-                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                  <td className="border-b border-line px-3 py-2 text-right tabular-nums">
                     {tramo.cajas ? formatearEntero(tramo.cajas) : "-"}
                   </td>
-                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums font-medium">
+                  <td className="border-b border-line px-3 py-2 text-right tabular-nums font-medium">
                     {tramo.kg ? formatearNumero(tramo.kg) : "-"}
                   </td>
-                  <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums text-gray-600">
+                  <td className="border-b border-line px-3 py-2 text-right tabular-nums text-gray-600">
                     {totalKg > 0
                       ? `${formatearNumero((tramo.kg / totalKg) * 100, 1)} %`
                       : "-"}
@@ -268,26 +268,26 @@ export default function ReporteAntiguedad({ especieId }) {
         <h3 className="text-sm font-semibold text-gray-800 mb-3">
           Lotes ordenados por antigüedad
         </h3>
-        <div className="overflow-x-auto border border-gray-300 rounded-lg">
+        <div className="overflow-x-auto border border-line">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="bg-gray-50">
-                <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                   Variante
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                   Fecha de lote
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                   Antigüedad
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
                   Tramo
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                   Cajas
                 </th>
-                <th className="border-b border-gray-300 px-3 py-2 text-right font-semibold text-gray-700">
+                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
                   Kg
                 </th>
               </tr>
@@ -300,27 +300,27 @@ export default function ReporteAntiguedad({ especieId }) {
                     key={`${lote.variante_id}-${lote.fecha_ingreso}`}
                     className="hover:bg-gray-50"
                   >
-                    <td className="border-b border-gray-200 px-3 py-2 font-mono text-xs text-blue-900">
+                    <td className="border-b border-line px-3 py-2 font-mono text-xs text-blue-900">
                       {lote.codigo_completo}
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2">
+                    <td className="border-b border-line px-3 py-2">
                       {formatearFecha(lote.fecha_ingreso)}
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums font-medium">
+                    <td className="border-b border-line px-3 py-2 text-right tabular-nums font-medium">
                       {lote.dias} días
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2">
+                    <td className="border-b border-line px-3 py-2">
                       <span
-                        className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
+                        className="inline-block px-2 py-0.5 text-xs font-medium text-white"
                         style={{ backgroundColor: tramo.color }}
                       >
                         {tramo.etiqueta}
                       </span>
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                    <td className="border-b border-line px-3 py-2 text-right tabular-nums">
                       {formatearEntero(lote.stock_cajas)}
                     </td>
-                    <td className="border-b border-gray-200 px-3 py-2 text-right tabular-nums">
+                    <td className="border-b border-line px-3 py-2 text-right tabular-nums">
                       {formatearNumero(lote.stock_kg)}
                     </td>
                   </tr>

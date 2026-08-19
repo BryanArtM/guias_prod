@@ -30,8 +30,12 @@ export const Button = ({
   const sizeClass = `btn--${size}`;
   const fullWidthClass = fullWidth ? "btn--full-width" : "";
   const disabledClass = disabled || loading ? "btn--disabled" : "";
+  // Sin texto, el boton se vuelve un cuadrado con borde en vez de una pastilla.
+  const iconOnlyClass = icon && !children ? "btn--icon-only" : "";
   const classes =
-    `${baseClass} ${variantClass} ${sizeClass} ${fullWidthClass} ${disabledClass} ${className}`.trim();
+    `${baseClass} ${variantClass} ${sizeClass} ${fullWidthClass} ${disabledClass} ${iconOnlyClass} ${className}`
+      .replace(/\s+/g, " ")
+      .trim();
 
   return (
     <button

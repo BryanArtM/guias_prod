@@ -12,10 +12,7 @@ import {
   FileText,
 } from "lucide-react";
 
-/**
- * Estructura de la navegacion del sidebar.
- * Los grupos se rotulan en mayusculas; los items sin grupo van arriba de todo.
- */
+
 export const NAV_GROUPS = [
   {
     label: null,

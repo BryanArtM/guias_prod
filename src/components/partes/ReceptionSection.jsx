@@ -76,7 +76,7 @@ export default function ReceptionSection({
   const pesoParaFiletear = totalPesoRecepcion - (parseFloat(entera) || 0);
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-surface p-6 border border-line mb-6">
       <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
         Recepción de materia prima
       </h2>
@@ -100,7 +100,7 @@ export default function ReceptionSection({
         {transportes.map((t, tIndex) => (
           <div
             key={t.id ?? tIndex}
-            className="p-4 bg-gray-50 rounded-lg border border-gray-200"
+            className="p-4 bg-gray-50 border border-line"
           >
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold text-blue-700">
@@ -147,7 +147,7 @@ export default function ReceptionSection({
               {t.embarcaciones.map((e, eIndex) => (
                 <div
                   key={e.id ?? eIndex}
-                  className="flex flex-wrap items-end gap-3 p-3 bg-white rounded border border-gray-100"
+                  className="flex flex-wrap items-end gap-3 p-3 bg-surface border border-line"
                 >
                   <div className="flex-1 min-w-[200px]">
                     <Input
@@ -239,7 +239,7 @@ export default function ReceptionSection({
           onChange={(e) => onChangeEntera(e.target.value)}
         />
       </div>
-      <div className="mt-6 flex flex-wrap justify-end gap-6 p-4 bg-gray-100 rounded-lg font-bold">
+      <div className="mt-6 flex flex-wrap justify-end gap-6 p-4 bg-gray-100 font-bold">
         <div className="text-gray-600">
           Total Recepción:{" "}
           <span className="text-blue-900">

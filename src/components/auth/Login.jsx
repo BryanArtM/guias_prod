@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@/services";
 import { useAuthStore } from "@/stores";
-import { LogIn } from "lucide-react";
 import { Button, Input, Card, Alert } from "@/components/common";
 import imgGuia from "@/assets/Guias_Prod.png";
 
@@ -48,16 +47,16 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
       <Card className="max-w-md w-full" padding="xl">
         <div className="flex justify-center mb-6">
             <img src={imgGuia} alt="Guía"  className="w-20 h-20 text-white" />
         </div>
 
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
-          Iniciar Sesión
+        <h2 className="mb-1 text-center text-lg font-semibold text-ink">
+          SISTEMA PESQUERO
         </h2>
-        <p className="text-center text-gray-600 mb-6">Accede a tu cuenta</p>
+        <p className="label-col mb-5 text-center">Control de Producción</p>
 
         {error && (
           <Alert variant="error" onClose={() => setError("")} className="mb-4">
@@ -98,15 +97,14 @@ export function Login() {
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-ink-muted">
             ¿No tienes una cuenta?{" "}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/register")}
-              className="text-blue-600 hover:text-blue-700 font-medium inline"
             >
-              Regístrate aquí
+              Registrate aquí
             </Button>
           </p>
         </div>

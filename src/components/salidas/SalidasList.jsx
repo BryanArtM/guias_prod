@@ -94,7 +94,7 @@ export default function SalidasList({
         </Alert>
       )}
 
-      <div className="bg-white p-4 rounded-lg shadow mb-4">
+      <div className="border border-line bg-surface p-4 mb-4">
         <div className="flex items-center gap-4">
           <Filter className="w-5 h-5 text-gray-600" />
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -156,7 +156,7 @@ export default function SalidasList({
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="border border-line bg-surface overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -177,7 +177,7 @@ export default function SalidasList({
                     <TableCell>{salida.fecha}</TableCell>
                     <TableCell>{salida.cliente}</TableCell>
                     <TableCell>
-                      <span className="inline-block px-2 py-1 text-xs text-red-800 rounded">
+                      <span className="inline-block px-2 py-1 text-xs text-red-800">
                         {salida.tipo_documento_codigo}
                       </span>
                     </TableCell>

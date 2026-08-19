@@ -4,149 +4,130 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  border: none;
-  border-radius: var(--radius-lg);
+  gap: 0.375rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
   cursor: pointer;
-  font-family: var(--font-family-base);
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
-  transition: all 0.2s ease;
   user-select: none;
-  outline: none;
-  position: relative;
-  letter-spacing: 0.01em;
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out;
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--color-primary-500);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
 /* ========== TAMAÑOS ========== */
 
 .btn--sm {
-  padding: 0.5rem 1rem;
-  font-size: var(--font-size-sm);
-  min-height: 2rem;
+  height: 1.75rem;
+  padding: 0 0.625rem;
+  font-size: var(--text-xs);
 }
 
 .btn--md {
-  padding: 0.625rem 1.25rem;
-  font-size: var(--font-size-base);
-  min-height: 2.5rem;
+  height: 2rem;
+  padding: 0 0.75rem;
+  font-size: var(--text-sm);
 }
 
 .btn--lg {
-  padding: 0.75rem 1.5rem;
-  font-size: var(--font-size-lg);
-  min-height: 3rem;
+  height: 2.375rem;
+  padding: 0 1rem;
+  font-size: var(--text-base);
 }
 
 /* ========== VARIANTES ========== */
 
 .btn--primary {
-  background-color: var(--color-primary-700);
-  color: white;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.1), 0 1px 2px 0 rgba(15, 23, 42, 0.06);
+  background-color: var(--color-navy);
+  border-color: var(--color-navy);
+  color: #ffffff;
 }
 .btn--primary:hover:not(.btn--disabled) {
-  background-color: var(--color-primary-800);
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+  background-color: var(--color-navy-hover);
+  border-color: var(--color-navy-hover);
 }
 .btn--primary:active:not(.btn--disabled) {
-  background-color: var(--color-primary-900);
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  background-color: #0a1929;
 }
 
 .btn--secondary {
-  background-color: white;
-  color: var(--color-gray-700);
-  border: 1px solid var(--color-gray-300);
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  background-color: var(--color-surface);
+  border-color: var(--color-navy);
+  color: var(--color-navy);
 }
 .btn--secondary:hover:not(.btn--disabled) {
-  background-color: var(--color-gray-50);
-  border-color: var(--color-gray-400);
+  background-color: #edf1f5;
 }
 .btn--secondary:active:not(.btn--disabled) {
-  background-color: var(--color-gray-100);
-}
-
-.btn--success {
-  background-color: var(--color-success-600);
-  color: white;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.1), 0 1px 2px 0 rgba(15, 23, 42, 0.06);
-}
-.btn--success:hover:not(.btn--disabled) {
-  background-color: var(--color-success-700);
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-}
-.btn--success:active:not(.btn--disabled) {
-  background-color: var(--color-success-800);
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-}
-
-.btn--danger {
-  background-color: var(--color-danger-600);
-  color: white;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.1), 0 1px 2px 0 rgba(15, 23, 42, 0.06);
-}
-.btn--danger:hover:not(.btn--disabled) {
-  background-color: var(--color-danger-700);
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-}
-.btn--danger:active:not(.btn--disabled) {
-  background-color: var(--color-danger-800);
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-}
-
-.btn--warning {
-  background-color: var(--color-warning-500);
-  color: white;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.1), 0 1px 2px 0 rgba(15, 23, 42, 0.06);
-}
-.btn--warning:hover:not(.btn--disabled) {
-  background-color: var(--color-warning-600);
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-}
-.btn--warning:active:not(.btn--disabled) {
-  background-color: var(--color-warning-700);
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-}
-
-.btn--info {
-  background-color: var(--color-info-600);
-  color: white;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.1), 0 1px 2px 0 rgba(15, 23, 42, 0.06);
-}
-.btn--info:hover:not(.btn--disabled) {
-  background-color: var(--color-info-700);
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-}
-.btn--info:active:not(.btn--disabled) {
-  background-color: var(--color-info-800);
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  background-color: #dce4ec;
 }
 
 .btn--ghost {
-  background-color: transparent;
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  border-color: var(--color-line);
+  color: var(--color-ink-muted);
 }
 .btn--ghost:hover:not(.btn--disabled) {
-  background-color: var(--color-gray-50);
-  border-color: var(--color-gray-300);
+  border-color: var(--color-steel);
+  color: var(--color-ink);
 }
-.btn--ghost:active:not(.btn--disabled) {
-  background-color: var(--color-gray-100);
+
+.btn--success {
+  background-color: var(--color-ok);
+  border-color: var(--color-ok);
+  color: #ffffff;
+}
+.btn--success:hover:not(.btn--disabled) {
+  background-color: #0b5a51;
+  border-color: #0b5a51;
+}
+
+.btn--danger {
+  background-color: var(--color-crit);
+  border-color: var(--color-crit);
+  color: #ffffff;
+}
+.btn--danger:hover:not(.btn--disabled) {
+  background-color: #871f1f;
+  border-color: #871f1f;
+}
+
+.btn--warning {
+  background-color: var(--color-warn-line);
+  border-color: var(--color-warn-line);
+  color: #ffffff;
+}
+.btn--warning:hover:not(.btn--disabled) {
+  background-color: var(--color-warn);
+  border-color: var(--color-warn);
+}
+
+.btn--info {
+  background-color: var(--color-steel);
+  border-color: var(--color-steel);
+  color: #ffffff;
+}
+.btn--info:hover:not(.btn--disabled) {
+  background-color: #35506a;
+  border-color: #35506a;
 }
 
 /* ========== ESTADOS ========== */
 
+/* Gris terciario en vez de opacidad, para que siga siendo legible en planta. */
 .btn--disabled {
-  opacity: 0.5;
+  background-color: var(--color-gray-100);
+  border-color: var(--color-line);
+  color: var(--color-ink-faint);
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -155,12 +136,18 @@
   width: 100%;
 }
 
+/* Boton de solo icono: cuadrado, sin padding lateral. */
+.btn--icon-only {
+  padding: 0;
+  aspect-ratio: 1;
+}
+
 /* ========== SPINNER DE CARGA ========== */
 
 .btn__spinner {
   display: inline-block;
-  width: 1em;
-  height: 1em;
+  width: 0.875em;
+  height: 0.875em;
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: 50%;
@@ -182,6 +169,6 @@
 }
 
 .btn__icon svg {
-  width: 1.25em;
-  height: 1.25em;
+  width: 15px;
+  height: 15px;
 }

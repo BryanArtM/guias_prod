@@ -87,7 +87,7 @@ export async function descargarCSV(nombre, encabezados, filas) {
 /** Encabezado de cada reporte: titulo, descripcion y acciones a la derecha */
 export function EncabezadoReporte({ titulo, descripcion, acciones }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-200 pb-4 mb-5">
+    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-4 mb-5">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 tracking-tight">
           {titulo}
@@ -110,7 +110,7 @@ export function Indicador({ etiqueta, valor, detalle, tono = "neutro" }) {
     negativo: "text-red-700",
   };
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
+    <div className="bg-surface border border-line px-4 py-3">
       <p className="text-xs uppercase tracking-wide text-gray-500">
         {etiqueta}
       </p>
@@ -124,7 +124,7 @@ export function Indicador({ etiqueta, valor, detalle, tono = "neutro" }) {
 
 export function PanelVacio({ mensaje }) {
   return (
-    <div className="text-center py-16 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+    <div className="text-center py-16 text-gray-500 border border-dashed border-line">
       {mensaje}
     </div>
   );

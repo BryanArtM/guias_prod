@@ -366,7 +366,7 @@ export default function PackedProductSection({
   );
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-surface p-6 border border-line mb-6">
       <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
         Producto empacado
       </h2>
@@ -402,7 +402,7 @@ export default function PackedProductSection({
             return (
               <div
                 key={presentacion.presentacion_id}
-                className="border border-gray-200 rounded-lg overflow-hidden"
+                className="border border-line overflow-hidden"
               >
                 <button
                   type="button"
@@ -497,7 +497,7 @@ export default function PackedProductSection({
                                   <button
                                     type="button"
                                     onClick={() => setFilaEditandoIndex(index)}
-                                    className="w-full text-left px-1 py-1 rounded hover:bg-blue-50 flex items-center gap-1 group"
+                                    className="w-full text-left px-1 py-1 hover:bg-blue-50 flex items-center gap-1 group"
                                     title="Cambiar variante"
                                   >
                                     <span className="truncate">
@@ -527,7 +527,7 @@ export default function PackedProductSection({
                                       varianteActual,
                                     )
                                   }
-                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-line focus:ring-blue-500 focus:ring-2"
                                   title="Ensunchado (Z)"
                                 />
                               </td>
@@ -692,7 +692,7 @@ export default function PackedProductSection({
                       </tbody>
                     </table>
 
-                    <div className="p-2 border-t border-gray-100">
+                    <div className="p-2 border-t border-line">
                       <Button
                         type="button"
                         variant="secondary"
@@ -713,7 +713,7 @@ export default function PackedProductSection({
       )}
 
       {productos.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-4 bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 font-bold text-sm">
+        <div className="mt-4 flex flex-wrap items-center gap-4 bg-gray-50 border border-line px-4 py-3 font-bold text-sm">
           <span>TOTALES:</span>
           <span className="text-blue-800">{sumas.cajas} cajas</span>
           <span className="text-blue-800">{sumas.pesoNeto.toFixed(2)} kg</span>
@@ -731,10 +731,10 @@ export default function PackedProductSection({
               key={m.id}
               type="button"
               onClick={() => onChangeMotivoIngreso(m.id)}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+              className={`border px-2.5 py-1 text-xs font-medium tracking-[0.06em] uppercase transition-colors ${
                 motivoIngreso === m.id
-                  ? "bg-blue-900 text-white border-blue-900"
-                  : "text-gray-600 border-gray-300 hover:border-blue-400"
+                  ? "border-navy bg-navy text-white"
+                  : "border-line text-ink-muted hover:border-steel hover:text-ink"
               }`}
             >
               {m.codigo}

@@ -7,3 +7,8 @@ export { Alert } from "./Alert";
 export { Loading } from "./Loading";
 export { Table } from "./Table";
 export { default as Pagination } from "./Pagination";
+export { Badge } from "./Badge";
+export { Panel } from "./Panel";
+export { ProgressBar } from "./ProgressBar";
+export { StatCard } from "./StatCard";
+export { PageActions, PageActionsOutlet, PageActionsProvider } from "./PageActions";

@@ -1,30 +1,33 @@
-/* ========== COMPONENTE TABLE ========== */
+/* ========== COMPONENTE TABLE: densa, todo separado por 1px ========== */
 
 .table-wrapper {
   overflow-x: auto;
-  border-radius: var(--radius-lg);
   background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 2px;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-base);
-  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  color: var(--color-ink);
 }
 
 /* ========== HEAD ========== */
 
 .table__head {
   background-color: var(--color-gray-50);
-  border-bottom: 2px solid var(--color-border);
+  border-bottom: 1px solid var(--color-line);
 }
 
 .table__header {
-  padding: var(--spacing-md) var(--spacing-lg);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  padding: 0.4375rem 0.625rem;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
   white-space: nowrap;
 }
 
@@ -43,7 +46,7 @@
 /* ========== BODY ========== */
 
 .table__body .table__row {
-  border-bottom: 1px solid var(--color-gray-100);
+  border-bottom: 1px solid var(--color-line);
 }
 
 .table__body .table__row:last-child {
@@ -51,14 +54,14 @@
 }
 
 .table__body td {
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: 0.375rem 0.625rem;
   vertical-align: middle;
 }
 
 /* ========== VARIANTES ========== */
 
 .table--hover .table__body .table__row {
-  transition: background-color var(--transition-fast);
+  transition: background-color 100ms ease-out;
 }
 
 .table--hover .table__body .table__row:hover {
@@ -69,47 +72,41 @@
   background-color: var(--color-gray-50);
 }
 
-.table--bordered {
-  border: 1px solid var(--color-border);
-}
-
 .table--bordered td,
 .table--bordered th {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-line);
 }
 
 .table--compact td,
 .table--compact th {
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 0.1875rem 0.5rem;
 }
 
 /* ========== EMPTY STATE ========== */
 
 .table__empty {
-  padding: var(--spacing-2xl) !important;
+  padding: 1.5rem !important;
   text-align: center;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
 }
 
 /* ========== SCROLLBAR ========== */
 
 .table-wrapper::-webkit-scrollbar {
-  height: 8px;
+  height: 10px;
 }
 
 .table-wrapper::-webkit-scrollbar-track {
   background: var(--color-gray-100);
-  border-radius: var(--radius-md);
 }
 
 .table-wrapper::-webkit-scrollbar-thumb {
   background: var(--color-gray-400);
-  border-radius: var(--radius-md);
 }
 
 .table-wrapper::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gray-500);
+  background: var(--color-ink-faint);
 }
 
 /* ========== RESPONSIVE ========== */
@@ -117,7 +114,6 @@
 @media (max-width: 768px) {
   .table__header,
   .table__body td {
-    padding: var(--spacing-sm) var(--spacing-md);
-    font-size: var(--font-size-sm);
+    padding: 0.3125rem 0.5rem;
   }
 }

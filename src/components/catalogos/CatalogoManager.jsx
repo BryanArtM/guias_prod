@@ -165,7 +165,7 @@ export default function CatalogoManager({
           No hay {titulo.toLowerCase()} registrados
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="border border-line bg-surface overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -184,7 +184,7 @@ export default function CatalogoManager({
                     </TableCell>
                   ))}
                   <TableCell className="text-center">
-                    <div className="flex gap-5 justify-center ">
+                    <div className="flex gap-5 justify-center">
                       <button
                         onClick={() => abrirModal(item)}
                         className="text-blue-600 hover:text-blue-800"

@@ -7,7 +7,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Alert, Select } from "@/components/common";
+import { Button, Alert, Select, PageActions } from "@/components/common";
 import { ChevronDown, ChevronRight, Download, RefreshCw } from "lucide-react";
 import { obtenerStockActual, obtenerStockPorLote } from "@/services";
 import { descargarCSV } from "@/components/reportes/shared";
@@ -192,31 +192,30 @@ export default function StockList() {
         </Alert>
       )}
 
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Stock Actual</h2>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={toggleTodas}>
-            {todasExpandidas ? "Contraer todo" : "Expandir todo"}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={cargarStock}
-            icon={<RefreshCw className="w-4 h-4" />}
-            iconPosition="left"
-          >
-            Actualizar
-          </Button>
-          <Button
-            onClick={exportarCSV}
-            icon={<Download className="w-4 h-4" />}
-            iconPosition="left"
-          >
-            Exportar CSV
-          </Button>
-        </div>
-      </div>
+      <PageActions>
+        <Button variant="ghost" size="sm" onClick={toggleTodas}>
+          {todasExpandidas ? "Contraer todo" : "Expandir todo"}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={cargarStock}
+          icon={<RefreshCw />}
+          iconPosition="left"
+        >
+          Actualizar
+        </Button>
+        <Button
+          size="sm"
+          onClick={exportarCSV}
+          icon={<Download />}
+          iconPosition="left"
+        >
+          Exportar CSV
+        </Button>
+      </PageActions>
 
-      <div className="bg-white p-4 rounded-lg shadow mb-4">
+      <div className="border border-line bg-surface p-4 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
             label="Filtrar por código"
@@ -378,7 +377,7 @@ export default function StockList() {
                               return (
                                 <tr
                                   key={lote.fecha_ingreso}
-                                  className="bg-white"
+                                  className="bg-surface"
                                 >
                                   <td className="p-2 border font-medium">
                                     {formatearFecha(lote.fecha_ingreso)}

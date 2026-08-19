@@ -14,7 +14,15 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Select, Modal, Alert, Loading } from "@/components/common";
+import {
+  Badge,
+  Button,
+  Select,
+  Modal,
+  Alert,
+  Loading,
+  PageActions,
+} from "@/components/common";
 import { PresentacionForm } from "./PresentacionForm";
 
 export function PresentacionesList({ especies = [] }) {
@@ -125,29 +133,23 @@ export function PresentacionesList({ especies = [] }) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Presentaciones</h2>
-          <p className="text-gray-600 text-sm">
-            Gestión de presentaciones por especie
-          </p>
-        </div>
+      <PageActions>
         <Button
+          size="sm"
           onClick={handleCrear}
-          icon={<Plus className="w-4 h-4" />}
+          icon={<Plus />}
           iconPosition="left"
         >
-          <span> Nueva Presentación </span>
+          Nueva Presentación
         </Button>
-      </div>
+      </PageActions>
 
       {/* Alertas */}
       {error && <Alert variant="error">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Filtros */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="border border-line bg-surface p-4">
         <div className="flex items-center gap-4">
           <Filter className="w-5 h-5 text-gray-500" />
           <div className="flex-1">
@@ -175,7 +177,7 @@ export function PresentacionesList({ especies = [] }) {
       </div>
 
       {/* Tabla */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="border border-line bg-surface overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -205,9 +207,9 @@ export function PresentacionesList({ especies = [] }) {
                     {presentacion.id}
                   </TableCell>
                   <TableCell>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <Badge>
                       {obtenerNombreEspecie(presentacion.especie_id)}
-                    </span>
+                    </Badge>
                   </TableCell>
                   <TableCell className="font-medium">
                     {presentacion.nombre}

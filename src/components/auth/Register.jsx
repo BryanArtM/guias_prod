@@ -58,20 +58,18 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
       <Card className="max-w-md w-full" padding="xl">
         <div className="flex justify-center mb-6">
-          <div className="bg-green-600 p-3 rounded-full">
-            <UserPlus className="w-8 h-8 text-white" />
+          <div className="flex h-12 w-12 items-center justify-center border border-line text-steel">
+            <UserPlus className="h-6 w-6" strokeWidth={1.75} />
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
-          Crear Cuenta
+        <h2 className="mb-1 text-center text-lg font-semibold text-ink">
+          Crear cuenta
         </h2>
-        <p className="text-center text-gray-600 mb-6">
-          Regístrate para comenzar
-        </p>
+        <p className="label-col mb-5 text-center">Alta de operador</p>
 
         {error && (
           <Alert variant="error" onClose={() => setError("")} className="mb-4">

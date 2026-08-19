@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Input, Button, Loading, Select } from "@/components/common";
+import { Input, Button, Loading } from "@/components/common";
 import ReceptionSection from "./ReceptionSection";
 import PackedProductSection from "./PackedProductSection";
 import InsumosSection from "./InsumosSection";
@@ -193,7 +193,7 @@ export default function ParteProduccionForm({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
-      <div className="bg-blue-900 text-white p-6 rounded-t-xl shadow-md mb-6">
+      <div className="bg-blue-900 text-white p-6 mb-6">
         <div className="flex justify-between items-center flex-wrap gap-4">
           <h1 className="text-2xl font-bold">
             Registro de {tipoDocumentoSeleccionado?.codigo || ""}
@@ -207,7 +207,7 @@ export default function ParteProduccionForm({
             <Button
               type="submit"
               variant="primary"
-              className="bg-white text-blue-900 hover:bg-transparent hover:text-white"
+              className="bg-surface text-blue-900 hover:bg-transparent hover:text-white"
             >
               Guardar Documento
             </Button>
@@ -281,7 +281,7 @@ export default function ParteProduccionForm({
           />
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+        <div className="bg-surface p-6 border border-line flex flex-col">
           <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
             Observaciones
           </h2>
@@ -290,7 +290,7 @@ export default function ParteProduccionForm({
             value={formData.observaciones}
             onChange={handleChange}
             rows="6"
-            className="flex-1 w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="flex-1 w-full p-3 border border-line focus:ring-2 focus:ring-blue-500 outline-none"
             placeholder="Ingrese notas o comentarios..."
           />
           <p className="mt-2 text-xs text-gray-400"></p>

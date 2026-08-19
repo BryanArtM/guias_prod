@@ -17,7 +17,7 @@ export default function InsumosSection({ insumos, onChangeInsumos }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div className="bg-surface p-6 border border-line mb-6">
       <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
         Control de insumos
       </h2>

@@ -219,7 +219,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
   if (cargando) return <Cargando />;
   if (error) {
     return (
-      <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         {error}
       </div>
     );
@@ -247,23 +247,23 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
 
     return (
       <section className="mb-8">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 bg-gray-100 border border-gray-300 border-b-0 px-3 py-2">
+        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 bg-gray-100 border border-line border-b-0 px-3 py-2">
           {titulo}
         </h3>
-        <div className="overflow-x-auto border border-gray-300">
+        <div className="overflow-x-auto border border-line">
           <table className="w-full text-xs border-collapse">
             <thead>
               <tr>
                 <th
                   rowSpan={3}
-                  className="border border-gray-300 bg-gray-50 px-2 py-2 text-left font-semibold text-gray-700 sticky left-0 z-10"
+                  className="border border-line bg-gray-50 px-2 py-2 text-left font-semibold text-gray-700 sticky left-0 z-10"
                 >
                   Fecha
                 </th>
                 {conMateriaPrima && (
                   <th
                     rowSpan={3}
-                    className="border border-gray-300 bg-gray-50 px-2 py-2 text-right font-semibold text-gray-700 whitespace-nowrap"
+                    className="border border-line bg-gray-50 px-2 py-2 text-right font-semibold text-gray-700 whitespace-nowrap"
                   >
                     Materia Prima
                   </th>
@@ -272,7 +272,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                   <th
                     key={grupo.presentacion}
                     colSpan={grupo.columnas.length}
-                    className="border border-gray-300 bg-blue-900 text-white px-2 py-1.5 text-center font-semibold uppercase tracking-wide"
+                    className="border border-line bg-blue-900 text-white px-2 py-1.5 text-center font-semibold uppercase tracking-wide"
                   >
                     {grupo.presentacion}
                   </th>
@@ -285,7 +285,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                     <th
                       key={`${grupo.presentacion}-${sub.etiqueta}`}
                       colSpan={sub.columnas.length}
-                      className="border border-gray-300 bg-gray-100 px-2 py-1.5 text-center font-medium text-gray-700 whitespace-nowrap"
+                      className="border border-line bg-gray-100 px-2 py-1.5 text-center font-medium text-gray-700 whitespace-nowrap"
                     >
                       {sub.etiqueta}
                     </th>
@@ -297,7 +297,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                 {modelo.columnas.map((columna) => (
                   <th
                     key={columna.variante_id}
-                    className="border border-gray-300 bg-gray-50 px-2 py-1 text-center text-xs font-medium text-gray-600 whitespace-nowrap"
+                    className="border border-line bg-gray-50 px-2 py-1 text-center text-xs font-medium text-gray-600 whitespace-nowrap"
                     title={`${columna.calibre} · ${columna.calidad}${
                       columna.ensunchado ? " · ensunchado" : ""
                     }`}
@@ -313,18 +313,18 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
             <tbody>
               {conApertura && (
                 <tr className="bg-gray-50 font-medium">
-                  <td className="border border-gray-300 px-2 py-1.5 sticky left-0 bg-gray-50 z-10">
+                  <td className="border border-line px-2 py-1.5 sticky left-0 bg-gray-50 z-10">
                     Saldo anterior
                   </td>
                   {conMateriaPrima && (
-                    <td className="border border-gray-300 px-2 py-1.5 text-right text-gray-400">
+                    <td className="border border-line px-2 py-1.5 text-right text-gray-400">
                       -
                     </td>
                   )}
                   {modelo.columnas.map((columna) => (
                     <td
                       key={columna.variante_id}
-                      className="border border-gray-300 px-2 py-1.5 text-right tabular-nums"
+                      className="border border-line px-2 py-1.5 text-right tabular-nums"
                     >
                       {formatearCelda(
                         modelo.apertura.get(columna.variante_id) ?? 0,
@@ -337,11 +337,11 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
 
               {modelo.fechas.map((fecha) => (
                 <tr key={fecha} className="hover:bg-blue-50/40">
-                  <td className="border border-gray-300 px-2 py-1.5 whitespace-nowrap sticky left-0 bg-white z-10">
+                  <td className="border border-line px-2 py-1.5 whitespace-nowrap sticky left-0 bg-surface z-10">
                     {formatearFecha(fecha)}
                   </td>
                   {conMateriaPrima && (
-                    <td className="border border-gray-300 px-2 py-1.5 text-right tabular-nums font-medium text-gray-700">
+                    <td className="border border-line px-2 py-1.5 text-right tabular-nums font-medium text-gray-700">
                       {formatearCelda(
                         modelo.materiaPorFecha.get(fecha) ?? 0,
                         UNIDAD_KG,
@@ -353,7 +353,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                     return (
                       <td
                         key={columna.variante_id}
-                        className={`border border-gray-300 px-2 py-1.5 text-right tabular-nums ${
+                        className={`border border-line px-2 py-1.5 text-right tabular-nums ${
                           valor < 0 ? "text-red-700 font-medium" : ""
                         }`}
                       >
@@ -366,18 +366,18 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
             </tbody>
             <tfoot>
               <tr className="bg-gray-100 font-semibold">
-                <td className="border border-gray-300 px-2 py-2 sticky left-0 bg-gray-100 z-10">
+                <td className="border border-line px-2 py-2 sticky left-0 bg-gray-100 z-10">
                   TOTALES
                 </td>
                 {conMateriaPrima && (
-                  <td className="border border-gray-300 px-2 py-2 text-right tabular-nums">
+                  <td className="border border-line px-2 py-2 text-right tabular-nums">
                     {formatearNumero(totalMateriaPrima)}
                   </td>
                 )}
                 {totalesColumna.map((total, indice) => (
                   <td
                     key={modelo.columnas[indice].variante_id}
-                    className={`border border-gray-300 px-2 py-2 text-right tabular-nums ${
+                    className={`border border-line px-2 py-2 text-right tabular-nums ${
                       total < 0 ? "text-red-700" : ""
                     }`}
                   >
@@ -389,7 +389,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
               <tr className="bg-blue-900 text-white font-semibold">
                 <td
                   colSpan={conMateriaPrima ? anchoEtiquetas : 1}
-                  className="border border-gray-300 px-2 py-2 sticky left-0 bg-blue-900 z-10"
+                  className="border border-line px-2 py-2 sticky left-0 bg-blue-900 z-10"
                 >
                   Subtotal por presentación
                 </td>
@@ -404,7 +404,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                     <td
                       key={grupo.presentacion}
                       colSpan={grupo.columnas.length}
-                      className="border border-gray-300 px-2 py-2 text-right tabular-nums"
+                      className="border border-line px-2 py-2 text-right tabular-nums"
                     >
                       {formatearCelda(subtotal, unidad)}
                     </td>
@@ -430,7 +430,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
         descripcion="Producción, salidas y saldo por variante para cada día del período. Los ingresos se ubican en la fecha del lote; las salidas, en la fecha en que salió la mercadería."
         acciones={
           <>
-            <div className="flex rounded-md border border-gray-300 overflow-hidden">
+            <div className="flex border border-line overflow-hidden">
               {[UNIDAD_KG, UNIDAD_CAJAS].map((u) => (
                 <button
                   key={u}
@@ -459,7 +459,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
       />
 
       {avisoExport && (
-        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900 flex items-start justify-between gap-4">
+        <div className="mb-4 border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900 flex items-start justify-between gap-4">
           <span className="break-all">{avisoExport}</span>
           <button
             type="button"
@@ -506,7 +506,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
           (modelo.salidas.get(`${fecha}|${varianteId}`) ?? 0),
       })}
 
-      <section className="bg-white border border-gray-200 rounded-lg p-5">
+      <section className="bg-surface border border-line p-5">
         <h3 className="text-sm font-semibold text-gray-800 mb-4">
           Producción acumulada por presentación
         </h3>

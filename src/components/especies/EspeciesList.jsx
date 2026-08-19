@@ -14,7 +14,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Modal, Alert, Loading } from "@/components/common";
+import { Button, Modal, Alert, Loading, PageActions } from "@/components/common";
 import { EspecieForm } from "./EspecieForm";
 
 export function EspeciesList() {
@@ -95,27 +95,23 @@ export function EspeciesList() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Especies</h2>
-          <p className="text-gray-600 text-sm">Gestión de especies pesqueras</p>
-        </div>
+      <PageActions>
         <Button
+          size="sm"
           onClick={handleCrear}
-          icon={<Plus className="w-4 h-4" />}
+          icon={<Plus />}
           iconPosition="left"
         >
           Nueva Especie
         </Button>
-      </div>
+      </PageActions>
 
       {/* Alertas */}
       {error && <Alert variant="error">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Tabla */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="border border-line bg-surface overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
