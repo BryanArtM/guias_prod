@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Alert } from "@/components/common";
+import { Button, Alert, Modal } from "@/components/common";
 import { useAuthStore } from "@/stores";
 import { useFormDraft, limpiarBorradorGuardado } from "@/hooks";
 import ControlHeaderSection from "./ControlHeaderSection";
@@ -84,6 +84,7 @@ export default function ControlSalidaForm({
   const [errors, setErrors] = useState({});
   const [cargando, setCargando] = useState(false);
   const [mensajeError, setMensajeError] = useState(null);
+  const [confirmacionAbierta, setConfirmacionAbierta] = useState(false);
   const [motivos, setMotivos] = useState([]);
   const [tiposDocumentoSalida, setTiposDocumentoSalida] = useState([]);
   const [lotes, setLotes] = useState([]);
@@ -193,7 +194,8 @@ export default function ControlSalidaForm({
 
   // Cancelar limpia todos los campos y descarta el borrador guardado sin salir
   // de la vista. En edicion, onCancel devuelve al detalle del documento.
-  const handleCancel = () => {
+  const confirmarCancelar = () => {
+    setConfirmacionAbierta(false);
     if (initialData) {
       reiniciarFormulario();
       reiniciarItems();
@@ -303,7 +305,7 @@ export default function ControlSalidaForm({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={handleCancel}
+              onClick={() => setConfirmacionAbierta(true)}
               className="border-steel bg-transparent text-navy-text hover:bg-navy-hover hover:text-white"
             >
               Cancelar
@@ -348,6 +350,32 @@ export default function ControlSalidaForm({
           tipoDocumento={tipoDocumento}
         />
       </div>
+
+      <Modal
+        isOpen={confirmacionAbierta}
+        onClose={() => setConfirmacionAbierta(false)}
+        title="Cancelar registro"
+        size="sm"
+      >
+        <p className="text-sm text-ink">
+          {initialData
+            ? "Se descartaran los cambios realizados en este documento."
+            : "Se borraran todos los datos ingresados en este control de salida."}{" "}
+          Esta accion no se puede deshacer.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setConfirmacionAbierta(false)}
+          >
+            Volver
+          </Button>
+          <Button type="button" variant="danger" onClick={confirmarCancelar}>
+            Si, cancelar
+          </Button>
+        </div>
+      </Modal>
     </form>
   );
 }

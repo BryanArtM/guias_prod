@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Input, Button, Loading } from "@/components/common";
+import { Input, Button, Loading, Modal } from "@/components/common";
 import ReceptionSection from "./ReceptionSection";
 import PackedProductSection from "./PackedProductSection";
 import InsumosSection from "./InsumosSection";
@@ -76,6 +76,7 @@ export default function ParteProduccionForm({
   const [motivosIngreso, setMotivosIngreso] = useState([]);
   const [tiposDocumento, setTiposDocumento] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [confirmacionAbierta, setConfirmacionAbierta] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -146,7 +147,8 @@ export default function ParteProduccionForm({
 
   // Cancelar limpia todos los campos y descarta el borrador guardado sin salir
   // de la vista. En edicion, onCancel devuelve al detalle del documento.
-  const handleCancel = () => {
+  const confirmarCancelar = () => {
+    setConfirmacionAbierta(false);
     reiniciarFormulario();
     if (onCancel) onCancel();
   };
@@ -220,7 +222,7 @@ export default function ParteProduccionForm({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={handleCancel}
+              onClick={() => setConfirmacionAbierta(true)}
               className="border-steel bg-transparent text-navy-text hover:bg-navy-hover hover:text-white"
             >
               Cancelar
@@ -310,6 +312,32 @@ export default function ParteProduccionForm({
           <p className="mt-2 text-xs text-gray-400"></p>
         </div>
       </div>
+
+      <Modal
+        isOpen={confirmacionAbierta}
+        onClose={() => setConfirmacionAbierta(false)}
+        title="Cancelar registro"
+        size="sm"
+      >
+        <p className="text-sm text-ink">
+          {initialData
+            ? "Se descartaran los cambios realizados en este documento."
+            : "Se borraran todos los datos ingresados en este parte de produccion."}{" "}
+          Esta accion no se puede deshacer.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setConfirmacionAbierta(false)}
+          >
+            Volver
+          </Button>
+          <Button type="button" variant="danger" onClick={confirmarCancelar}>
+            Si, cancelar
+          </Button>
+        </div>
+      </Modal>
     </form>
   );
 }
