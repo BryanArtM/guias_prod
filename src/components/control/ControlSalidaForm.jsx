@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Alert } from "@/components/common";
 import { useAuthStore } from "@/stores";
+import { useFormDraft, limpiarBorradorGuardado } from "@/hooks";
 import ControlHeaderSection from "./ControlHeaderSection";
 import ControlItemsSection from "./ControlItemsSection";
 import ControlObservacionesSection from "./ControlObservacionesSection";
@@ -10,11 +11,20 @@ import {
   obtenerStockPorLote,
 } from "@/services/api";
 
+// El formulario guarda su borrador en dos entradas (cabecera e items), por eso
+// la limpieza externa pasa por esta funcion en vez de tocar las claves a mano.
+export function limpiarBorradorControlSalida(borradorKey) {
+  if (!borradorKey) return;
+  limpiarBorradorGuardado(borradorKey);
+  limpiarBorradorGuardado(`${borradorKey}-items`);
+}
+
 export default function ControlSalidaForm({
   onSubmit,
   onCancel,
   especies = [],
   tipoDocumento = "EMBARQUE",
+  borradorKey = null,
   initialData = null,
 }) {
   const { user } = useAuthStore();
@@ -53,9 +63,13 @@ export default function ControlSalidaForm({
     [user?.username, initialData],
   );
 
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData, reiniciarFormulario] = useFormDraft(
+    borradorKey,
+    initialFormData,
+  );
   // Las filas se arman desde el acordeón de presentaciones, por eso arranca vacío
-  const [items, setItems] = useState(
+  const [items, setItems, reiniciarItems] = useFormDraft(
+    borradorKey ? `${borradorKey}-items` : null,
     initialData?.items?.length
       ? initialData.items.map((it) => ({
           variante_id: it.variante_id,
@@ -103,10 +117,14 @@ export default function ControlSalidaForm({
         setMotivos(motivosRes);
         setTiposDocumentoSalida(tiposRes);
         setLotes(res[2] || []);
-        // set default motivo (OTROS) if exists
+        // set default motivo (OTROS) if exists, respetando el borrador restaurado
         const otros = (motivosRes || []).find((m) => m.codigo === "OTROS");
         if (otros)
-          setFormData((prev) => ({ ...prev, motivo_salida_id: otros.id }));
+          setFormData((prev) =>
+            prev.motivo_salida_id
+              ? prev
+              : { ...prev, motivo_salida_id: otros.id },
+          );
         // set default tipo_documento_id: try match prop tipoDocumento code
         const match = tiposRes.find((t) => t.codigo === tipoDocumento);
         if (match)
@@ -171,6 +189,29 @@ export default function ControlSalidaForm({
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
+  };
+
+  // Cancelar limpia todos los campos y descarta el borrador guardado sin salir
+  // de la vista. En edicion, onCancel devuelve al detalle del documento.
+  const handleCancel = () => {
+    if (initialData) {
+      reiniciarFormulario();
+      reiniciarItems();
+    } else {
+      const tipoActual = tiposDocumentoSalida.find(
+        (t) => t.codigo === tipoDocumento,
+      );
+      const motivoPorDefecto = motivos.find((m) => m.codigo === "OTROS");
+      reiniciarFormulario({
+        ...initialFormData,
+        tipo_documento_id: tipoActual?.id ?? null,
+        motivo_salida_id: motivoPorDefecto?.id ?? null,
+      });
+      reiniciarItems([]);
+    }
+    setErrors({});
+    setMensajeError(null);
+    if (onCancel) onCancel();
   };
 
   const handleSubmit = async (e) => {
@@ -262,7 +303,7 @@ export default function ControlSalidaForm({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={onCancel}
+              onClick={handleCancel}
               className="border-steel bg-transparent text-navy-text hover:bg-navy-hover hover:text-white"
             >
               Cancelar

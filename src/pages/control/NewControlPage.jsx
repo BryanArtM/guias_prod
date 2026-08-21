@@ -1,14 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ControlSalidaForm } from "@/components/control";
+import {
+  ControlSalidaForm,
+  limpiarBorradorControlSalida,
+} from "@/components/control";
 import { Alert, Loading } from "@/components/common";
 import { controlService, obtenerEspecies } from "@/services";
+import { useFormDraft, limpiarBorradorGuardado } from "@/hooks";
+
+// Claves del borrador local: permiten abandonar la vista y retomar el registro
+const BORRADOR_SALIDA = "borrador-control-salida";
+const BORRADOR_TIPO = "borrador-control-salida-tipo";
 
 export default function NewControlPage() {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [tipoDocumento, setTipoDocumento] = useState("EMBARQUE");
+  const [tipoDocumento, setTipoDocumento, reiniciarTipo] = useFormDraft(
+    BORRADOR_TIPO,
+    "EMBARQUE",
+  );
   const [especies, setEspecies] = useState([]);
   const [cargando, setCargando] = useState(true);
 
@@ -31,6 +42,8 @@ export default function NewControlPage() {
     try {
       setError(null);
       await controlService.crearControlSalida(data);
+      limpiarBorradorControlSalida(BORRADOR_SALIDA);
+      limpiarBorradorGuardado(BORRADOR_TIPO);
       setSuccess(true);
       setTimeout(() => navigate("/salidas"), 2000);
     } catch (err) {
@@ -39,6 +52,11 @@ export default function NewControlPage() {
           (typeof err === "string" ? err : err.message || JSON.stringify(err)),
       );
     }
+  };
+
+  const handleCancel = () => {
+    setError(null);
+    reiniciarTipo();
   };
 
   if (success)
@@ -78,8 +96,9 @@ export default function NewControlPage() {
       <ControlSalidaForm
         tipoDocumento={tipoDocumento}
         especies={especies}
+        borradorKey={BORRADOR_SALIDA}
         onSubmit={handleSubmit}
-        onCancel={() => navigate("/salidas")}
+        onCancel={handleCancel}
       />
     </div>
   );
