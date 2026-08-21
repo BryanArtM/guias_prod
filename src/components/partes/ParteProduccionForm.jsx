@@ -13,16 +13,19 @@ import {
   obtenerTiposDocumentoProduccion,
 } from "@/services";
 import { useAuthStore } from "@/stores";
+import { useFormDraft } from "@/hooks";
 
 export default function ParteProduccionForm({
   tipo,
   onSubmit,
   onCancel,
+  borradorKey = null,
   initialData = null,
 }) {
   const { user } = useAuthStore();
 
-  const [formData, setFormData] = useState(
+  const [formData, setFormData, reiniciarFormulario] = useFormDraft(
+    borradorKey,
     initialData || {
       codigo: "",
       revision: "",
@@ -141,6 +144,13 @@ export default function ParteProduccionForm({
     }, 0);
   };
 
+  // Cancelar limpia todos los campos y descarta el borrador guardado sin salir
+  // de la vista. En edicion, onCancel devuelve al detalle del documento.
+  const handleCancel = () => {
+    reiniciarFormulario();
+    if (onCancel) onCancel();
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -206,17 +216,15 @@ export default function ParteProduccionForm({
                 {formData.username || user?.username || ""}
               </span>
             </p>
-            {onCancel && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onCancel}
-                className="border-steel bg-transparent text-navy-text hover:bg-navy-hover hover:text-white"
-              >
-                Cancelar
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="border-steel bg-transparent text-navy-text hover:bg-navy-hover hover:text-white"
+            >
+              Cancelar
+            </Button>
             <Button type="submit" variant="secondary" size="sm">
               Guardar Documento
             </Button>

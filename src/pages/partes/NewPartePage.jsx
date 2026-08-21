@@ -3,13 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { ParteProduccionForm } from "@/components/partes";
 import { Alert, Loading } from "@/components/common";
 import { partesService, obtenerTiposDocumentoProduccion } from "@/services";
+import { useFormDraft, limpiarBorradorGuardado } from "@/hooks";
+
+// Claves del borrador local: permiten abandonar la vista y retomar el registro
+const BORRADOR_PARTE = "borrador-parte-produccion";
+const BORRADOR_TIPO = "borrador-parte-produccion-tipo";
 
 export default function NewPartePage() {
   const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [tipos, setTipos] = useState([]);
-  const [tipoSeleccionado, setTipoSeleccionado] = useState(null);
+  const [tipoSeleccionadoId, setTipoSeleccionadoId, reiniciarTipo] =
+    useFormDraft(BORRADOR_TIPO, null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -17,7 +23,9 @@ export default function NewPartePage() {
       try {
         const data = await obtenerTiposDocumentoProduccion();
         setTipos(data);
-        if (data.length > 0) setTipoSeleccionado(data[0]);
+        if (data.length > 0) {
+          setTipoSeleccionadoId((actual) => actual ?? data[0].id);
+        }
       } catch (err) {
         setError("Error al cargar tipos de documento: " + err.message);
       } finally {
@@ -25,7 +33,11 @@ export default function NewPartePage() {
       }
     };
     cargarTipos();
-  }, []);
+  }, [setTipoSeleccionadoId]);
+
+  const tipoSeleccionado = tipos.find(
+    (tipo) => String(tipo.id) === String(tipoSeleccionadoId),
+  );
 
   const handleSubmit = async (data) => {
     try {
@@ -34,11 +46,18 @@ export default function NewPartePage() {
         ...data,
         tipo_documento_id: tipoSeleccionado?.id,
       });
+      limpiarBorradorGuardado(BORRADOR_PARTE);
+      limpiarBorradorGuardado(BORRADOR_TIPO);
       setSuccess(true);
       setTimeout(() => navigate("/ingresos"), 2000);
     } catch (err) {
       setError("Error al guardar: " + err);
     }
+  };
+
+  const handleCancel = () => {
+    setError(null);
+    reiniciarTipo(tipos.length > 0 ? tipos[0].id : null);
   };
 
   if (success) {
@@ -65,7 +84,7 @@ export default function NewPartePage() {
           <button
             key={tipo.id}
             type="button"
-            onClick={() => setTipoSeleccionado(tipo)}
+            onClick={() => setTipoSeleccionadoId(tipo.id)}
             className={`border px-3 py-1.5 text-xs font-medium tracking-[0.06em] uppercase transition-colors ${
               tipoSeleccionado?.id === tipo.id
                 ? "border-navy bg-navy text-white"
@@ -78,8 +97,9 @@ export default function NewPartePage() {
       </div>
       <ParteProduccionForm
         tipo={tipoSeleccionado?.id}
+        borradorKey={BORRADOR_PARTE}
         onSubmit={handleSubmit}
-        onCancel={() => navigate("/ingresos")}
+        onCancel={handleCancel}
       />
     </div>
   );
