@@ -241,7 +241,7 @@ export default function ControlSalidaForm({
   return (
     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
       {mensajeError && (
-        <Alert type="error" className="mb-4">
+        <Alert variant="error" className="mb-4">
           {mensajeError}
         </Alert>
       )}

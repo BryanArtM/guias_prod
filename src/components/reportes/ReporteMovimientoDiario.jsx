@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/common";
+import { Alert, Badge, Button } from "@/components/common";
 import { Download } from "lucide-react";
 import { obtenerMovimientos, obtenerMateriaPrima } from "@/services";
 import {
@@ -219,9 +219,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
   if (cargando) return <Cargando />;
   if (error) {
     return (
-      <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        {error}
-      </div>
+      <Alert variant="error">{error}</Alert>
     );
   }
   if (modelo.columnas.length === 0) {
@@ -247,23 +245,23 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
 
     return (
       <section className="mb-8">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-gray-700 bg-gray-100 border border-line border-b-0 px-3 py-2">
+        <h3 className="label-col border border-line border-b-0 bg-gray-50 px-3 py-2">
           {titulo}
         </h3>
         <div className="overflow-x-auto border border-line">
-          <table className="w-full text-xs border-collapse">
+          <table className="table text-xs">
             <thead>
               <tr>
                 <th
                   rowSpan={3}
-                  className="border border-line bg-gray-50 px-2 py-2 text-left font-semibold text-gray-700 sticky left-0 z-10"
+                  className="label-col sticky left-0 z-10 border border-line bg-gray-50 px-2 py-2 text-left"
                 >
                   Fecha
                 </th>
                 {conMateriaPrima && (
                   <th
                     rowSpan={3}
-                    className="border border-line bg-gray-50 px-2 py-2 text-right font-semibold text-gray-700 whitespace-nowrap"
+                    className="label-col border border-line bg-gray-50 px-2 py-2 text-right whitespace-nowrap"
                   >
                     Materia Prima
                   </th>
@@ -272,7 +270,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                   <th
                     key={grupo.presentacion}
                     colSpan={grupo.columnas.length}
-                    className="border border-line bg-blue-900 text-white px-2 py-1.5 text-center font-semibold uppercase tracking-wide"
+                    className="border border-line bg-navy px-2 py-1.5 text-center text-xs font-medium tracking-[0.08em] text-white uppercase"
                   >
                     {grupo.presentacion}
                   </th>
@@ -285,7 +283,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                     <th
                       key={`${grupo.presentacion}-${sub.etiqueta}`}
                       colSpan={sub.columnas.length}
-                      className="border border-line bg-gray-100 px-2 py-1.5 text-center font-medium text-gray-700 whitespace-nowrap"
+                      className="border border-line bg-gray-100 px-2 py-1.5 text-center text-xs font-medium whitespace-nowrap text-ink-muted"
                     >
                       {sub.etiqueta}
                     </th>
@@ -297,14 +295,16 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                 {modelo.columnas.map((columna) => (
                   <th
                     key={columna.variante_id}
-                    className="border border-line bg-gray-50 px-2 py-1 text-center text-xs font-medium text-gray-600 whitespace-nowrap"
+                    className="label-col border border-line bg-gray-50 px-2 py-1 text-center whitespace-nowrap"
                     title={`${columna.calibre} · ${columna.calidad}${
                       columna.ensunchado ? " · ensunchado" : ""
                     }`}
                   >
                     {columna.calidad}
                     {columna.ensunchado && (
-                      <span className="ml-1 text-blue-800 font-bold">Z</span>
+                      <Badge variant="pendiente" icon={null} className="ml-1 px-1 py-0">
+                        Z
+                      </Badge>
                     )}
                   </th>
                 ))}
@@ -341,7 +341,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                     {formatearFecha(fecha)}
                   </td>
                   {conMateriaPrima && (
-                    <td className="border border-line px-2 py-1.5 text-right tabular-nums font-medium text-gray-700">
+                    <td className="border border-line px-2 py-1.5 text-right tabular-nums font-medium text-ink-muted">
                       {formatearCelda(
                         modelo.materiaPorFecha.get(fecha) ?? 0,
                         UNIDAD_KG,
@@ -354,7 +354,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                       <td
                         key={columna.variante_id}
                         className={`border border-line px-2 py-1.5 text-right tabular-nums ${
-                          valor < 0 ? "text-red-700 font-medium" : ""
+                          valor < 0 ? "font-medium text-crit" : ""
                         }`}
                       >
                         {formatearCelda(valor, unidad)}
@@ -378,7 +378,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
                   <td
                     key={modelo.columnas[indice].variante_id}
                     className={`border border-line px-2 py-2 text-right tabular-nums ${
-                      total < 0 ? "text-red-700" : ""
+                      total < 0 ? "text-crit" : ""
                     }`}
                   >
                     {formatearCelda(total, unidad)}
@@ -506,7 +506,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
           (modelo.salidas.get(`${fecha}|${varianteId}`) ?? 0),
       })}
 
-      <section className="bg-surface border border-line p-5">
+      <section className="bg-surface border border-line p-5 rounded-sm">
         <h3 className="label-col mb-3">
           Producción acumulada por presentación
         </h3>

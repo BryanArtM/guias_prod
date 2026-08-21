@@ -30,7 +30,7 @@ export const ProgressBar = ({
         </div>
       )}
       <div
-        className="h-1.5 border border-line bg-gray-50"
+        className="h-1.5 border border-line bg-gray-50 rounded-sm"
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}

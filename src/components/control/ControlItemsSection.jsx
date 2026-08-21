@@ -281,7 +281,7 @@ export default function ControlItemsSection({
   };
 
   return (
-    <div className="mb-4 border border-line bg-surface p-3">
+    <div className="mb-4 border border-line bg-surface p-3 rounded-sm">
       <div className="mb-3 flex items-center justify-between gap-4 border-b border-line pb-1.5">
         <h2 className="label-col">Lista de salida</h2>
         <div className="text-sm text-gray-600">
@@ -357,7 +357,7 @@ export default function ControlItemsSection({
                 {abierta && (
                   <div>
                     {/* Filtros por calidad y calibre */}
-                    <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-surface border-b border-line">
+                    <div className="flex flex-wrap items-end gap-4 px-4 py-3 bg-surface border-b border-line rounded-sm">
                       <div className="min-w-[180px]">
                         <Select
                           label="Calidad"
@@ -583,8 +583,9 @@ export default function ControlItemsSection({
                                     <input
                                       type="number"
                                       min="0"
+                                      aria-invalid={excede || undefined}
                                       className={`w-full p-1 border-none bg-transparent focus:ring-0 ${
-                                        excede ? "text-red-600 font-semibold" : ""
+                                        excede ? "font-medium text-crit" : ""
                                       }`}
                                       value={item.cantidad}
                                       onChange={(e) =>
@@ -594,12 +595,16 @@ export default function ControlItemsSection({
                                           e.target.value,
                                         )
                                       }
-                                      title={
-                                        excede
-                                          ? "La cantidad supera el stock del lote"
-                                          : undefined
-                                      }
                                     />
+                                    {excede && (
+                                      <Badge
+                                        variant="crit"
+                                        className="mt-0.5"
+                                        title="La cantidad supera el stock del lote"
+                                      >
+                                        Excede
+                                      </Badge>
+                                    )}
                                   </td>
                                   <td className="p-1 border">
                                     <input
@@ -664,7 +669,7 @@ export default function ControlItemsSection({
       )}
 
       {items.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-4 bg-gray-50 border border-line px-4 py-3 font-bold text-sm">
+        <div className="mt-4 flex flex-wrap items-center gap-4 bg-gray-50 border border-line px-4 py-3 font-bold text-sm rounded-sm">
           <span>TOTALES:</span>
           <span className="text-blue-800">{sumaCantidad} cajas</span>
           <span className="text-blue-800">{sumaTotalKg.toFixed(2)} kg</span>

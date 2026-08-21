@@ -12,7 +12,7 @@ export const Panel = ({
 
   return (
     <section
-      className={`border border-line bg-surface ${className}`.trim()}
+      className={`rounded-sm border border-line bg-surface ${className}`.trim()}
     >
       {(title || actions) && (
         <header className="flex min-h-9 items-center justify-between gap-3 border-b border-line px-3 py-1.5">

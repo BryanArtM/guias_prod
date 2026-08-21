@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@/services";
 import { useAuthStore } from "@/stores";
-import { Button, Input, Card, Alert } from "@/components/common";
+import { Alert, Button, Input, Panel } from "@/components/common";
 import imgGuia from "@/assets/Guias_Prod.png";
 
 const loginSchema = z.object({
@@ -48,7 +48,7 @@ export function Login() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
-      <Card className="max-w-md w-full" padding="xl">
+      <Panel className="w-full max-w-md" padding="lg">
         <div className="flex justify-center mb-6">
             <img src={imgGuia} alt="Guía"  className="w-20 h-20 text-white" />
         </div>
@@ -108,7 +108,7 @@ export function Login() {
             </Button>
           </p>
         </div>
-      </Card>
+      </Panel>
     </div>
   );
 }

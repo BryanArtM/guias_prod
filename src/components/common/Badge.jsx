@@ -19,20 +19,27 @@ const VARIANTES = {
     icono: XOctagon,
   },
   pendiente: {
-    clases: "border-steel bg-[#edf1f5] text-navy",
+    clases: "border-steel bg-navy-bg text-navy",
     icono: Clock,
   },
 };
 
-export const Badge = ({ children, variant = "neutral", icon, className = "" }) => {
+export const Badge = ({
+  children,
+  variant = "neutral",
+  icon,
+  className = "",
+  ...props
+}) => {
   const config = VARIANTES[variant] ?? VARIANTES.neutral;
   const Icon = icon === undefined ? config.icono : icon;
 
   return (
     <span
-      className={`inline-flex items-center gap-1 border px-1.5 py-0.5 text-xs font-medium tracking-[0.06em] uppercase ${config.clases} ${className}`.trim()}
+      className={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 text-xs font-medium tracking-[0.06em] uppercase ${config.clases} ${className}`.trim()}
+      {...props}
     >
-      {Icon && <Icon size={12} strokeWidth={2} className="shrink-0" />}
+      {Icon && <Icon size={12} className="shrink-0" />}
       {children}
     </span>
   );

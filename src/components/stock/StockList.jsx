@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  TableModular,
   TableModular as Table,
   TableHeader,
   TableBody,
@@ -7,13 +8,16 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Alert, Select, PageActions } from "@/components/common";
+import {
+  Button,
+  Alert,
+  Loading,
+  Select,
+  PageActions,
+} from "@/components/common";
 import { ChevronDown, ChevronRight, Download, RefreshCw } from "lucide-react";
 import { obtenerStockActual, obtenerStockPorLote } from "@/services";
 import { descargarCSV } from "@/components/reportes/shared";
-
-// Un lote se considera antiguo a partir de estos dias, para avisar de rotacion
-const DIAS_ALERTA_ANTIGUEDAD = 45;
 
 function diasDesde(fechaIso) {
   const inicio = new Date(`${fechaIso}T00:00:00`);
@@ -173,9 +177,7 @@ export default function StockList() {
 
   if (cargando) {
     return (
-      <div className="text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Loading />
     );
   }
 
@@ -187,7 +189,7 @@ export default function StockList() {
   return (
     <div>
       {alerta && (
-        <Alert type={alerta.tipo} className="mb-4">
+        <Alert variant={alerta.tipo} className="mb-4">
           {alerta.mensaje}
         </Alert>
       )}
@@ -215,7 +217,7 @@ export default function StockList() {
         </Button>
       </PageActions>
 
-      <div className="border border-line bg-surface p-4 mb-4">
+      <div className="border border-line bg-surface p-4 mb-4 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
             label="Filtrar por código"
@@ -279,7 +281,6 @@ export default function StockList() {
               const abierta = expandidas.has(item.variante_id);
               const masAntiguo = suyos[0];
               const dias = masAntiguo ? diasDesde(masAntiguo.fecha_ingreso) : null;
-              const esAntiguo = dias != null && dias >= DIAS_ALERTA_ANTIGUEDAD;
 
               return [
                 <TableRow
@@ -309,23 +310,13 @@ export default function StockList() {
                   </TableCell>
                   <TableCell>
                     {masAntiguo ? (
-                      <span
-                        className={
-                          esAntiguo ? "text-amber-700 font-medium" : undefined
-                        }
-                        title={
-                          esAntiguo
-                            ? "Lote con mucha antigüedad, conviene rotarlo"
-                            : undefined
-                        }
-                      >
+                      <span className="inline-flex items-center gap-2">
                         <span className="num">
                           {formatearFecha(masAntiguo.fecha_ingreso)}
                         </span>
                         {dias != null && (
-                          <span className="text-xs text-gray-500">
-                            {" "}
-                            ({dias} d)
+                          <span className="num text-xs text-ink-faint">
+                            {dias} d
                           </span>
                         )}
                       </span>
@@ -346,36 +337,34 @@ export default function StockList() {
                 abierta && suyos.length > 0 && (
                   <TableRow key={`${item.variante_id}-detalle`}>
                     <TableCell colSpan={6} className="bg-gray-50 p-0">
-                      <div className="px-6 py-3">
-                        <p className="text-xs font-semibold text-gray-600 uppercase mb-2">
+                      <div className="px-4 py-3">
+                        <p className="label-col mb-2">
                           Detalle por lote (del más antiguo al más reciente)
                         </p>
-                        <table className="w-full text-sm border-collapse">
-                          <thead>
-                            <tr className="text-xs uppercase text-gray-500">
-                              <th className="p-2 border text-left">
-                                Fecha Ingreso
-                              </th>
-                              <th className="p-2 border text-right">
+                        <TableModular className="table--bordered text-left">
+                          <TableHeader>
+                            <tr>
+                              <TableHead>Fecha Ingreso</TableHead>
+                              <TableHead className="text-right">
                                 Antigüedad
-                              </th>
-                              <th className="p-2 border text-right">
+                              </TableHead>
+                              <TableHead className="text-right">
                                 Ingresado
-                              </th>
-                              <th className="p-2 border text-right">Salido</th>
-                              <th className="p-2 border text-right">
+                              </TableHead>
+                              <TableHead className="text-right">
+                                Salido
+                              </TableHead>
+                              <TableHead className="text-right">
                                 Disponible
-                              </th>
-                              <th className="p-2 border text-right">
+                              </TableHead>
+                              <TableHead className="text-right">
                                 Peso Und.
-                              </th>
+                              </TableHead>
                             </tr>
-                          </thead>
+                          </TableHeader>
                           <tbody>
                             {suyos.map((lote) => {
                               const d = diasDesde(lote.fecha_ingreso);
-                              const viejo =
-                                d != null && d >= DIAS_ALERTA_ANTIGUEDAD;
                               return (
                                 <tr
                                   key={lote.fecha_ingreso}
@@ -384,11 +373,7 @@ export default function StockList() {
                                   <td className="p-2 border font-medium">
                                     {formatearFecha(lote.fecha_ingreso)}
                                   </td>
-                                  <td
-                                    className={`p-2 border text-right ${
-                                      viejo ? "text-amber-700 font-medium" : ""
-                                    }`}
-                                  >
+                                  <td className="p-2 border text-right">
                                     {d != null ? `${d} días` : "-"}
                                   </td>
                                   <td className="p-2 border text-right text-gray-600">
@@ -419,7 +404,7 @@ export default function StockList() {
                               );
                             })}
                           </tbody>
-                        </table>
+                        </TableModular>
                       </div>
                     </TableCell>
                   </TableRow>

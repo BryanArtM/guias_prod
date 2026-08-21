@@ -8,7 +8,7 @@
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background-color: rgb(15 36 57 / 0.45);
+    background-color: color-mix(in srgb, var(--color-navy) 45%, transparent);
     z-index: 1040;
     overflow-y: auto;
   }

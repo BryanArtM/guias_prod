@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/common";
+import { Alert, Badge, Button } from "@/components/common";
 import { Download } from "lucide-react";
 import { obtenerStockPorLote } from "@/services";
+import {
+  TableModular,
+  TableHeader,
+  TableHead,
+} from "@/components/common/Table";
 import {
   BarrasHorizontales,
   Cargando,
@@ -15,15 +20,23 @@ import {
   formatearNumero,
 } from "./shared";
 
-// Tramos de antiguedad. El color va de neutro a alerta para que el panorama
-// se lea de un vistazo.
+// Tramos de antiguedad. El estado va de conforme a critico para que el panorama
+// se lea de un vistazo, usando los colores semanticos del sistema.
 const TRAMOS = [
-  { etiqueta: "0 a 15 días", min: 0, max: 15, color: "#1e3a8a" },
-  { etiqueta: "16 a 30 días", min: 16, max: 30, color: "#2563eb" },
-  { etiqueta: "31 a 45 días", min: 31, max: 45, color: "#0891b2" },
-  { etiqueta: "46 a 60 días", min: 46, max: 60, color: "#d97706" },
-  { etiqueta: "Más de 60 días", min: 61, max: Infinity, color: "#b91c1c" },
+  { etiqueta: "0 a 15 días", min: 0, max: 15, estado: "ok" },
+  { etiqueta: "16 a 30 días", min: 16, max: 30, estado: "neutral" },
+  { etiqueta: "31 a 45 días", min: 31, max: 45, estado: "neutral" },
+  { etiqueta: "46 a 60 días", min: 46, max: 60, estado: "warn" },
+  { etiqueta: "Más de 60 días", min: 61, max: Infinity, estado: "crit" },
 ];
+
+// Muestra de color de la leyenda, alineada al estado del tramo
+const MUESTRA_POR_ESTADO = {
+  ok: "bg-ok",
+  neutral: "bg-steel",
+  warn: "bg-warn-line",
+  crit: "bg-crit",
+};
 
 const tramoDe = (dias) =>
   TRAMOS.find((t) => dias >= t.min && dias <= t.max) ?? TRAMOS[TRAMOS.length - 1];
@@ -112,9 +125,7 @@ export default function ReporteAntiguedad({ especieId }) {
   if (cargando) return <Cargando />;
   if (error) {
     return (
-      <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        {error}
-      </div>
+      <Alert variant="error">{error}</Alert>
     );
   }
   if (conStock.length === 0) {
@@ -180,7 +191,7 @@ export default function ReporteAntiguedad({ especieId }) {
         />
       </div>
 
-      <section className="bg-surface border border-line p-5 mb-6">
+      <section className="bg-surface border border-line p-5 mb-6 rounded-sm">
         <h3 className="label-col mb-3">
           Distribución por tramo de antigüedad
         </h3>
@@ -188,7 +199,7 @@ export default function ReporteAntiguedad({ especieId }) {
           datos={resumen.map((t) => ({
             etiqueta: t.etiqueta,
             valor: t.kg,
-            color: t.color,
+            estado: t.estado,
           }))}
           formatoValor={(v) => `${formatearNumero(v)} kg`}
         />
@@ -196,34 +207,33 @@ export default function ReporteAntiguedad({ especieId }) {
 
       <section className="mb-6">
         <div className="overflow-x-auto border border-line">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+          <TableModular className="text-left">
+            <TableHeader>
+              <tr>
+                <TableHead>
                   Tramo
-                </th>
-                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                </TableHead>
+                <TableHead className="text-right">
                   Lotes
-                </th>
-                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                </TableHead>
+                <TableHead className="text-right">
                   Cajas
-                </th>
-                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                </TableHead>
+                <TableHead className="text-right">
                   Kg
-                </th>
-                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                </TableHead>
+                <TableHead className="text-right">
                   % del total
-                </th>
+                </TableHead>
               </tr>
-            </thead>
+            </TableHeader>
             <tbody>
               {resumen.map((tramo) => (
                 <tr key={tramo.etiqueta} className="hover:bg-gray-50">
                   <td className="border-b border-line px-3 py-2">
                     <span className="inline-flex items-center gap-2">
                       <span
-                        className="inline-block w-3 h-3"
-                        style={{ backgroundColor: tramo.color }}
+                        className={`inline-block h-2.5 w-2.5 ${MUESTRA_POR_ESTADO[tramo.estado]}`}
                       />
                       {tramo.etiqueta}
                     </span>
@@ -260,7 +270,7 @@ export default function ReporteAntiguedad({ especieId }) {
                 <td className="px-3 py-2 text-right tabular-nums">100,0 %</td>
               </tr>
             </tfoot>
-          </table>
+          </TableModular>
         </div>
       </section>
 
@@ -269,29 +279,29 @@ export default function ReporteAntiguedad({ especieId }) {
           Lotes ordenados por antigüedad
         </h3>
         <div className="overflow-x-auto border border-line">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+          <TableModular className="text-left">
+            <TableHeader>
+              <tr>
+                <TableHead>
                   Variante
-                </th>
-                <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+                </TableHead>
+                <TableHead>
                   Fecha de lote
-                </th>
-                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                </TableHead>
+                <TableHead className="text-right">
                   Antigüedad
-                </th>
-                <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+                </TableHead>
+                <TableHead>
                   Tramo
-                </th>
-                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                </TableHead>
+                <TableHead className="text-right">
                   Cajas
-                </th>
-                <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                </TableHead>
+                <TableHead className="text-right">
                   Kg
-                </th>
+                </TableHead>
               </tr>
-            </thead>
+            </TableHeader>
             <tbody>
               {conStock.map((lote) => {
                 const tramo = tramoDe(lote.dias);
@@ -310,12 +320,7 @@ export default function ReporteAntiguedad({ especieId }) {
                       {lote.dias} días
                     </td>
                     <td className="border-b border-line px-3 py-2">
-                      <span
-                        className="inline-block px-2 py-0.5 text-xs font-medium text-white"
-                        style={{ backgroundColor: tramo.color }}
-                      >
-                        {tramo.etiqueta}
-                      </span>
+                      <Badge variant={tramo.estado}>{tramo.etiqueta}</Badge>
                     </td>
                     <td className="border-b border-line px-3 py-2 text-right tabular-nums">
                       {formatearEntero(lote.stock_cajas)}
@@ -327,7 +332,7 @@ export default function ReporteAntiguedad({ especieId }) {
                 );
               })}
             </tbody>
-          </table>
+          </TableModular>
         </div>
       </section>
     </div>

@@ -2,6 +2,7 @@
 // graficos simples en SVG (sin dependencias externas).
 import { invoke } from "@tauri-apps/api/core";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
+import { Loading, ProgressBar, StatCard } from "@/components/common";
 
 export const UNIDAD_KG = "kg";
 export const UNIDAD_CAJAS = "cajas";
@@ -87,13 +88,11 @@ export async function descargarCSV(nombre, encabezados, filas) {
 /** Encabezado de cada reporte: titulo, descripcion y acciones a la derecha */
 export function EncabezadoReporte({ titulo, descripcion, acciones }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-4 mb-5">
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-4 border-b border-line pb-2">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 tracking-tight">
-          {titulo}
-        </h2>
+        <h2 className="label-col">{titulo}</h2>
         {descripcion && (
-          <p className="text-sm text-gray-500 mt-1 max-w-2xl">{descripcion}</p>
+          <p className="mt-1 max-w-2xl text-xs text-ink-muted">{descripcion}</p>
         )}
       </div>
       {acciones && <div className="flex gap-2">{acciones}</div>}
@@ -101,110 +100,71 @@ export function EncabezadoReporte({ titulo, descripcion, acciones }) {
   );
 }
 
-/** Tarjeta de indicador para las cifras principales de cada reporte */
+const ESTADO_POR_TONO = {
+  neutro: "neutral",
+  positivo: "neutral",
+  alerta: "warn",
+  negativo: "crit",
+};
+
+/** Indicador de cifra principal. Envuelve StatCard para no duplicar el estilo. */
 export function Indicador({ etiqueta, valor, detalle, tono = "neutro" }) {
-  const tonos = {
-    neutro: "text-gray-900",
-    positivo: "text-blue-900",
-    alerta: "text-amber-700",
-    negativo: "text-red-700",
-  };
   return (
-    <div className="bg-surface border border-line px-4 py-3">
-      <p className="text-xs uppercase tracking-wide text-gray-500">
-        {etiqueta}
-      </p>
-      <p className={`text-2xl font-semibold mt-1 tabular-nums ${tonos[tono]}`}>
-        {valor}
-      </p>
-      {detalle && <p className="text-xs text-gray-500 mt-0.5">{detalle}</p>}
-    </div>
+    <StatCard
+      label={etiqueta}
+      value={valor}
+      nota={detalle}
+      estado={ESTADO_POR_TONO[tono] ?? "neutral"}
+    />
   );
 }
 
 export function PanelVacio({ mensaje }) {
   return (
-    <div className="text-center py-16 text-gray-500 border border-dashed border-line">
+    <div className="border border-dashed border-line px-3 py-10 text-center text-ink-muted">
       {mensaje}
     </div>
   );
 }
 
 export function Cargando() {
-  return (
-    <div className="text-center py-16">
-      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900" />
-    </div>
-  );
+  return <Loading />;
 }
 
 /**
- * Barras horizontales en SVG. Se usa para distribuciones donde importa
- * comparar magnitudes entre pocas categorias.
+ * Distribucion por categoria. Se apoya en ProgressBar para no reimplementar la
+ * barra ni su paleta; el estado semantico lo define quien pasa los datos.
  */
-export function BarrasHorizontales({ datos, formatoValor, altura = 28 }) {
+export function BarrasHorizontales({ datos, formatoValor }) {
   const maximo = Math.max(...datos.map((d) => d.valor), 0);
   if (maximo <= 0) {
     return <PanelVacio mensaje="Sin datos para graficar" />;
   }
 
-  const anchoEtiqueta = 150;
-  const anchoValor = 110;
-  const anchoBarra = 520;
-  const ancho = anchoEtiqueta + anchoBarra + anchoValor;
-  const alto = datos.length * altura + 10;
-
   return (
-    <svg
-      viewBox={`0 0 ${ancho} ${alto}`}
-      className="w-full"
-      style={{ maxHeight: alto }}
-      role="img"
-    >
-      {datos.map((dato, indice) => {
-        const y = indice * altura;
-        const largo = (dato.valor / maximo) * anchoBarra;
-        return (
-          <g key={dato.etiqueta}>
-            <text
-              x={anchoEtiqueta - 10}
-              y={y + altura / 2}
-              textAnchor="end"
-              dominantBaseline="middle"
-              className="fill-gray-700"
-              style={{ fontSize: 12 }}
-            >
-              {dato.etiqueta}
-            </text>
-            <rect
-              x={anchoEtiqueta}
-              y={y + 5}
-              width={anchoBarra}
-              height={altura - 12}
-              className="fill-gray-100"
-              rx="2"
-            />
-            <rect
-              x={anchoEtiqueta}
-              y={y + 5}
-              width={Math.max(largo, dato.valor > 0 ? 2 : 0)}
-              height={altura - 12}
-              fill={dato.color || "#1e3a8a"}
-              rx="2"
-            />
-            <text
-              x={anchoEtiqueta + anchoBarra + 10}
-              y={y + altura / 2}
-              dominantBaseline="middle"
-              className="fill-gray-900 tabular-nums"
-              style={{ fontSize: 12, fontWeight: 600 }}
-            >
+    <table className="table">
+      <tbody>
+        {datos.map((dato) => (
+          <tr
+            key={dato.etiqueta}
+            className="border-b border-line last:border-b-0"
+          >
+            <td className="w-48 px-2 py-1.5 text-ink-muted">{dato.etiqueta}</td>
+            <td className="px-2 py-1.5">
+              <ProgressBar
+                value={dato.valor}
+                max={maximo}
+                estado={dato.estado ?? "neutral"}
+                mostrarValor={false}
+              />
+            </td>
+            <td className="w-36 px-2 py-1.5 text-right font-medium">
               {formatoValor ? formatoValor(dato.valor) : dato.valor}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -248,7 +208,7 @@ export function GraficoSaldo({ puntos, formatoValor }) {
               x2={ancho - margen.derecha}
               y1={y(valor)}
               y2={y(valor)}
-              stroke="#e5e7eb"
+              className="stroke-line"
               strokeWidth="1"
             />
             <text
@@ -256,8 +216,7 @@ export function GraficoSaldo({ puntos, formatoValor }) {
               y={y(valor)}
               textAnchor="end"
               dominantBaseline="middle"
-              className="fill-gray-500 tabular-nums"
-              style={{ fontSize: 11 }}
+              className="fill-ink-faint text-xs tabular-nums"
             >
               {formatoValor ? formatoValor(valor) : Math.round(valor)}
             </text>
@@ -271,14 +230,14 @@ export function GraficoSaldo({ puntos, formatoValor }) {
           x2={ancho - margen.derecha}
           y1={y(0)}
           y2={y(0)}
-          stroke="#dc2626"
+          className="stroke-crit"
           strokeWidth="1"
           strokeDasharray="4 3"
         />
       )}
 
-      <path d={area} fill="#1e3a8a" fillOpacity="0.08" />
-      <path d={linea} fill="none" stroke="#1e3a8a" strokeWidth="2" />
+      <path d={area} className="fill-navy" fillOpacity="0.08" />
+      <path d={linea} fill="none" className="stroke-navy" strokeWidth="2" />
 
       {puntos.map((p, i) => (
         <circle
@@ -286,7 +245,7 @@ export function GraficoSaldo({ puntos, formatoValor }) {
           cx={x(i)}
           cy={y(p.valor)}
           r="3"
-          fill="#1e3a8a"
+          className="fill-navy"
         >
           <title>{`${p.etiqueta}: ${formatoValor ? formatoValor(p.valor) : p.valor}`}</title>
         </circle>
@@ -308,7 +267,7 @@ export function GraficoSaldo({ puntos, formatoValor }) {
               x2={x(i)}
               y1={margen.arriba + altoUtil}
               y2={margen.arriba + altoUtil + 4}
-              stroke="#9ca3af"
+              className="stroke-line"
               strokeWidth="1"
             />
             <text
@@ -316,8 +275,7 @@ export function GraficoSaldo({ puntos, formatoValor }) {
               y={margen.arriba + altoUtil + 8}
               textAnchor="end"
               transform={`rotate(-45 ${x(i)} ${margen.arriba + altoUtil + 8})`}
-              className="fill-gray-500"
-              style={{ fontSize: 10 }}
+              className="fill-ink-faint text-[10px]"
             >
               {puntos[i].etiqueta}
             </text>

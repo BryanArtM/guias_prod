@@ -90,7 +90,7 @@ export function EspeciesList() {
   };
 
   if (loading) {
-    return <Loading message="Cargando especies..." />;
+    return <Loading text="Cargando especies..." />;
   }
 
   return (
@@ -111,7 +111,7 @@ export function EspeciesList() {
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Tabla */}
-      <div className="border border-line bg-surface overflow-hidden">
+      <div className="border border-line bg-surface overflow-hidden rounded-sm">
         <Table>
           <TableHeader>
             <TableRow>

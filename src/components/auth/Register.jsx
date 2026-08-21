@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { authService } from "@/services";
 import { useAuthStore } from "@/stores";
 import { UserPlus } from "lucide-react";
-import { Button, Input, Card, Alert } from "@/components/common";
+import { Alert, Button, Input, Panel } from "@/components/common";
 
 const registerSchema = z
   .object({
@@ -59,10 +59,10 @@ export function Register() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
-      <Card className="max-w-md w-full" padding="xl">
+      <Panel className="w-full max-w-md" padding="lg">
         <div className="flex justify-center mb-6">
           <div className="flex h-12 w-12 items-center justify-center border border-line text-steel">
-            <UserPlus className="h-6 w-6" strokeWidth={1.75} />
+            <UserPlus className="h-6 w-6" />
           </div>
         </div>
 
@@ -142,7 +142,7 @@ export function Register() {
             </Button>
           </p>
         </div>
-      </Card>
+      </Panel>
     </div>
   );
 }

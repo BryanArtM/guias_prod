@@ -46,7 +46,7 @@ const NavItem = ({ item, activo }) => {
           : "border-l-transparent text-navy-text hover:bg-navy-hover hover:text-white"
       }`}
     >
-      <Icon size={16} strokeWidth={1.75} className="shrink-0" />
+      <Icon size={16} className="shrink-0" />
       <span className="truncate">{item.label}</span>
     </Link>
   );
@@ -78,10 +78,10 @@ export const Layout = ({ children }) => {
   return (
     <PageActionsProvider>
       <div className="flex h-screen overflow-hidden bg-canvas">
-        <aside className="flex w-[228px] shrink-0 flex-col border-r border-navy-line bg-navy">
+        <aside className="flex w-[228px] shrink-0 flex-col border-r border-navy-line bg-navy rounded-sm">
           <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-navy-line px-3.5">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-steel text-navy-text">
-              <Ship size={16} strokeWidth={1.75} />
+              <Ship size={16} />
             </span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold tracking-tight text-white">
@@ -115,7 +115,7 @@ export const Layout = ({ children }) => {
           <div className="shrink-0 border-t border-navy-line px-3.5 py-3">
             <div className="mb-3 flex items-center gap-2.5">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-steel text-navy-text">
-                <User size={15} strokeWidth={1.75} />
+                <User size={15} />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-white">
@@ -131,7 +131,7 @@ export const Layout = ({ children }) => {
               onClick={handleLogout}
               className="flex w-full items-center justify-center gap-2 border border-steel px-3 py-1.5 text-sm text-navy-text transition-colors hover:bg-navy-hover hover:text-white"
             >
-              <LogOut size={14} strokeWidth={1.75} />
+              <LogOut size={14} />
               Cerrar sesión
             </button>
             <p className="num mt-3 text-center text-xs text-navy-label">
@@ -141,7 +141,7 @@ export const Layout = ({ children }) => {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-surface px-5">
+          <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-surface px-5 rounded-sm">
             <h1 className="truncate text-base font-semibold text-ink">
               {resolverTituloPagina(location.pathname)}
             </h1>

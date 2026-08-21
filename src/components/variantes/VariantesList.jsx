@@ -7,7 +7,14 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Modal, Alert, Select, PageActions } from "@/components/common";
+import {
+  Button,
+  Modal,
+  Alert,
+  Loading,
+  Select,
+  PageActions,
+} from "@/components/common";
 import VarianteForm from "./VarianteForm";
 import { Edit2, Trash2, Plus, Filter } from "lucide-react";
 import {
@@ -154,9 +161,7 @@ export default function VariantesList({
 
   if (cargando) {
     return (
-      <div className="text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Loading />
     );
   }
 
@@ -207,7 +212,7 @@ export default function VariantesList({
       </PageActions>
 
       {/* Filtros */}
-      <div className="border border-line bg-surface p-4 mb-4">
+      <div className="border border-line bg-surface p-4 mb-4 rounded-sm">
         <div className="flex items-center gap-4">
           <Filter className="w-5 h-5 text-gray-600" />
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -262,7 +267,7 @@ export default function VariantesList({
             : "No se encontraron variantes con los filtros aplicados"}
         </div>
       ) : (
-        <div className="border border-line bg-surface overflow-hidden">
+        <div className="border border-line bg-surface overflow-hidden rounded-sm">
           <Table>
             <TableHeader>
               <TableRow>

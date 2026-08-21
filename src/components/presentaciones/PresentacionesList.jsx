@@ -123,7 +123,7 @@ export function PresentacionesList({ especies = [] }) {
   };
 
   if (loading) {
-    return <Loading message="Cargando presentaciones..." />;
+    return <Loading text="Cargando presentaciones..." />;
   }
 
   const especiesOptions = especies.map((especie) => ({
@@ -149,7 +149,7 @@ export function PresentacionesList({ especies = [] }) {
       {success && <Alert variant="success">{success}</Alert>}
 
       {/* Filtros */}
-      <div className="border border-line bg-surface p-4">
+      <div className="border border-line bg-surface p-4 rounded-sm">
         <div className="flex items-center gap-4">
           <Filter className="w-5 h-5 text-gray-500" />
           <div className="flex-1">
@@ -177,7 +177,7 @@ export function PresentacionesList({ especies = [] }) {
       </div>
 
       {/* Tabla */}
-      <div className="border border-line bg-surface overflow-hidden">
+      <div className="border border-line bg-surface overflow-hidden rounded-sm">
         <Table>
           <TableHeader>
             <TableRow>

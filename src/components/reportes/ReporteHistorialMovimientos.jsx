@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Select } from "@/components/common";
+import { Alert, Button, Select } from "@/components/common";
 import { ArrowDownLeft, ArrowUpRight, Download } from "lucide-react";
 import { obtenerMovimientos, obtenerVariantesCompletas } from "@/services";
+import {
+  TableModular,
+  TableHeader,
+  TableHead,
+} from "@/components/common/Table";
 import {
   Cargando,
   EncabezadoReporte,
@@ -189,7 +194,7 @@ export default function ReporteHistorialMovimientos({
         }
       />
 
-      <div className="bg-surface border border-line p-4 mb-6 max-w-xl">
+      <div className="bg-surface border border-line p-4 mb-6 max-w-xl rounded-sm">
         <Select
           label="Variante a consultar"
           value={varianteId}
@@ -205,9 +210,9 @@ export default function ReporteHistorialMovimientos({
       </div>
 
       {error && (
-        <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mb-4">
+        <Alert variant="error" className="mb-4">
           {error}
-        </div>
+        </Alert>
       )}
 
       {avisoExport && (
@@ -253,7 +258,7 @@ export default function ReporteHistorialMovimientos({
             />
           </div>
 
-          <section className="bg-surface border border-line p-5 mb-6">
+          <section className="bg-surface border border-line p-5 mb-6 rounded-sm">
             <h3 className="label-col mb-3">
               Evolución del saldo — {varianteElegida?.codigo_completo}
             </h3>
@@ -267,35 +272,35 @@ export default function ReporteHistorialMovimientos({
           </section>
 
           <div className="overflow-x-auto border border-line">
-            <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+            <TableModular className="text-left">
+              <TableHeader>
+                <tr>
+                  <TableHead>
                     Fecha
-                  </th>
-                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead>
                     Movimiento
-                  </th>
-                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead>
                     Documento
-                  </th>
-                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead>
                     Cliente
-                  </th>
-                  <th className="border-b border-line px-3 py-2 text-left font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead>
                     Lote
-                  </th>
-                  <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="text-right">
                     Entrada
-                  </th>
-                  <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="text-right">
                     Salida
-                  </th>
-                  <th className="border-b border-line px-3 py-2 text-right font-semibold text-gray-700">
+                  </TableHead>
+                  <TableHead className="text-right">
                     Saldo
-                  </th>
+                  </TableHead>
                 </tr>
-              </thead>
+              </TableHeader>
               <tbody>
                 <tr className="bg-gray-50 text-gray-600">
                   <td className="border-b border-line px-3 py-2" colSpan={7}>
@@ -318,7 +323,7 @@ export default function ReporteHistorialMovimientos({
                         className={`inline-flex items-center gap-1 text-xs font-medium ${
                           linea.tipo === "INGRESO"
                             ? "text-blue-800"
-                            : "text-gray-700"
+                            : "text-ink-muted"
                         }`}
                       >
                         {linea.tipo === "INGRESO" ? (
@@ -351,7 +356,7 @@ export default function ReporteHistorialMovimientos({
                     </td>
                     <td
                       className={`border-b border-line px-3 py-2 text-right tabular-nums font-semibold ${
-                        linea.saldo < 0 ? "text-red-700" : "text-gray-900"
+                        linea.saldo < 0 ? "text-crit" : "text-ink"
                       }`}
                     >
                       {formatearCelda(linea.saldo, unidad)}
@@ -359,7 +364,7 @@ export default function ReporteHistorialMovimientos({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </TableModular>
           </div>
         </>
       )}

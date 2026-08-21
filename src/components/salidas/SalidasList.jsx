@@ -8,7 +8,14 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Badge, Button, Alert, Select, Pagination } from "@/components/common";
+import {
+  Badge,
+  Button,
+  Alert,
+  Loading,
+  Select,
+  Pagination,
+} from "@/components/common";
 import { Trash2, Filter, Pencil, Eye } from "lucide-react";
 import { obtenerSalidasPaginadas, contarSalidas } from "@/services";
 import { controlService } from "@/services";
@@ -80,21 +87,19 @@ export default function SalidasList({
 
   if (cargando) {
     return (
-      <div className="text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Loading />
     );
   }
 
   return (
     <div>
       {alerta && (
-        <Alert type={alerta.tipo} className="mb-4">
+        <Alert variant={alerta.tipo} className="mb-4">
           {alerta.mensaje}
         </Alert>
       )}
 
-      <div className="border border-line bg-surface p-4 mb-4">
+      <div className="border border-line bg-surface p-4 mb-4 rounded-sm">
         <div className="flex items-center gap-4">
           <Filter className="w-5 h-5 text-gray-600" />
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -156,7 +161,7 @@ export default function SalidasList({
         </div>
       ) : (
         <>
-          <div className="border border-line bg-surface overflow-hidden">
+          <div className="border border-line bg-surface overflow-hidden rounded-sm">
             <Table>
               <TableHeader>
                 <TableRow>

@@ -17,7 +17,7 @@ export const StatCard = ({
   className = "",
 }) => (
   <div
-    className={`flex items-start justify-between gap-3 border border-line bg-surface px-3 py-2.5 ${className}`.trim()}
+    className={`flex items-start justify-between gap-3 rounded-sm border border-line bg-surface px-3 py-2.5 ${className}`.trim()}
   >
     <div className="min-w-0">
       <p className="label-col truncate">{label}</p>
@@ -31,7 +31,7 @@ export const StatCard = ({
     </div>
     {Icon && (
       <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-line text-steel">
-        <Icon size={16} strokeWidth={1.75} />
+        <Icon size={16} />
       </span>
     )}
   </div>

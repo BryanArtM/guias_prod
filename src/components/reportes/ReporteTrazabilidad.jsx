@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Input, Select } from "@/components/common";
+import { Alert, Input, Select } from "@/components/common";
 import { Anchor, Package, Ship, Truck, Users } from "lucide-react";
 import { obtenerMovimientos, partesService } from "@/services";
+import {
+  TableModular,
+  TableHeader,
+  TableHead,
+} from "@/components/common/Table";
 import {
   Cargando,
   EncabezadoReporte,
@@ -31,32 +36,28 @@ function DiagramaFlujo({ origen, lote, destinos }) {
         y={yLote}
         width={anchoCaja}
         height="80"
-        rx="6"
-        className="fill-white"
-        stroke="#cbd5e1"
+        rx="2"
+        className="fill-surface stroke-line"
         strokeWidth="1.5"
       />
       <text
         x={xOrigen + 14}
         y={yLote + 22}
-        className="fill-gray-500"
-        style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}
+        className="label-col fill-ink-faint"
       >
         Origen
       </text>
       <text
         x={xOrigen + 14}
         y={yLote + 43}
-        className="fill-gray-900"
-        style={{ fontSize: 13, fontWeight: 600 }}
+        className="fill-ink text-sm font-semibold"
       >
         {origen?.codigo ?? "Sin documento"}
       </text>
       <text
         x={xOrigen + 14}
         y={yLote + 62}
-        className="fill-gray-500"
-        style={{ fontSize: 11 }}
+        className="fill-ink-muted text-xs"
       >
         {origen?.embarcaciones ?? 0} embarcación
         {origen?.embarcaciones === 1 ? "" : "es"}
@@ -69,7 +70,7 @@ function DiagramaFlujo({ origen, lote, destinos }) {
         y1={yLote + 40}
         x2={xLote - 8}
         y2={yLote + 40}
-        stroke="#94a3b8"
+        className="stroke-steel"
         strokeWidth="1.5"
         markerEnd="url(#punta)"
       />
@@ -80,22 +81,20 @@ function DiagramaFlujo({ origen, lote, destinos }) {
         y={yLote}
         width={anchoCaja}
         height="80"
-        rx="6"
-        fill="#1e3a8a"
+        rx="2"
+        className="fill-navy"
       />
       <text
         x={xLote + 14}
         y={yLote + 22}
-        fill="#bfdbfe"
-        style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}
+        className="label-col fill-navy-label"
       >
         Lote
       </text>
       <text
         x={xLote + 14}
         y={yLote + 43}
-        fill="#ffffff"
-        style={{ fontSize: 12, fontWeight: 600 }}
+        className="fill-surface text-sm font-semibold"
       >
         {lote.codigo_completo.length > 26
           ? `${lote.codigo_completo.slice(0, 26)}…`
@@ -104,8 +103,7 @@ function DiagramaFlujo({ origen, lote, destinos }) {
       <text
         x={xLote + 14}
         y={yLote + 62}
-        fill="#bfdbfe"
-        style={{ fontSize: 11 }}
+        className="fill-navy-label text-xs"
       >
         {formatearFecha(lote.fecha_lote)} · {formatearEntero(lote.cajas)} cajas
       </text>
@@ -118,15 +116,14 @@ function DiagramaFlujo({ origen, lote, destinos }) {
             y1={yLote + 40}
             x2={xDestino - 8}
             y2={yLote + 40}
-            stroke="#cbd5e1"
+            className="stroke-line"
             strokeWidth="1.5"
             strokeDasharray="4 3"
           />
           <text
             x={xDestino}
             y={yLote + 44}
-            className="fill-gray-400"
-            style={{ fontSize: 12, fontStyle: "italic" }}
+            className="fill-ink-faint text-sm italic"
           >
             Sin despachos registrados
           </text>
@@ -139,7 +136,7 @@ function DiagramaFlujo({ origen, lote, destinos }) {
               <path
                 d={`M ${xLote + anchoCaja} ${yLote + 40} C ${xLote + anchoCaja + 50} ${yLote + 40}, ${xDestino - 50} ${y + 20}, ${xDestino - 8} ${y + 20}`}
                 fill="none"
-                stroke="#94a3b8"
+                className="stroke-steel"
                 strokeWidth="1.5"
                 markerEnd="url(#punta)"
               />
@@ -148,24 +145,21 @@ function DiagramaFlujo({ origen, lote, destinos }) {
                 y={y}
                 width={ancho - xDestino - 20}
                 height="40"
-                rx="5"
-                className="fill-white"
-                stroke="#cbd5e1"
+                rx="2"
+                className="fill-surface stroke-line"
                 strokeWidth="1.5"
               />
               <text
                 x={xDestino + 12}
                 y={y + 17}
-                className="fill-gray-900"
-                style={{ fontSize: 12, fontWeight: 600 }}
+                className="fill-ink text-sm font-semibold"
               >
                 {destino.cliente ?? "Sin cliente"}
               </text>
               <text
                 x={xDestino + 12}
                 y={y + 32}
-                className="fill-gray-500"
-                style={{ fontSize: 10 }}
+                className="fill-ink-muted text-[10px]"
               >
                 {destino.documento_codigo} · {formatearFecha(destino.fecha)} ·{" "}
                 {formatearEntero(destino.cajas)} cajas
@@ -184,7 +178,7 @@ function DiagramaFlujo({ origen, lote, destinos }) {
           refY="4"
           orient="auto"
         >
-          <path d="M 0 0 L 8 4 L 0 8 z" fill="#94a3b8" />
+          <path d="M 0 0 L 8 4 L 0 8 z" className="fill-steel" />
         </marker>
       </defs>
     </svg>
@@ -297,9 +291,7 @@ export default function ReporteTrazabilidad({ especieId }) {
   if (cargando) return <Cargando />;
   if (error) {
     return (
-      <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        {error}
-      </div>
+      <Alert variant="error">{error}</Alert>
     );
   }
 
@@ -315,7 +307,7 @@ export default function ReporteTrazabilidad({ especieId }) {
         descripcion="Recorrido completo de una partida: de qué documento y embarcación proviene, y a qué clientes se despachó."
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-surface border border-line p-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-surface border border-line p-4 mb-6 rounded-sm">
         <Input
           label="Buscar por código de trazabilidad o variante"
           value={busquedaCodigo}
@@ -364,7 +356,7 @@ export default function ReporteTrazabilidad({ especieId }) {
             />
           </div>
 
-          <section className="bg-surface border border-line p-5 mb-6">
+          <section className="bg-surface border border-line p-5 mb-6 rounded-sm">
             <h3 className="label-col mb-3">
               Recorrido del lote
             </h3>
@@ -380,7 +372,7 @@ export default function ReporteTrazabilidad({ especieId }) {
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <section className="bg-surface border border-line p-5">
+            <section className="bg-surface border border-line p-5 rounded-sm">
               <h3 className="label-col mb-3 flex items-center gap-2">
                 <Package className="w-4 h-4 text-gray-500" />
                 Origen
@@ -438,7 +430,7 @@ export default function ReporteTrazabilidad({ especieId }) {
                                 </span>
                               )}
                             </span>
-                            <span className="tabular-nums text-gray-700">
+                            <span className="tabular-nums text-ink-muted">
                               {formatearNumero(e.peso_total_kg)} kg
                             </span>
                           </li>
@@ -456,7 +448,7 @@ export default function ReporteTrazabilidad({ especieId }) {
                         {detalleOrigen.transportes.map((t, i) => (
                           <li
                             key={i}
-                            className="text-sm bg-gray-50 px-2 py-1.5 text-gray-700"
+                            className="bg-gray-50 px-2 py-1.5 text-sm text-ink-muted"
                           >
                             Guía {t.num_guia ?? "-"} · Carro {t.num_carro ?? "-"} ·
                             Placa {t.placa ?? "-"}
@@ -473,7 +465,7 @@ export default function ReporteTrazabilidad({ especieId }) {
               )}
             </section>
 
-            <section className="bg-surface border border-line p-5">
+            <section className="bg-surface border border-line p-5 rounded-sm">
               <h3 className="label-col mb-3 flex items-center gap-2">
                 <Users className="w-4 h-4 text-gray-500" />
                 Destinos
@@ -483,26 +475,26 @@ export default function ReporteTrazabilidad({ especieId }) {
                   Este lote todavía no fue despachado
                 </p>
               ) : (
-                <table className="w-full text-sm border-collapse">
-                  <thead>
+                <TableModular className="text-left">
+                  <TableHeader>
                     <tr className="text-xs uppercase text-gray-500">
-                      <th className="text-left pb-2 border-b border-line">
+                      <TableHead>
                         Fecha
-                      </th>
-                      <th className="text-left pb-2 border-b border-line">
+                      </TableHead>
+                      <TableHead>
                         Documento
-                      </th>
-                      <th className="text-left pb-2 border-b border-line">
+                      </TableHead>
+                      <TableHead>
                         Cliente
-                      </th>
-                      <th className="text-right pb-2 border-b border-line">
+                      </TableHead>
+                      <TableHead className="text-right">
                         Cajas
-                      </th>
-                      <th className="text-right pb-2 border-b border-line">
+                      </TableHead>
+                      <TableHead className="text-right">
                         Kg
-                      </th>
+                      </TableHead>
                     </tr>
-                  </thead>
+                  </TableHeader>
                   <tbody>
                     {destinos.map((d, i) => (
                       <tr key={i} className="border-b border-line">
@@ -512,7 +504,7 @@ export default function ReporteTrazabilidad({ especieId }) {
                         <td className="py-2 font-mono text-xs">
                           {d.documento_codigo}
                         </td>
-                        <td className="py-2 text-gray-700">{d.cliente ?? "-"}</td>
+                        <td className="py-2 text-ink-muted">{d.cliente ?? "-"}</td>
                         <td className="py-2 text-right tabular-nums">
                           {formatearEntero(d.cajas)}
                         </td>
@@ -522,7 +514,7 @@ export default function ReporteTrazabilidad({ especieId }) {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </TableModular>
               )}
 
               {lote.codigos_trazabilidad.size > 0 && (

@@ -144,7 +144,7 @@ export default function CatalogoManager({
   return (
     <div>
       {alerta && (
-        <Alert type={alerta.tipo} className="mb-4">
+        <Alert variant={alerta.tipo} className="mb-4">
           {alerta.mensaje}
         </Alert>
       )}
@@ -165,7 +165,7 @@ export default function CatalogoManager({
           No hay {titulo.toLowerCase()} registrados
         </div>
       ) : (
-        <div className="border border-line bg-surface overflow-hidden">
+        <div className="border border-line bg-surface overflow-hidden rounded-sm">
           <Table>
             <TableHeader>
               <TableRow>

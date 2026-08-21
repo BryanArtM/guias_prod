@@ -371,7 +371,7 @@ export default function PackedProductSection({
   );
 
   return (
-    <div className="mb-4 border border-line bg-surface p-3">
+    <div className="mb-4 border border-line bg-surface p-3 rounded-sm">
       <h2 className="label-col mb-3 border-b border-line pb-1.5">
         Producto empacado
       </h2>
@@ -676,10 +676,10 @@ export default function PackedProductSection({
                                   }
                                 />
                               </td>
-                              <td className="p-2 border font-semibold text-blue-600 bg-blue-50/30">
+                              <td className="num p-2 border text-right font-medium">
                                 {p.peso_total_neto_kg?.toFixed(2)}
                               </td>
-                              <td className="p-2 border font-semibold text-green-600 bg-green-50/30">
+                              <td className="num p-2 border text-right font-medium">
                                 {p.rendimiento?.toFixed(2)}%
                               </td>
                               <td className="p-2 border text-center">
@@ -718,11 +718,24 @@ export default function PackedProductSection({
       )}
 
       {productos.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-4 bg-gray-50 border border-line px-4 py-3 font-bold text-sm">
-          <span>TOTALES:</span>
-          <span className="text-blue-800">{sumas.cajas} cajas</span>
-          <span className="text-blue-800">{sumas.pesoNeto.toFixed(2)} kg</span>
-          <span className="text-green-800">{sumas.rendimiento.toFixed(2)}%</span>
+        <div className="mt-4 flex flex-wrap items-center gap-6 border border-line bg-gray-50 px-3 py-2 rounded-sm">
+          <span className="label-col">Totales</span>
+          <span className="flex items-baseline gap-1.5">
+            <span className="label-col">Cajas</span>
+            <span className="num font-medium">{sumas.cajas}</span>
+          </span>
+          <span className="flex items-baseline gap-1.5">
+            <span className="label-col">Peso neto</span>
+            <span className="num font-medium">
+              {sumas.pesoNeto.toFixed(2)} kg
+            </span>
+          </span>
+          <span className="flex items-baseline gap-1.5">
+            <span className="label-col">Rendimiento</span>
+            <span className="num font-medium">
+              {sumas.rendimiento.toFixed(2)}%
+            </span>
+          </span>
         </div>
       )}
 

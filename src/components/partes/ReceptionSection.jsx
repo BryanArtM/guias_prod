@@ -76,7 +76,7 @@ export default function ReceptionSection({
   const pesoParaFiletear = totalPesoRecepcion - (parseFloat(entera) || 0);
 
   return (
-    <div className="mb-4 border border-line bg-surface p-3">
+    <div className="mb-4 border border-line bg-surface p-3 rounded-sm">
       <h2 className="label-col mb-3 border-b border-line pb-1.5">
         Recepción de materia prima
       </h2>
@@ -100,7 +100,7 @@ export default function ReceptionSection({
         {transportes.map((t, tIndex) => (
           <div
             key={t.id ?? tIndex}
-            className="p-4 bg-gray-50 border border-line"
+            className="p-4 bg-gray-50 border border-line rounded-sm"
           >
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold text-blue-700">
@@ -147,7 +147,7 @@ export default function ReceptionSection({
               {t.embarcaciones.map((e, eIndex) => (
                 <div
                   key={e.id ?? eIndex}
-                  className="flex flex-wrap items-end gap-3 p-3 bg-surface border border-line"
+                  className="flex flex-wrap items-end gap-3 p-3 bg-surface border border-line rounded-sm"
                 >
                   <div className="flex-1 min-w-[200px]">
                     <Input

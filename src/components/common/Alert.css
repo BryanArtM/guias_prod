@@ -33,7 +33,7 @@
   }
 
   .alert--info {
-    background-color: #edf1f5;
+    background-color: var(--color-navy-bg);
     border-color: var(--color-steel);
     color: var(--color-navy);
   }
@@ -82,7 +82,7 @@
   }
 
   .alert__close:hover {
-    background-color: rgb(15 36 57 / 0.08);
+    background-color: color-mix(in srgb, var(--color-navy) 8%, transparent);
   }
 
   .alert__close:focus-visible {

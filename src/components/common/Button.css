@@ -57,7 +57,7 @@
     border-color: var(--color-navy-hover);
   }
   .btn--primary:active:not(.btn--disabled) {
-    background-color: #0a1929;
+    background-color: var(--color-navy-active);
   }
 
   .btn--secondary {
@@ -66,10 +66,10 @@
     color: var(--color-navy);
   }
   .btn--secondary:hover:not(.btn--disabled) {
-    background-color: #edf1f5;
+    background-color: var(--color-navy-bg);
   }
   .btn--secondary:active:not(.btn--disabled) {
-    background-color: #dce4ec;
+    background-color: var(--color-blue-100);
   }
 
   .btn--ghost {
@@ -88,8 +88,8 @@
     color: #ffffff;
   }
   .btn--success:hover:not(.btn--disabled) {
-    background-color: #0b5a51;
-    border-color: #0b5a51;
+    background-color: var(--color-ok-hover);
+    border-color: var(--color-ok-hover);
   }
 
   .btn--danger {
@@ -98,8 +98,8 @@
     color: #ffffff;
   }
   .btn--danger:hover:not(.btn--disabled) {
-    background-color: #871f1f;
-    border-color: #871f1f;
+    background-color: var(--color-crit-hover);
+    border-color: var(--color-crit-hover);
   }
 
   .btn--warning {
@@ -118,8 +118,8 @@
     color: #ffffff;
   }
   .btn--info:hover:not(.btn--disabled) {
-    background-color: #35506a;
-    border-color: #35506a;
+    background-color: var(--color-steel-hover);
+    border-color: var(--color-steel-hover);
   }
 
   /* ========== ESTADOS ========== */

@@ -275,7 +275,7 @@ export default function ParteProduccionForm({
           />
         </div>
 
-        <div className="flex flex-col border border-line bg-surface p-3">
+        <div className="flex flex-col border border-line bg-surface p-3 rounded-sm">
           <h2 className="label-col mb-3 border-b border-line pb-1.5">
             Observaciones
           </h2>

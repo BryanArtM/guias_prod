@@ -8,7 +8,7 @@ export default function ControlHeaderSection({
   errors = {},
 }) {
   return (
-    <div className="mb-4 border border-line bg-surface p-3">
+    <div className="mb-4 border border-line bg-surface p-3 rounded-sm">
       <div className="mb-3 flex items-center justify-between gap-4 border-b border-line pb-1.5">
         <h2 className="label-col">
           Control de salida de cámara y/o despacho
