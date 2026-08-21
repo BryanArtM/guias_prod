@@ -17,6 +17,7 @@ import { useAuthStore } from "@/stores";
 export default function ParteProduccionForm({
   tipo,
   onSubmit,
+  onCancel,
   initialData = null,
 }) {
   const { user } = useAuthStore();
@@ -205,6 +206,17 @@ export default function ParteProduccionForm({
                 {formData.username || user?.username || ""}
               </span>
             </p>
+            {onCancel && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onCancel}
+                className="border-steel bg-transparent text-navy-text hover:bg-navy-hover hover:text-white"
+              >
+                Cancelar
+              </Button>
+            )}
             <Button type="submit" variant="secondary" size="sm">
               Guardar Documento
             </Button>

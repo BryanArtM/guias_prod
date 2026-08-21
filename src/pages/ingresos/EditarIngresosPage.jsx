@@ -42,6 +42,7 @@ export default function EditarIngresosPage() {
       tipo={initialData?.tipo_documento_id}
       initialData={initialData}
       onSubmit={handleSubmit}
+      onCancel={() => navigate(`/ingresos/${id}`)}
     />
   );
 }
