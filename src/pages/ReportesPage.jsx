@@ -60,7 +60,7 @@ export default function ReportesPage() {
   return (
     <div className="px-5 py-4">
       {/* Filtros comunes */}
-      <div className="border border-line bg-surface px-3 py-3">
+      <div className="border border-line bg-surface px-3 py-3 rounded-sm">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div>
             <label className="label-col mb-1 block">Desde</label>
@@ -124,7 +124,7 @@ export default function ReportesPage() {
                   activo ? "text-navy" : "text-ink-muted"
                 }`}
               >
-                <Icono size={14} strokeWidth={1.75} />
+                <Icono size={14} />
                 {r.nombre}
               </span>
               <span className="mt-0.5 block text-xs text-ink-faint normal-case">
@@ -135,7 +135,7 @@ export default function ReportesPage() {
         })}
       </nav>
 
-      <div className="border-x border-b border-line bg-surface px-3 py-3">
+      <div className="border-x border-b border-line bg-surface px-3 py-3 rounded-sm">
         {reporteActivo === "movimiento" && (
           <ReporteMovimientoDiario
             desde={desde}

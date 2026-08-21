@@ -28,7 +28,7 @@ export function PresentacionesPage() {
   if (loading) {
     return (
       <div className="px-5 py-4">
-        <Loading message="Cargando datos..." />
+        <Loading text="Cargando datos..." />
       </div>
     );
   }

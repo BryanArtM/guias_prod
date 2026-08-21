@@ -107,7 +107,7 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return <Loading mensaje="Cargando estadísticas..." />;
+    return <Loading text="Cargando estadísticas..." />;
   }
 
   // El KPI mas alto fija la escala de las barras del ranking
@@ -157,12 +157,12 @@ export default function DashboardPage() {
 
       <Panel
         title="Top 10 variantes con mayor stock"
-        actions={<BarChart3 size={15} strokeWidth={1.75} className="text-steel" />}
+        actions={<BarChart3 size={15} className="text-steel" />}
         padding="none"
         className="mb-4"
       >
         {stats.top10Variantes.length > 0 ? (
-          <table className="w-full">
+          <table className="table">
             <tbody>
               {stats.top10Variantes.map((variante, indice) => (
                 <tr
@@ -228,7 +228,7 @@ function MovimientosRecientes({ movimientos, obtenerCodigo, vacio }) {
   }
 
   return (
-    <table className="w-full">
+    <table className="table">
       <tbody>
         {movimientos.map((movimiento) => (
           <tr key={movimiento.id} className="border-b border-line last:border-b-0">

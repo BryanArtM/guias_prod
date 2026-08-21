@@ -35,7 +35,7 @@ export default function EditarIngresosPage() {
   };
 
   if (cargando) return <Loading />;
-  if (error) return <Alert type="error">{error}</Alert>;
+  if (error) return <Alert variant="error">{error}</Alert>;
 
   return (
     <ParteProduccionForm

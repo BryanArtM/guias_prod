@@ -19,12 +19,19 @@
 
   --color-ok: #0d6e63;
   --color-ok-bg: #e2f3f1;
+  --color-ok-hover: #0b5a51;
   --color-warn: #9a5b00;
   --color-warn-bg: #fcebd1;
   --color-warn-line: #b45309;
   --color-crit: #a32626;
   --color-crit-bg: #f8dede;
+  --color-crit-hover: #871f1f;
   --color-focus: #2f6690;
+
+  /* Estados de interaccion de la familia navy */
+  --color-navy-bg: #edf1f5;
+  --color-navy-active: #0a1929;
+  --color-steel-hover: #35506a;
 
   /* ---------- Neutros ---------- */
   --color-gray-50: #f7f8f9;
@@ -214,6 +221,13 @@
   [disabled] {
     color: var(--color-ink-faint);
     cursor: not-allowed;
+  }
+
+  /* Un solo grosor de trazo en toda la iconografia. La regla le gana al atributo
+     stroke-width que Lucide escribe en el SVG, asi que no hace falta pasar la
+     prop en cada icono. */
+  .lucide {
+    stroke-width: 1.75;
   }
 }
 

@@ -8,21 +8,17 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Alert, Card } from "@/components/common";
+import {
+  Alert,
+  Button,
+  Campo,
+  Loading,
+  PageActions,
+  Panel,
+} from "@/components/common";
 import { ArrowLeft, Pencil, Package } from "lucide-react";
 import { PrintButtonSalida } from "@/components/salidas/ImpresionControlSalida";
 import { controlService } from "@/services";
-
-function Campo({ etiqueta, valor, className = "" }) {
-  return (
-    <div className={className}>
-      <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">
-        {etiqueta}
-      </p>
-      <p className="text-sm text-gray-800 font-medium">{valor ?? "-"}</p>
-    </div>
-  );
-}
 
 export default function SalidaDetallePage() {
   const { id } = useParams();
@@ -48,16 +44,14 @@ export default function SalidaDetallePage() {
 
   if (cargando) {
     return (
-      <div className="text-center py-16">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-      </div>
+      <Loading />
     );
   }
 
   if (error) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <Alert type="error">{error}</Alert>
+        <Alert variant="error">{error}</Alert>
         <Button
           variant="secondary"
           onClick={() => navigate(-1)}
@@ -88,40 +82,30 @@ export default function SalidaDetallePage() {
   } = salida;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
-            title="Volver"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              Control de Salida
-              {numero_control && (
-                <span className="ml-2 text-blue-600">#{numero_control}</span>
-              )}
-            </h1>
-            <p className="text-sm text-gray-500">{fecha}</p>
-          </div>
-        </div>
-        <button
+    <div className="space-y-4 px-5 py-4">
+      <PageActions>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          icon={<ArrowLeft />}
+          title="Volver"
+        />
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => navigate(`/salidas/${id}/editar`)}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700"
+          icon={<Pencil />}
+          iconPosition="left"
         >
-          <Pencil className="w-4 h-4" /> Editar
-        </button>
+          Editar
+        </Button>
         <PrintButtonSalida salida={salida} />
-      </div>
+      </PageActions>
 
-      <Card>
-        <h3 className="text-base font-semibold text-gray-700 mb-4">
-          Datos Generales
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <Panel title="Datos Generales">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <Campo etiqueta="N° Control" valor={numero_control} mono />
           <Campo etiqueta="Cliente" valor={cliente} />
           <Campo etiqueta="Fecha" valor={fecha} />
           <Campo etiqueta="Turno" valor={turno} />
@@ -136,52 +120,61 @@ export default function SalidaDetallePage() {
             className="col-span-2 whitespace-pre-wrap"
           />
         </div>
-      </Card>
+      </Panel>
 
-      <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <Package className="w-4 h-4 text-gray-500" />
-          <h3 className="text-base font-semibold text-gray-700">Ítems</h3>
-        </div>
+      <Panel
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Package size={14} />
+            Ítems
+          </span>
+        }
+      >
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Variante</TableHead>
                 <TableHead>Cód. Trazabilidad</TableHead>
-                <TableHead>Cantidad</TableHead>
-                <TableHead>Peso Unidad</TableHead>
-                <TableHead>Total Kg</TableHead>
+                <TableHead className="text-right">Cantidad</TableHead>
+                <TableHead className="text-right">Peso Unidad</TableHead>
+                <TableHead className="text-right">Total Kg</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.map((item, idx) => (
                 <TableRow key={item.id ?? idx}>
-                  <TableCell>
-                    <span className="font-mono text-sm text-blue-700">
-                      {item.codigo_completo ?? item.variante_id}
-                    </span>
+                  <TableCell className="num font-medium text-navy">
+                    {item.codigo_completo ?? item.variante_id}
                   </TableCell>
-                  <TableCell>{item.codigo_trazabilidad ?? "-"}</TableCell>
-                  <TableCell>{item.cantidad}</TableCell>
-                  <TableCell>{item.peso_unidad}</TableCell>
-                  <TableCell>{Number(item.total_kg).toFixed(2)}</TableCell>
+                  <TableCell className="num">
+                    {item.codigo_trazabilidad ?? "-"}
+                  </TableCell>
+                  <TableCell className="text-right">{item.cantidad}</TableCell>
+                  <TableCell className="text-right">
+                    {item.peso_unidad}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {Number(item.total_kg).toFixed(2)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
-            <tfoot className="bg-gray-100 font-semibold">
-              <tr>
-                <td className="p-2" colSpan={2}>
-                  TOTALES
-                </td>
-                <td className="p-2">{suma_cantidad}</td>
-                <td className="p-2"></td>
-                <td className="p-2">{Number(suma_total_kg).toFixed(2)}</td>
-              </tr>
-            </tfoot>
+            <TableBody>
+              <TableRow className="border-t border-line bg-gray-50 font-medium">
+                <TableCell colSpan={2}>
+                  <span className="label-col">Totales</span>
+                </TableCell>
+                <TableCell className="text-right">{suma_cantidad}</TableCell>
+                <TableCell />
+                <TableCell className="text-right">
+                  {Number(suma_total_kg).toFixed(2)}
+                </TableCell>
+              </TableRow>
+            </TableBody>
           </Table>
         </div>
-      </Card>
+      </Panel>
     </div>
   );
 }

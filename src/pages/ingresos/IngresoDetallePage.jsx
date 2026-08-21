@@ -8,30 +8,17 @@ import {
   TableHead,
   TableCell,
 } from "@/components/common/Table";
-import { Button, Alert, Card } from "@/components/common";
+import {
+  Alert,
+  Button,
+  Campo,
+  Loading,
+  PageActions,
+  Panel,
+} from "@/components/common";
 import { PrintButtonIngreso } from "@/components/ingresos/ImpresionParteProduccion";
 import { ArrowLeft, Truck, Ship, Package, Pencil, Wrench } from "lucide-react";
 import { partesService } from "@/services";
-
-function SeccionTitulo({ icono, titulo }) {
-  return (
-    <div className="flex items-center gap-2 mb-3">
-      <span className="text-gray-500">{icono}</span>
-      <h3 className="text-base font-semibold text-gray-700">{titulo}</h3>
-    </div>
-  );
-}
-
-function Campo({ etiqueta, valor, className = "" }) {
-  return (
-    <div className={className}>
-      <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">
-        {etiqueta}
-      </p>
-      <p className="text-sm text-gray-800 font-medium">{valor ?? "-"}</p>
-    </div>
-  );
-}
 
 export default function IngresoDetallePage() {
   const { id } = useParams();
@@ -57,16 +44,14 @@ export default function IngresoDetallePage() {
 
   if (cargando) {
     return (
-      <div className="text-center py-16">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-      </div>
+      <Loading />
     );
   }
 
   if (error) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <Alert type="error">{error}</Alert>
+        <Alert variant="error">{error}</Alert>
         <Button
           variant="secondary"
           onClick={() => navigate(-1)}
@@ -99,45 +84,39 @@ export default function IngresoDetallePage() {
   } = ingreso;
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      {/* Encabezado */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
-            title="Volver"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              Parte de Producción
-              {codigo && <span className="ml-2 text-blue-600">#{codigo}</span>}
-            </h1>
-            <p className="text-sm text-gray-500">{fecha}</p>
-          </div>
-        </div>
-        <button
+    <div className="space-y-4 px-5 py-4">
+      <PageActions>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          icon={<ArrowLeft />}
+          title="Volver"
+        />
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => navigate(`/ingresos/${id}/editar`)}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white hover:bg-blue-700"
+          icon={<Pencil />}
+          iconPosition="left"
         >
-          <Pencil className="w-4 h-4" /> Editar
-        </button>
+          Editar
+        </Button>
         <PrintButtonIngreso parte={ingreso} />
-      </div>
-      <div className="flex flex-wrap gap-4 justify-around py-4">
-        <Campo etiqueta="Código" valor={codigo} />
-        <Campo etiqueta="Revisión" valor={revision} />
-        <Campo etiqueta="Versión" valor={version} />
-        <Campo etiqueta="Tipo Documento" valor={tipo_documento_codigo} />
-      </div>
-      {/* Datos generales */}
-      <Card>
-        <h3 className="text-base font-semibold text-gray-700 mb-4">
-          Datos Generales
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      </PageActions>
+
+      <Panel title="Documento">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+          <Campo etiqueta="Código" valor={codigo} mono />
+          <Campo etiqueta="Revisión" valor={revision} mono />
+          <Campo etiqueta="Versión" valor={version} mono />
+          <Campo etiqueta="Tipo Documento" valor={tipo_documento_codigo} />
+          <Campo etiqueta="Fecha" valor={fecha} mono />
+        </div>
+      </Panel>
+
+      <Panel title="Datos Generales">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           <Campo etiqueta="Cliente" valor={cliente} />
           <Campo etiqueta="Fecha" valor={fecha} />
           <Campo etiqueta="Turno" valor={turno} />
@@ -154,15 +133,18 @@ export default function IngresoDetallePage() {
           />
           <Campo etiqueta="Motivo Ingreso" valor={motivo_ingreso_codigo} />
         </div>
-      </Card>
+      </Panel>
 
       {/* Transportes y embarcaciones */}
       {transportes.length > 0 && (
-        <Card>
-          <SeccionTitulo
-            icono={<Truck className="w-4 h-4" />}
-            titulo="Transportes"
-          />
+        <Panel
+          title={
+            <span className="inline-flex items-center gap-2">
+              <Truck size={14} />
+              Transportes
+            </span>
+          }
+        >
           <div className="space-y-4">
             {transportes.map((transporte, idx) => (
               <div
@@ -219,16 +201,19 @@ export default function IngresoDetallePage() {
               </div>
             ))}
           </div>
-        </Card>
+        </Panel>
       )}
 
       {/* Productos */}
       {productos.length > 0 && (
-        <Card>
-          <SeccionTitulo
-            icono={<Package className="w-4 h-4" />}
-            titulo="Productos"
-          />
+        <Panel
+          title={
+            <span className="inline-flex items-center gap-2">
+              <Package size={14} />
+              Productos
+            </span>
+          }
+        >
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -277,16 +262,19 @@ export default function IngresoDetallePage() {
               </TableBody>
             </Table>
           </div>
-        </Card>
+        </Panel>
       )}
 
       {/* Insumos */}
       {insumos.length > 0 && (
-        <Card>
-          <SeccionTitulo
-            icono={<Wrench className="w-4 h-4" />}
-            titulo="Insumos"
-          />
+        <Panel
+          title={
+            <span className="inline-flex items-center gap-2">
+              <Wrench size={14} />
+              Insumos
+            </span>
+          }
+        >
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -305,7 +293,7 @@ export default function IngresoDetallePage() {
               </TableBody>
             </Table>
           </div>
-        </Card>
+        </Panel>
       )}
     </div>
   );

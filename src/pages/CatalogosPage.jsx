@@ -189,7 +189,7 @@ export default function CatalogosPage() {
       </div>
 
       {/* Contenido del catálogo activo */}
-      <div className="border border-line bg-surface p-6">{renderCatalogo()}</div>
+      <div className="border border-line bg-surface p-6 rounded-sm">{renderCatalogo()}</div>
     </div>
   );
 }
