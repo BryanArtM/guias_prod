@@ -1,6 +1,5 @@
 use libsql::{Database, Connection};
-use std::env;
-use dotenvy::dotenv;
+use crate::env_config;
 
 const CREATE_ESPECIES: &str = "CREATE TABLE IF NOT EXISTS especies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -659,12 +658,8 @@ async fn create_indexes(conn: &Connection) -> Result<(), Box<dyn std::error::Err
 // repetidas veces y ya saben que el esquema está al día: evita repetir en
 // cada invocación una docena de sentencias DDL de ida y vuelta a la red.
 pub async fn connect_db() -> Result<Database, Box<dyn std::error::Error>> {
-    dotenv().ok();
-
-    let database_url = env::var("TURSO_DATABASE_URL")
-        .expect("TURSO_DATABASE_URL debe estar configurada en el archivo .env");
-    let auth_token = env::var("TURSO_AUTH_TOKEN")
-        .expect("TURSO_AUTH_TOKEN debe estar configurada en el archivo .env");
+    let database_url = env_config::turso_database_url();
+    let auth_token = env_config::turso_auth_token();
 
     let db = libsql::Builder::new_remote(database_url, auth_token)
         .build()
@@ -677,12 +672,8 @@ pub async fn connect_db() -> Result<Database, Box<dyn std::error::Error>> {
 }
 
 pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
-    dotenv().ok();
-
-    let database_url = env::var("TURSO_DATABASE_URL")
-        .expect("TURSO_DATABASE_URL debe estar configurada en el archivo .env");
-    let auth_token = env::var("TURSO_AUTH_TOKEN")
-        .expect("TURSO_AUTH_TOKEN debe estar configurada en el archivo .env");
+    let database_url = env_config::turso_database_url();
+    let auth_token = env_config::turso_auth_token();
 
     eprintln!("Conectando a Turso en: {}", database_url);
 

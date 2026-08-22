@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Sha256, Digest};
 use rand::Rng;
 use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey, Algorithm};
-use std::env;
-use dotenvy::dotenv;
+use crate::env_config;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
@@ -66,8 +65,7 @@ fn hash_password(password: &str, salt: &str) -> String {
 
 // Obtener la clave secreta JWT desde variable de entorno
 fn get_jwt_secret() -> String {
-    let _ = dotenv();
-    env::var("JWT_SECRET").expect("JWT_SECRET no está definida en el entorno")
+    env_config::jwt_secret()
 }
 
 // Generar JWT token

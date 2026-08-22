@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Select, Button } from "@/components/common";
+import { obtenerPresentacionesPorEspecie } from "@/services/api";
 
 export default function VarianteForm({
   onSubmit,
@@ -44,8 +45,6 @@ export default function VarianteForm({
       }
       setCargandoPresentaciones(true);
       try {
-        const { obtenerPresentacionesPorEspecie } =
-          await import("../../services/api");
         const data = await obtenerPresentacionesPorEspecie(
           parseInt(formData.especie_id),
         );

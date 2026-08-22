@@ -19,6 +19,7 @@ import VarianteForm from "./VarianteForm";
 import { Edit2, Trash2, Plus, Filter } from "lucide-react";
 import {
   obtenerVariantesCompletas,
+  obtenerPresentacionesPorEspecie,
   crearVariantePresentacion,
   actualizarVariantePresentacion,
   eliminarVariantePresentacion,
@@ -74,8 +75,6 @@ export default function VariantesList({
       }
 
       try {
-        const { obtenerPresentacionesPorEspecie } =
-          await import("../../services/api");
         const data = await obtenerPresentacionesPorEspecie(
           parseInt(filtroEspecie),
         );

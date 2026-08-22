@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod db;
+pub mod env_config;
 
 use auth::*;
 use db::*;
