@@ -6,6 +6,9 @@ pub struct Especie {
     pub nombre: String,
     pub descripcion: Option<String>,
     pub peso_unidad_defecto: Option<f64>,
+    /// Dos letras que identifican a la especie dentro del codigo de trazabilidad
+    #[serde(default)]
+    pub abreviatura_trazabilidad: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -40,8 +43,9 @@ pub struct Calidad {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Calibre {
     pub id: Option<i64>,
-    pub valor_minimo: Option<i64>,
-    pub valor_maximo: Option<i64>,
+    /// Los extremos del calibre se guardan como texto porque no siempre son numericos
+    pub valor_minimo: Option<String>,
+    pub valor_maximo: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -167,6 +171,10 @@ pub struct ParteProduccionProducto {
     pub cajas_carros: Vec<i32>,
     pub peso_total_neto_kg: Option<f64>,
     pub codigo_completo: Option<String>,
+    #[serde(default)]
+    pub presentacion_id: Option<i64>,
+    #[serde(default)]
+    pub presentacion_nombre: Option<String>,
     pub acumulado_presentacion: Option<f64>,
     pub rendimiento: Option<f64>,
 }

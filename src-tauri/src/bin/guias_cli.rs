@@ -126,6 +126,9 @@ enum EspecieAccion {
         descripcion: Option<String>,
         #[arg(long)]
         peso_unidad_defecto: Option<f64>,
+        /// Dos letras que se incrustan en el codigo de trazabilidad (ej: PR)
+        #[arg(long)]
+        abreviatura_trazabilidad: Option<String>,
     },
     Listar,
     Eliminar {
@@ -173,9 +176,9 @@ enum CalidadAccion {
 enum CalibreAccion {
     Crear {
         #[arg(long)]
-        minimo: Option<i64>,
+        minimo: Option<String>,
         #[arg(long)]
-        maximo: Option<i64>,
+        maximo: Option<String>,
     },
     Listar,
     Eliminar {
@@ -364,6 +367,7 @@ async fn ejecutar(cli: Cli) -> Result<(), String> {
                 nombre,
                 descripcion,
                 peso_unidad_defecto,
+                abreviatura_trazabilidad,
             } => {
                 let id = db::crear_especie(
                     &base_datos,
@@ -372,6 +376,7 @@ async fn ejecutar(cli: Cli) -> Result<(), String> {
                         nombre,
                         descripcion,
                         peso_unidad_defecto,
+                        abreviatura_trazabilidad,
                     },
                 )
                 .await?;

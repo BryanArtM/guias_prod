@@ -404,7 +404,8 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         let mut res_p = conn.query(
             "SELECT pp.id, pp.variante_id, pp.peso_unidad, pp.peso_total_neto_kg,
                     pp.acumulado_presentacion, pp.rendimiento,
-                    vc.codigo_completo, pp.fecha_ingreso
+                    vc.codigo_completo, pp.fecha_ingreso,
+                    vc.presentacion_id, vc.presentacion_nombre
             FROM parte_produccion_producto pp
             LEFT JOIN variantes_completas_view vc ON vc.variante_id = pp.variante_id
             WHERE pp.parte_id = ?1",
@@ -421,6 +422,8 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
             cajas_carros: carros_por_producto.remove(&producto_id).unwrap_or_default(),
             peso_total_neto_kg: get_optional_f64(&row_p, 3).map_err(|e| e.to_string())?,
             codigo_completo: get_optional_string(&row_p, 6).map_err(|e| e.to_string())?,
+            presentacion_id: get_optional_i64(&row_p, 8).map_err(|e| e.to_string())?,
+            presentacion_nombre: get_optional_string(&row_p, 9).map_err(|e| e.to_string())?,
             acumulado_presentacion: get_optional_f64(&row_p, 4).map_err(|e| e.to_string())?,
             rendimiento: get_optional_f64(&row_p, 5).map_err(|e| e.to_string())?,
         });

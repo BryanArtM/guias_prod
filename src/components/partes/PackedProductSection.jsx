@@ -23,14 +23,39 @@ function sumarCajas(producto) {
   );
 }
 
-function recalcularDerivados(producto, totalRecepcion) {
-  const pesoTotalNeto = sumarCajas(producto) * (parseFloat(producto.peso_unidad) || 0);
-  return {
+function pesoNetoFila(producto) {
+  return sumarCajas(producto) * (parseFloat(producto.peso_unidad) || 0);
+}
+
+// El acumulado y el rendimiento se miden por presentacion completa
+function recalcularDerivados(productos, totalRecepcion, varianteById) {
+  const presentacionDeFila = (producto) =>
+    varianteById.get(producto.variante_id)?.presentacion_id ?? null;
+
+  const conPeso = productos.map((producto) => ({
     ...producto,
-    peso_total_neto_kg: pesoTotalNeto,
-    acumulado_presentacion: pesoTotalNeto,
-    rendimiento: totalRecepcion > 0 ? (pesoTotalNeto * 100) / totalRecepcion : 0,
-  };
+    peso_total_neto_kg: pesoNetoFila(producto),
+  }));
+
+  const acumuladoPorPresentacion = new Map();
+  conPeso.forEach((producto) => {
+    const presentacionId = presentacionDeFila(producto);
+    acumuladoPorPresentacion.set(
+      presentacionId,
+      (acumuladoPorPresentacion.get(presentacionId) || 0) +
+        producto.peso_total_neto_kg,
+    );
+  });
+
+  return conPeso.map((producto) => {
+    const acumulado =
+      acumuladoPorPresentacion.get(presentacionDeFila(producto)) || 0;
+    return {
+      ...producto,
+      acumulado_presentacion: acumulado,
+      rendimiento: totalRecepcion > 0 ? (acumulado * 100) / totalRecepcion : 0,
+    };
+  });
 }
 
 function crearFilaProducto(
@@ -223,14 +248,17 @@ export default function PackedProductSection({
     especieInicializada.current = especieId;
   }, [especieId, productos, varianteById]);
 
+  const aplicarProductos = (lista) =>
+    onChangeProductos(recalcularDerivados(lista, totalRecepcion, varianteById));
+
   // Recalcular rendimientos si cambia el total de recepción
   useEffect(() => {
     if (totalRecepcion > 0 && productos.length > 0) {
-      const newProductos = productos.map((p) => ({
-        ...p,
-        rendimiento:
-          ((parseFloat(p.acumulado_presentacion) || 0) * 100) / totalRecepcion,
-      }));
+      const newProductos = recalcularDerivados(
+        productos,
+        totalRecepcion,
+        varianteById,
+      );
       // Evitar bucle infinito: solo cambiar si realmente hay diferencia significativa
       if (JSON.stringify(newProductos) !== JSON.stringify(productos)) {
         onChangeProductos(newProductos);
@@ -255,19 +283,11 @@ export default function PackedProductSection({
       return;
     }
 
-    onChangeProductos(
-      productos.map((producto) =>
-        recalcularDerivados(
-          {
-            ...producto,
-            cajas_carros: ajustarCajasCarros(
-              producto.cajas_carros,
-              cantidadCarros,
-            ),
-          },
-          totalRecepcion,
-        ),
-      ),
+    aplicarProductos(
+      productos.map((producto) => ({
+        ...producto,
+        cajas_carros: ajustarCajasCarros(producto.cajas_carros, cantidadCarros),
+      })),
     );
   }, [cantidadCarros, productos, totalRecepcion]);
 
@@ -285,7 +305,7 @@ export default function PackedProductSection({
     );
 
     if (productosLimpios.length !== productos.length) {
-      onChangeProductos(productosLimpios);
+      aplicarProductos(productosLimpios);
     }
   }, [especieId, variantesFiltradas]);
 
@@ -332,7 +352,7 @@ export default function PackedProductSection({
               cantidadCarros,
             ),
         );
-        onChangeProductos([...productos, ...nuevasFilas]);
+        aplicarProductos([...productos, ...nuevasFilas]);
       }
     }
   };
@@ -340,24 +360,21 @@ export default function PackedProductSection({
   const addFilaPresentacion = (presentacion) => {
     const filasExistentes = filasDePresentacion(presentacion.presentacion_id);
     const base = siguienteBaseAlfabetica(presentacion, filasExistentes.length);
-    onChangeProductos([
+    aplicarProductos([
       ...productos,
       crearFilaProducto(base.variante_id, pesoUnidadInicial, cantidadCarros),
     ]);
   };
 
   const removeProducto = (index) => {
-    onChangeProductos(productos.filter((_, i) => i !== index));
+    aplicarProductos(productos.filter((_, i) => i !== index));
     setFilaEditandoIndex(null);
   };
 
   const updateProducto = (index, field, value) => {
     const newProductos = [...productos];
-    newProductos[index] = recalcularDerivados(
-      { ...newProductos[index], [field]: value },
-      totalRecepcion,
-    );
-    onChangeProductos(newProductos);
+    newProductos[index] = { ...newProductos[index], [field]: value };
+    aplicarProductos(newProductos);
   };
 
   const updateCajasCarro = (index, indiceCarro, value) => {
@@ -410,15 +427,14 @@ export default function PackedProductSection({
     }
   };
 
-  const sumas = productos.reduce(
-    (acc, p) => {
-      acc.cajas += sumarCajas(p);
-      acc.pesoNeto += parseFloat(p.peso_total_neto_kg) || 0;
-      acc.rendimiento += parseFloat(p.rendimiento) || 0;
-      return acc;
-    },
-    { cajas: 0, pesoNeto: 0, rendimiento: 0 },
+  // Los totales se expresan siempre en kg; el rendimiento global se calcula
+  // sobre el peso neto acumulado, no sumando los rendimientos por presentacion.
+  const pesoNetoTotal = productos.reduce(
+    (acc, p) => acc + (parseFloat(p.peso_total_neto_kg) || 0),
+    0,
   );
+  const rendimientoTotal =
+    totalRecepcion > 0 ? (pesoNetoTotal * 100) / totalRecepcion : 0;
 
   const ordenColumnas = ordenColumnasNumericas(cantidadCarros);
 
@@ -443,14 +459,15 @@ export default function PackedProductSection({
               presentacion.presentacion_id,
             );
             const filas = filasDePresentacion(presentacion.presentacion_id);
-            const filasSumas = filas.reduce(
-              (acc, { producto: p }) => {
-                acc.cajas += sumarCajas(p);
-                acc.pesoNeto += parseFloat(p.peso_total_neto_kg) || 0;
-                return acc;
-              },
-              { cajas: 0, pesoNeto: 0 },
+            const pesoNetoPresentacion = filas.reduce(
+              (acc, { producto: p }) =>
+                acc + (parseFloat(p.peso_total_neto_kg) || 0),
+              0,
             );
+            const rendimientoPresentacion =
+              totalRecepcion > 0
+                ? (pesoNetoPresentacion * 100) / totalRecepcion
+                : 0;
 
             return (
               <div
@@ -472,7 +489,7 @@ export default function PackedProductSection({
                   </span>
                   <span className="text-xs text-gray-500">
                     {filas.length > 0
-                      ? `${filas.length} fila${filas.length === 1 ? "" : "s"} · ${filasSumas.cajas} cajas · ${filasSumas.pesoNeto.toFixed(2)} kg`
+                      ? `${filas.length} fila${filas.length === 1 ? "" : "s"} · ${pesoNetoPresentacion.toFixed(2)} kg · ${rendimientoPresentacion.toFixed(2)}%`
                       : "Sin filas"}
                   </span>
                 </button>
@@ -497,7 +514,6 @@ export default function PackedProductSection({
                             ),
                           )}
                           <TableHead>Total Neto (kg)</TableHead>
-                          <TableHead>Rend. (%)</TableHead>
                           <TableHead className="w-10"></TableHead>
                         </tr>
                       </TableHeader>
@@ -659,9 +675,6 @@ export default function PackedProductSection({
                               <td className="num p-2 border text-right font-medium">
                                 {p.peso_total_neto_kg?.toFixed(2)}
                               </td>
-                              <td className="num p-2 border text-right font-medium">
-                                {p.rendimiento?.toFixed(2)}%
-                              </td>
                               <td className="p-2 border text-center">
                                 <button
                                   type="button"
@@ -701,19 +714,15 @@ export default function PackedProductSection({
         <div className="mt-4 flex flex-wrap items-center gap-6 border border-line bg-gray-50 px-3 py-2 rounded-sm">
           <span className="label-col">Totales</span>
           <span className="flex items-baseline gap-1.5">
-            <span className="label-col">Cajas</span>
-            <span className="num font-medium">{sumas.cajas}</span>
-          </span>
-          <span className="flex items-baseline gap-1.5">
             <span className="label-col">Peso neto</span>
             <span className="num font-medium">
-              {sumas.pesoNeto.toFixed(2)} kg
+              {pesoNetoTotal.toFixed(2)} kg
             </span>
           </span>
           <span className="flex items-baseline gap-1.5">
             <span className="label-col">Rendimiento</span>
             <span className="num font-medium">
-              {sumas.rendimiento.toFixed(2)}%
+              {rendimientoTotal.toFixed(2)}%
             </span>
           </span>
         </div>

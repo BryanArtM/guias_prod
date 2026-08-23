@@ -95,9 +95,9 @@ export default function VarianteForm({
       if (calibre.valor_minimo && calibre.valor_maximo) {
         partes.push(`${calibre.valor_minimo}-${calibre.valor_maximo}`);
       } else if (calibre.valor_minimo) {
-        partes.push(`${calibre.valor_minimo}+`);
+        partes.push(`${calibre.valor_minimo}`);
       } else if (calibre.valor_maximo) {
-        partes.push(`0-${calibre.valor_maximo}`);
+        partes.push(`${calibre.valor_maximo}`);
       }
     }
 
@@ -246,9 +246,9 @@ export default function VarianteForm({
             {calibre.valor_minimo && calibre.valor_maximo
               ? `${calibre.valor_minimo} - ${calibre.valor_maximo}`
               : calibre.valor_minimo
-                ? `${calibre.valor_minimo}+`
+                ? `${calibre.valor_minimo}`
                 : calibre.valor_maximo
-                  ? `0 - ${calibre.valor_maximo}`
+                  ? `${calibre.valor_maximo}`
                   : "Sin rango"}
           </option>
         ))}

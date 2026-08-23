@@ -6,6 +6,7 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
     nombre: "",
     descripcion: "",
     peso_unidad_defecto: "",
+    abreviatura_trazabilidad: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,6 +18,7 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
         nombre: especie.nombre || "",
         descripcion: especie.descripcion || "",
         peso_unidad_defecto: especie.peso_unidad_defecto ?? "",
+        abreviatura_trazabilidad: especie.abreviatura_trazabilidad || "",
       });
     }
   }, [especie]);
@@ -31,6 +33,12 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
       return;
     }
 
+    const abreviatura = formData.abreviatura_trazabilidad.trim().toUpperCase();
+    if (abreviatura && !/^[A-ZÑ]{2}$/.test(abreviatura)) {
+      setError("La abreviatura de trazabilidad debe tener exactamente 2 letras");
+      return;
+    }
+
     setLoading(true);
     try {
       await onSubmit({
@@ -38,8 +46,14 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
         peso_unidad_defecto: formData.peso_unidad_defecto
           ? parseFloat(formData.peso_unidad_defecto)
           : null,
+        abreviatura_trazabilidad: abreviatura || null,
       });
-      setFormData({ nombre: "", descripcion: "", peso_unidad_defecto: "" });
+      setFormData({
+        nombre: "",
+        descripcion: "",
+        peso_unidad_defecto: "",
+        abreviatura_trazabilidad: "",
+      });
     } catch (err) {
       setError(err.message || "Error al guardar la especie");
     } finally {
@@ -90,6 +104,21 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
         }
         placeholder="Ej: 22.7"
         helperText="Se usa para precargar el peso por unidad al registrar un ingreso de esta especie"
+      />
+
+      <Input
+        label="Abreviatura de trazabilidad"
+        name="abreviatura_trazabilidad"
+        value={formData.abreviatura_trazabilidad}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            abreviatura_trazabilidad: e.target.value.toUpperCase(),
+          })
+        }
+        maxLength={2}
+        className="uppercase"
+        helperText="Dos letras que se asignan al código de trazabilidad"
       />
 
       <div className="flex justify-end gap-3 pt-4">

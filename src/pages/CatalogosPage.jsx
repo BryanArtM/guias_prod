@@ -74,22 +74,21 @@ export default function CatalogosPage() {
     },
   ];
 
+  // Los extremos son texto libre: un calibre valido puede ser "1000 - UP".
   const camposCalibre = [
     {
       name: "valor_minimo",
       label: "Valor Mínimo",
-      type: "number",
+      type: "text",
       required: false,
-      step: "1",
-      min: "0",
+      placeholder: "Ej: 1000",
     },
     {
       name: "valor_maximo",
       label: "Valor Máximo",
-      type: "number",
+      type: "text",
       required: false,
-      step: "1",
-      min: "0",
+      placeholder: "Ej: 2000 o UP",
     },
   ];
 

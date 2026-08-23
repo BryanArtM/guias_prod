@@ -5,7 +5,8 @@ const CREATE_ESPECIES: &str = "CREATE TABLE IF NOT EXISTS especies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL UNIQUE,
     descripcion TEXT,
-    peso_unidad_defecto REAL
+    peso_unidad_defecto REAL,
+    abreviatura_trazabilidad TEXT
 )";
 
 const CREATE_PRESENTACIONES: &str = "CREATE TABLE IF NOT EXISTS presentaciones (
@@ -35,10 +36,12 @@ const CREATE_CALIDADES: &str = "CREATE TABLE IF NOT EXISTS calidades (
     descripcion TEXT
 )";
 
+// Los extremos son texto: un calibre valido puede ser "1000 - UP" y nunca se
+// hacen calculos con ellos.
 const CREATE_CALIBRES: &str = "CREATE TABLE IF NOT EXISTS calibres (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    valor_minimo INTEGER,
-    valor_maximo INTEGER
+    valor_minimo TEXT,
+    valor_maximo TEXT
 )";
 
 const CREATE_VARIANTES: &str = "CREATE TABLE IF NOT EXISTS variantes_presentaciones (
@@ -212,9 +215,9 @@ SELECT
         WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL
         THEN CAST(cal.valor_minimo AS TEXT) || '-' || CAST(cal.valor_maximo AS TEXT)
         WHEN cal.valor_minimo IS NOT NULL
-        THEN CAST(cal.valor_minimo AS TEXT) || '+'
+        THEN CAST(cal.valor_minimo AS TEXT)
         WHEN cal.valor_maximo IS NOT NULL
-        THEN '0-' || CAST(cal.valor_maximo AS TEXT)
+        THEN CAST(cal.valor_maximo AS TEXT)
         ELSE NULL
     END AS calibre,
     (e.nombre || ' ' || p.nombre ||
@@ -225,9 +228,9 @@ SELECT
             WHEN cal.valor_minimo IS NOT NULL AND cal.valor_maximo IS NOT NULL
             THEN CAST(cal.valor_minimo AS TEXT) || '-' || CAST(cal.valor_maximo AS TEXT)
             WHEN cal.valor_minimo IS NOT NULL
-            THEN CAST(cal.valor_minimo AS TEXT) || '+'
+            THEN CAST(cal.valor_minimo AS TEXT)
             WHEN cal.valor_maximo IS NOT NULL
-            THEN '0-' || CAST(cal.valor_maximo AS TEXT)
+            THEN CAST(cal.valor_maximo AS TEXT)
             ELSE NULL
         END, '')
     ) AS codigo_completo,
@@ -391,9 +394,6 @@ async fn create_users_table(conn: &Connection) -> Result<(), Box<dyn std::error:
 
 async fn create_views(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("Creando vistas...");
-    // Las vistas se recrean en cada arranque (no almacenan datos propios) para
-    // que los cambios de definición se apliquen también sobre una base ya existente,
-    // donde "CREATE VIEW IF NOT EXISTS" dejaría la definición vieja intacta.
     conn.execute("DROP VIEW IF EXISTS stock_por_lote_view", ()).await?;
     conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
     conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;

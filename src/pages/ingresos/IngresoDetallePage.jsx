@@ -88,6 +88,34 @@ export default function IngresoDetallePage() {
     transportes.length,
   );
 
+  // El acumulado y el rendimiento son por presentacion
+  const presentaciones = Array.from(
+    productos
+      .reduce((grupos, prod) => {
+        const clave = prod.presentacion_id ?? "sin-presentacion";
+        if (!grupos.has(clave)) {
+          grupos.set(clave, {
+            clave,
+            nombre: prod.presentacion_nombre ?? "Sin presentación",
+            filas: [],
+          });
+        }
+        grupos.get(clave).filas.push(prod);
+        return grupos;
+      }, new Map())
+      .values(),
+  )
+    .map((grupo) => ({
+      ...grupo,
+      pesoNeto: grupo.filas.reduce(
+        (total, prod) => total + (Number(prod.peso_total_neto_kg) || 0),
+        0,
+      ),
+      rendimiento: grupo.filas.find((prod) => prod.rendimiento != null)
+        ?.rendimiento,
+    }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+
   return (
     <div className="space-y-4 px-5 py-4">
       <PageActions>
@@ -219,58 +247,77 @@ export default function IngresoDetallePage() {
             </span>
           }
         >
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Variante</TableHead>
-                  <TableHead>Peso Unidad</TableHead>
-                  {Array.from({ length: cantidadCarros }, (_, indiceCarro) => (
-                    <TableHead key={indiceCarro}>{`Carro ${
-                      indiceCarro + 1
-                    }`}</TableHead>
-                  ))}
-                  <TableHead>Total Neto (kg)</TableHead>
-                  <TableHead>Acum. Presentación</TableHead>
-                  <TableHead>Rendimiento</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {productos.map((prod) => (
-                  <TableRow key={prod.id}>
-                    <TableCell>
-                      <span className="font-mono text-sm text-blue-700">
-                        {prod.codigo_completo ?? `ID: ${prod.variante_id}`}
+          <div className="space-y-4">
+            {presentaciones.map((presentacion) => (
+              <div key={presentacion.clave} className="border border-line">
+                <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line bg-gray-50 px-3 py-2">
+                  <span className="font-medium text-ink">
+                    {presentacion.nombre}
+                  </span>
+                  <span className="flex items-baseline gap-4 text-xs text-gray-500">
+                    <span>
+                      Total:{" "}
+                      <span className="num font-medium text-ink">
+                        {presentacion.pesoNeto.toFixed(2)} kg
                       </span>
-                    </TableCell>
-                    <TableCell>{prod.peso_unidad ?? "-"}</TableCell>
-                    {Array.from(
-                      { length: cantidadCarros },
-                      (_, indiceCarro) => (
-                        <TableCell key={indiceCarro}>
-                          {prod.cajas_carros?.[indiceCarro] ?? 0}
-                        </TableCell>
-                      ),
-                    )}
-                    <TableCell>
-                      {prod.peso_total_neto_kg != null
-                        ? Number(prod.peso_total_neto_kg).toFixed(2)
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      {prod.acumulado_presentacion != null
-                        ? Number(prod.acumulado_presentacion).toFixed(2)
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      {prod.rendimiento != null
-                        ? `${Number(prod.rendimiento).toFixed(2)}%`
-                        : "-"}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </span>
+                    <span>
+                      Rendimiento:{" "}
+                      <span className="num font-medium text-ink">
+                        {presentacion.rendimiento != null
+                          ? `${Number(presentacion.rendimiento).toFixed(2)}%`
+                          : "-"}
+                      </span>
+                    </span>
+                  </span>
+                </div>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Variante</TableHead>
+                        <TableHead>Peso Unidad</TableHead>
+                        {Array.from(
+                          { length: cantidadCarros },
+                          (_, indiceCarro) => (
+                            <TableHead key={indiceCarro}>{`Carro ${
+                              indiceCarro + 1
+                            }`}</TableHead>
+                          ),
+                        )}
+                        <TableHead>Total Neto (kg)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {presentacion.filas.map((prod) => (
+                        <TableRow key={prod.id}>
+                          <TableCell>
+                            <span className="font-mono text-sm text-blue-700">
+                              {prod.codigo_completo ??
+                                `ID: ${prod.variante_id}`}
+                            </span>
+                          </TableCell>
+                          <TableCell>{prod.peso_unidad ?? "-"}</TableCell>
+                          {Array.from(
+                            { length: cantidadCarros },
+                            (_, indiceCarro) => (
+                              <TableCell key={indiceCarro}>
+                                {prod.cajas_carros?.[indiceCarro] ?? 0}
+                              </TableCell>
+                            ),
+                          )}
+                          <TableCell>
+                            {prod.peso_total_neto_kg != null
+                              ? Number(prod.peso_total_neto_kg).toFixed(2)
+                              : "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ))}
           </div>
         </Panel>
       )}
