@@ -4,6 +4,7 @@ import {
   Package,
   Boxes,
   Settings2,
+  Building2,
   ClipboardList,
   ClipboardCheck,
   ArrowDownToLine,
@@ -21,6 +22,7 @@ export const NAV_GROUPS = [
   {
     label: "Catálogos",
     items: [
+      { path: "/clientes", label: "Clientes", icon: Building2 },
       { path: "/especies", label: "Especies", icon: Fish },
       { path: "/presentaciones", label: "Presentaciones", icon: Package },
       { path: "/variantes", label: "Variantes", icon: Boxes },

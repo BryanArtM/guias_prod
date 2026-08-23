@@ -11,6 +11,7 @@ import "@/index.css";
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const CatalogosPage = lazy(() => import("@/pages/CatalogosPage"));
 const VariantesPage = lazy(() => import("@/pages/VariantesPage"));
+const ClientesPage = lazy(() => import("@/pages/ClientesPage"));
 const StockPage = lazy(() => import("@/pages/StockPage"));
 const ReportesPage = lazy(() => import("@/pages/ReportesPage"));
 const IngresosPage = lazy(() => import("@/pages/ingresos/IngresosPage"));
@@ -80,6 +81,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ReportesPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clientes"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ClientesPage />
                 </Layout>
               </ProtectedRoute>
             }

@@ -47,6 +47,32 @@ async fn eliminar_especie_cmd(state: State<'_, AppState>, token: String, id: i64
     eliminar_especie(&state.db, id).await
 }
 
+// ============ COMANDOS TAURI - CLIENTES ============
+
+#[tauri::command]
+async fn crear_cliente_cmd(state: State<'_, AppState>, token: String, cliente: Cliente) -> Result<i64, String> {
+    require_auth(&token)?;
+    crear_cliente(&state.db, &cliente).await
+}
+
+#[tauri::command]
+async fn obtener_clientes_cmd(state: State<'_, AppState>, token: String) -> Result<Vec<Cliente>, String> {
+    require_auth(&token)?;
+    obtener_clientes(&state.db).await
+}
+
+#[tauri::command]
+async fn actualizar_cliente_cmd(state: State<'_, AppState>, token: String, id: i64, cliente: Cliente) -> Result<(), String> {
+    require_auth(&token)?;
+    actualizar_cliente(&state.db, id, &cliente).await
+}
+
+#[tauri::command]
+async fn eliminar_cliente_cmd(state: State<'_, AppState>, token: String, id: i64) -> Result<(), String> {
+    require_auth(&token)?;
+    eliminar_cliente(&state.db, id).await
+}
+
 // ============ COMANDOS TAURI - PRESENTACIONES ============
 
 #[tauri::command]
@@ -480,6 +506,11 @@ pub fn run() {
             obtener_especie_cmd,
             actualizar_especie_cmd,
             eliminar_especie_cmd,
+            // Clientes
+            crear_cliente_cmd,
+            obtener_clientes_cmd,
+            actualizar_cliente_cmd,
+            eliminar_cliente_cmd,
             // Presentaciones
             crear_presentacion_cmd,
             obtener_presentaciones_cmd,

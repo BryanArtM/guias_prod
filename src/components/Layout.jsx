@@ -78,7 +78,7 @@ export const Layout = ({ children }) => {
   return (
     <PageActionsProvider>
       <div className="flex h-screen overflow-hidden bg-canvas">
-        <aside className="flex w-[228px] shrink-0 flex-col border-r border-navy-line bg-navy rounded-sm">
+        <aside className="flex w-57 shrink-0 flex-col border-r border-navy-line bg-navy rounded-sm">
           <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-navy-line px-3.5">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-steel text-navy-text">
               <Ship size={16} />

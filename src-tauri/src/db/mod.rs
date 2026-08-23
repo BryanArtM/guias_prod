@@ -3,6 +3,7 @@ mod types;
 mod init;
 mod helpers;
 mod especies;
+mod clientes;
 mod presentaciones;
 mod formas;
 mod calidades;
@@ -29,6 +30,13 @@ pub use especies::{
     obtener_especie,
     actualizar_especie,
     eliminar_especie,
+};
+
+pub use clientes::{
+    crear_cliente,
+    obtener_clientes,
+    actualizar_cliente,
+    eliminar_cliente,
 };
 
 pub use presentaciones::{

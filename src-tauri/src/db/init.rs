@@ -9,6 +9,12 @@ const CREATE_ESPECIES: &str = "CREATE TABLE IF NOT EXISTS especies (
     abreviatura_trazabilidad TEXT
 )";
 
+const CREATE_CLIENTES: &str = "CREATE TABLE IF NOT EXISTS clientes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL UNIQUE,
+    razon_social TEXT NOT NULL
+)";
+
 const CREATE_PRESENTACIONES: &str = "CREATE TABLE IF NOT EXISTS presentaciones (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     especie_id INTEGER NOT NULL,
@@ -80,6 +86,8 @@ const CREATE_CONTROLES_SALIDA: &str = "CREATE TABLE IF NOT EXISTS controles_sali
     numero_control TEXT NOT NULL UNIQUE,
     fecha TEXT NOT NULL CHECK (fecha GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     cliente TEXT NOT NULL,
+    cliente_id INTEGER,
+    usuario_id INTEGER,
     fecha_produccion TEXT CHECK (fecha_produccion IS NULL OR fecha_produccion GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     turno TEXT,
     numero_lote TEXT,
@@ -92,7 +100,9 @@ const CREATE_CONTROLES_SALIDA: &str = "CREATE TABLE IF NOT EXISTS controles_sali
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (especie_id) REFERENCES especies(id) ON DELETE RESTRICT,
     FOREIGN KEY (tipo_documento_id) REFERENCES tipos_documento_salida(id) ON DELETE RESTRICT,
-    FOREIGN KEY (motivo_salida_id) REFERENCES motivos_salida(id) ON DELETE RESTRICT
+    FOREIGN KEY (motivo_salida_id) REFERENCES motivos_salida(id) ON DELETE RESTRICT,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE RESTRICT,
+    FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE RESTRICT
 )";
 
 // fecha_ingreso identifica el lote del que sale la mercaderia: una misma variante
@@ -126,6 +136,8 @@ const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produc
     revision TEXT,
     version TEXT,
     cliente TEXT,
+    cliente_id INTEGER,
+    usuario_id INTEGER,
     fecha TEXT NOT NULL CHECK (fecha GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     turno TEXT,
     codigo_trazabilidad TEXT,
@@ -136,8 +148,10 @@ const CREATE_PARTES_PRODUCCION: &str = "CREATE TABLE IF NOT EXISTS partes_produc
     tipo_documento_id INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (especie_id) REFERENCES especies(id),
-    FOREIGN KEY (tipo_documento_id) REFERENCES tipos_documento_produccion(id) ON DELETE RESTRICT
-    FOREIGN KEY (motivo_ingreso_id) REFERENCES motivos_ingreso(id) ON DELETE RESTRICT
+    FOREIGN KEY (tipo_documento_id) REFERENCES tipos_documento_produccion(id) ON DELETE RESTRICT,
+    FOREIGN KEY (motivo_ingreso_id) REFERENCES motivos_ingreso(id) ON DELETE RESTRICT,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE RESTRICT,
+    FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE RESTRICT
 )";
 
 const CREATE_PARTE_PRODUCCION_TRANSPORTE: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_transporte (
@@ -327,6 +341,8 @@ async fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Erro
     
     conn.execute(CREATE_ESPECIES, ()).await?;
     eprintln!("  ✓ Tabla especies");
+    conn.execute(CREATE_CLIENTES, ()).await?;
+    eprintln!("  ✓ Tabla clientes");
     conn.execute(CREATE_PRESENTACIONES, ()).await?;
     eprintln!("  ✓ Tabla presentaciones");
     conn.execute(CREATE_FORMAS_ENVASADO, ()).await?;
@@ -348,12 +364,14 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     
     // Tipos de documento para partes de producción
     conn.execute(CREATE_TIPOS_DOCUMENTO_PRODUCCION, ()).await?;
+    eprintln!("  ✓ Tabla tipos_documento_produccion");
     conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('PRODUCCION', 'Documento de producción')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('DESEMBARQUE', 'Documento de desembarque')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_produccion (codigo, descripcion) VALUES ('DIRIMENCIA', 'Documento por dirimencia')", ()).await?;
     
         // Motivos de ingreso
     conn.execute(CREATE_MOTIVOS_INGRESO, ()).await?;
+    eprintln!("  ✓ Tabla motivos_ingreso");
     conn.execute("INSERT OR IGNORE INTO motivos_ingreso (codigo, descripcion) VALUES ('PRODUCCION', 'Produccion')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO motivos_ingreso (codigo, descripcion) VALUES ('REEMPAQUE', 'Reempaque')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO motivos_ingreso (codigo, descripcion) VALUES ('DESPACHO', 'Despacho')", ()).await?;
@@ -361,27 +379,37 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
 
     // Tipos de documento para controles de salida
     conn.execute(CREATE_TIPOS_DOCUMENTO_SALIDA, ()).await?;
+    eprintln!("  ✓ Tabla tipos_documento_salida");
     conn.execute("INSERT OR IGNORE INTO tipos_documento_salida (codigo, descripcion) VALUES ('SALIDA', 'Documento de salida')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_salida (codigo, descripcion) VALUES ('MUESTREO', 'Documento por muestreo')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO tipos_documento_salida (codigo, descripcion) VALUES ('EMBARQUE', 'Documento por embarque')", ()).await?;
 
     
     conn.execute(CREATE_CONTROLES_SALIDA, ()).await?;
+    eprintln!("  ✓ Tabla controles_salida");
     conn.execute(CREATE_CONTROL_SALIDA_ITEMS, ()).await?;
+    eprintln!("  ✓ Tabla control_salida_items");
     
     // Motivos de salida
     conn.execute(CREATE_MOTIVOS_SALIDA, ()).await?;
+    eprintln!("  ✓ Tabla motivos_salida");
     conn.execute("INSERT OR IGNORE INTO motivos_salida (codigo, descripcion) VALUES ('ALMACENAJE', 'Almacenaje')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO motivos_salida (codigo, descripcion) VALUES ('REEMPAQUE', 'Reempaque')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO motivos_salida (codigo, descripcion) VALUES ('DESPACHO', 'Despacho')", ()).await?;
     conn.execute("INSERT OR IGNORE INTO motivos_salida (codigo, descripcion) VALUES ('OTROS', 'Otros')", ()).await?;
     
     conn.execute(CREATE_PARTES_PRODUCCION, ()).await?;
+    eprintln!("  ✓ Tabla partes_produccion");
     conn.execute(CREATE_PARTE_PRODUCCION_TRANSPORTE, ()).await?;
+    eprintln!("  ✓ Tabla parte_produccion_transporte");
     conn.execute(CREATE_PARTE_PRODUCCION_EMBARCACION, ()).await?;
+    eprintln!("  ✓ Tabla parte_produccion_embarcacion");
     conn.execute(CREATE_PARTE_PRODUCCION_PRODUCTO, ()).await?;
+    eprintln!("  ✓ Tabla parte_produccion_producto");
     conn.execute(CREATE_PARTE_PRODUCCION_PRODUCTO_CARRO, ()).await?;
+    eprintln!("  ✓ Tabla parte_produccion_producto_carro");
     conn.execute(CREATE_PARTE_PRODUCCION_INSUMO, ()).await?;
+    eprintln!("  ✓ Tabla parte_produccion_insumo");
 
     Ok(())
 }
@@ -389,6 +417,35 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
 async fn create_users_table(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
     eprintln!("Creando tabla de usuarios...");
     conn.execute(CREATE_USERS, ()).await?;
+    eprintln!("  ✓ Tabla users");
+    Ok(())
+}
+
+// Migracion puntual: las columnas se agregan a la base que ya existe. Una vez
+// aplicada en Turso, este bloque se elimina y queda solo el DDL declarativo.
+async fn agregar_columna_si_falta(
+    conn: &Connection,
+    tabla: &str,
+    columna: &str,
+    definicion: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let sentencia = format!("ALTER TABLE {} ADD COLUMN {} {}", tabla, columna, definicion);
+    match conn.execute(&sentencia, ()).await {
+        Ok(_) => {
+            eprintln!("  ✓ Columna {}.{} agregada", tabla, columna);
+            Ok(())
+        }
+        Err(e) if e.to_string().contains("duplicate column name") => Ok(()),
+        Err(e) => Err(Box::new(e)),
+    }
+}
+
+async fn apply_migrations(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
+    eprintln!("Aplicando migraciones...");
+    for tabla in ["partes_produccion", "controles_salida"] {
+        agregar_columna_si_falta(conn, tabla, "cliente_id", "INTEGER REFERENCES clientes(id)").await?;
+        agregar_columna_si_falta(conn, tabla, "usuario_id", "INTEGER REFERENCES users(id)").await?;
+    }
     Ok(())
 }
 
@@ -398,8 +455,11 @@ async fn create_views(conn: &Connection) -> Result<(), Box<dyn std::error::Error
     conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
     conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;
     conn.execute(CREATE_VIEW, ()).await?;
+    eprintln!("  ✓ Vista variantes_completas_view");
     conn.execute(CREATE_STOCK_ACTUAL_VIEW, ()).await?;
+    eprintln!("  ✓ Vista stock_actual_view");
     conn.execute(CREATE_STOCK_POR_LOTE_VIEW, ()).await?;
+    eprintln!("  ✓ Vista stock_por_lote_view");
     Ok(())
 }
 
@@ -477,6 +537,7 @@ pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
     create_tables(&conn).await?;
     create_transaction_tables(&conn).await?;
     create_users_table(&conn).await?;
+    apply_migrations(&conn).await?;
     create_views(&conn).await?;
     create_indexes(&conn).await?;
 

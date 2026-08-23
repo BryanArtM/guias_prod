@@ -216,21 +216,23 @@ export default function CatalogoManager({
         title={`${itemEditando ? "Editar" : "Crear"} ${titulo}`}
       >
         <form onSubmit={handleSubmit}>
-          {campos.map((campo) => (
-            <Input
-              key={campo.name}
-              label={campo.label}
-              name={campo.name}
-              type={campo.type || "text"}
-              value={formData[campo.name] || ""}
-              onChange={handleInputChange}
-              error={errores[campo.name]}
-              required={campo.required}
-              min={campo.min}
-              step={campo.step}
-              placeholder={campo.placeholder}
-            />
-          ))}
+          <div className="space-y-4">
+            {campos.map((campo) => (
+              <Input
+                key={campo.name}
+                label={campo.label}
+                name={campo.name}
+                type={campo.type || "text"}
+                value={formData[campo.name] || ""}
+                onChange={handleInputChange}
+                error={errores[campo.name]}
+                required={campo.required}
+                min={campo.min}
+                step={campo.step}
+                placeholder={campo.placeholder}
+              />
+            ))}
+          </div>
 
           <div className="flex justify-end gap-2 mt-4">
             <Button type="button" variant="secondary" onClick={cerrarModal}>

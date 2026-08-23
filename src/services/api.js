@@ -49,6 +49,24 @@ export const eliminarEspecie = (id) => {
   return invokeWithAuth("eliminar_especie_cmd", { id });
 };
 
+// ==================== CLIENTES ====================
+
+export const crearCliente = (cliente) => {
+  return invokeWithAuth("crear_cliente_cmd", { cliente });
+};
+
+export const obtenerClientes = () => {
+  return invokeWithAuth("obtener_clientes_cmd");
+};
+
+export const actualizarCliente = (id, cliente) => {
+  return invokeWithAuth("actualizar_cliente_cmd", { id, cliente });
+};
+
+export const eliminarCliente = (id) => {
+  return invokeWithAuth("eliminar_cliente_cmd", { id });
+};
+
 // ==================== PRESENTACIONES ====================
 
 export const crearPresentacion = (presentacion) => {

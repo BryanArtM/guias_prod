@@ -12,6 +12,13 @@ pub struct Especie {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Cliente {
+    pub id: Option<i64>,
+    pub codigo: String,
+    pub razon_social: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Presentacion {
     pub id: Option<i64>,
     pub especie_id: i64,
@@ -103,6 +110,15 @@ pub struct ControlSalida {
     pub numero_control: String,
     pub fecha: String,
     pub cliente: String,
+    /// Cliente elegido del catalogo. La razon social se copia ademas en
+    /// `cliente` para que el documento conserve como se llamaba al emitirse.
+    #[serde(default)]
+    pub cliente_id: Option<i64>,
+    /// Usuario que registro el documento; lo resuelve el backend desde el token.
+    #[serde(default)]
+    pub usuario_id: Option<i64>,
+    #[serde(default)]
+    pub usuario_nombre: Option<String>,
     pub fecha_produccion: Option<String>,
     pub turno: Option<String>,
     pub numero_lote: Option<String>,
@@ -124,6 +140,15 @@ pub struct ParteProduccion {
     pub revision: Option<String>,
     pub version: Option<String>,
     pub cliente: Option<String>,
+    /// Cliente elegido del catalogo. La razon social se copia ademas en
+    /// `cliente` para que el documento conserve como se llamaba al emitirse.
+    #[serde(default)]
+    pub cliente_id: Option<i64>,
+    /// Usuario que registro el documento; lo resuelve el backend desde el token.
+    #[serde(default)]
+    pub usuario_id: Option<i64>,
+    #[serde(default)]
+    pub usuario_nombre: Option<String>,
     pub fecha: String,
     pub turno: Option<String>,
     pub codigo_trazabilidad: Option<String>,

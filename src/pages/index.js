@@ -2,6 +2,7 @@ export { default as DashboardPage } from "./DashboardPage";
 export { EspeciesPage } from "./EspeciesPage";
 export { PresentacionesPage } from "./PresentacionesPage";
 export { default as CatalogosPage } from "./CatalogosPage";
+export { default as ClientesPage } from "./ClientesPage";
 export { default as VariantesPage } from "./VariantesPage";
 export { default as IngresosPage } from "./ingresos/IngresosPage";
 export { default as IngresoDetallePage } from "./ingresos/IngresoDetallePage";
