@@ -164,15 +164,20 @@ const CREATE_PARTE_PRODUCCION_PRODUCTO: &str = "CREATE TABLE IF NOT EXISTS parte
     variante_id INTEGER NOT NULL,
     fecha_ingreso TEXT CHECK (fecha_ingreso IS NULL OR fecha_ingreso GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     peso_unidad REAL,
-    cajas_carro_1 INTEGER DEFAULT 0,
-    cajas_carro_2 INTEGER DEFAULT 0,
-    cajas_carro_3 INTEGER DEFAULT 0,
-    cajas_carro_4 INTEGER DEFAULT 0,
     peso_total_neto_kg REAL,
     acumulado_presentacion REAL,
     rendimiento REAL,
     FOREIGN KEY (parte_id) REFERENCES partes_produccion(id) ON DELETE CASCADE,
     FOREIGN KEY (variante_id) REFERENCES variantes_presentaciones(id)
+)";
+
+const CREATE_PARTE_PRODUCCION_PRODUCTO_CARRO: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_producto_carro (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    producto_id INTEGER NOT NULL,
+    numero_carro INTEGER NOT NULL,
+    cajas INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (producto_id, numero_carro),
+    FOREIGN KEY (producto_id) REFERENCES parte_produccion_producto(id) ON DELETE CASCADE
 )";
 
 const CREATE_PARTE_PRODUCCION_INSUMO: &str = "CREATE TABLE IF NOT EXISTS parte_produccion_insumo (
@@ -250,11 +255,16 @@ SELECT
     CAST(COALESCE(ing.cajas, 0) - COALESCE(sal.cajas, 0) AS INTEGER) AS stock_cajas
 FROM variantes_completas_view vc
 LEFT JOIN (
-    SELECT variante_id,
-                 SUM(peso_total_neto_kg) AS kg,
-                 SUM(cajas_carro_1 + cajas_carro_2 + cajas_carro_3 + cajas_carro_4) AS cajas
-    FROM parte_produccion_producto
-    GROUP BY variante_id
+    SELECT pp.variante_id,
+                 SUM(pp.peso_total_neto_kg) AS kg,
+                 SUM(COALESCE(cc.cajas, 0)) AS cajas
+    FROM parte_produccion_producto pp
+    LEFT JOIN (
+        SELECT producto_id, SUM(cajas) AS cajas
+        FROM parte_produccion_producto_carro
+        GROUP BY producto_id
+    ) cc ON cc.producto_id = pp.id
+    GROUP BY pp.variante_id
 ) ing ON ing.variante_id = vc.variante_id
 LEFT JOIN (
     SELECT variante_id, SUM(total_kg) AS kg, SUM(cantidad) AS cajas
@@ -290,9 +300,14 @@ FROM (
     SELECT pp.variante_id,
            pp.fecha_ingreso,
            SUM(pp.peso_total_neto_kg) AS kg,
-           SUM(pp.cajas_carro_1 + pp.cajas_carro_2 + pp.cajas_carro_3 + pp.cajas_carro_4) AS cajas,
+           SUM(COALESCE(cc.cajas, 0)) AS cajas,
            AVG(pp.peso_unidad) AS peso_unidad
     FROM parte_produccion_producto pp
+    LEFT JOIN (
+        SELECT producto_id, SUM(cajas) AS cajas
+        FROM parte_produccion_producto_carro
+        GROUP BY producto_id
+    ) cc ON cc.producto_id = pp.id
     WHERE pp.fecha_ingreso IS NOT NULL
     GROUP BY pp.variante_id, pp.fecha_ingreso
 ) ing
@@ -322,162 +337,6 @@ async fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Erro
     conn.execute(CREATE_VARIANTES, ()).await?;
     eprintln!("  ✓ Tabla variantes");
     
-    Ok(())
-}
-
-async fn migrate_variantes_schema(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    let mut result = conn.query("PRAGMA table_info(variantes_presentaciones)", ()).await?;
-    let mut necesita_migracion = false;
-    while let Some(row) = result.next().await? {
-        let nombre_columna: String = row.get(1)?;
-        if nombre_columna == "forma_envasado_id"
-            || nombre_columna == "forma_empacado_id"
-            || nombre_columna == "observaciones"
-        {
-            necesita_migracion = true;
-            break;
-        }
-    }
-
-    if necesita_migracion {
-        eprintln!("Migrando variantes_presentaciones al nuevo esquema (especie, presentacion, calidad, calibre, ensunchado)...");
-        conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
-        conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
-        conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;
-        conn.execute("DROP TABLE IF EXISTS variantes_presentaciones", ()).await?;
-        conn.execute(CREATE_VARIANTES, ()).await?;
-        conn.execute("PRAGMA foreign_keys = ON", ()).await?;
-        eprintln!("  ✓ Tabla variantes_presentaciones recreada con el nuevo esquema");
-    }
-
-    Ok(())
-}
-
-async fn migrate_especies_schema(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    let mut result = conn.query("PRAGMA table_info(especies)", ()).await?;
-    let mut tiene_columna = false;
-    while let Some(row) = result.next().await? {
-        let nombre_columna: String = row.get(1)?;
-        if nombre_columna == "peso_unidad_defecto" {
-            tiene_columna = true;
-            break;
-        }
-    }
-
-    if !tiene_columna {
-        eprintln!("Recreando especies con el nuevo esquema (peso_unidad_defecto)...");
-        conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
-        conn.execute("DROP TABLE IF EXISTS especies", ()).await?;
-        conn.execute(CREATE_ESPECIES, ()).await?;
-        conn.execute("PRAGMA foreign_keys = ON", ()).await?;
-        eprintln!("  ✓ Tabla especies recreada con el nuevo esquema");
-    }
-
-    Ok(())
-}
-
-// A diferencia de las migraciones de catalogo, aqui si hay documentos ya
-// registrados que deben sobrevivir: se recrea la tabla copiando los items
-// existentes, que quedan con fecha_ingreso NULL (lote desconocido).
-async fn migrate_control_salida_items_schema(
-    conn: &Connection,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut result = conn
-        .query("PRAGMA table_info(control_salida_items)", ())
-        .await?;
-    let mut tiene_tabla = false;
-    let mut tiene_columna = false;
-    while let Some(row) = result.next().await? {
-        tiene_tabla = true;
-        let nombre_columna: String = row.get(1)?;
-        if nombre_columna == "fecha_ingreso" {
-            tiene_columna = true;
-            break;
-        }
-    }
-
-    if !tiene_tabla || tiene_columna {
-        return Ok(());
-    }
-
-    eprintln!("Migrando control_salida_items para trazabilidad por lote (fecha_ingreso)...");
-    conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
-    conn.execute("DROP VIEW IF EXISTS stock_por_lote_view", ()).await?;
-    conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
-    conn.execute(
-        "ALTER TABLE control_salida_items RENAME TO control_salida_items_old",
-        (),
-    )
-    .await?;
-    conn.execute(CREATE_CONTROL_SALIDA_ITEMS, ()).await?;
-    conn.execute(
-        "INSERT INTO control_salida_items
-            (id, control_salida_id, numero_item, variante_id, codigo_trazabilidad,
-             cantidad, peso_unidad, total_kg, observaciones, created_at)
-         SELECT id, control_salida_id, numero_item, variante_id, codigo_trazabilidad,
-                cantidad, peso_unidad, total_kg, observaciones, created_at
-         FROM control_salida_items_old",
-        (),
-    )
-    .await?;
-    conn.execute("DROP TABLE control_salida_items_old", ()).await?;
-    conn.execute("PRAGMA foreign_keys = ON", ()).await?;
-    eprintln!("  ✓ control_salida_items migrada conservando los items existentes");
-
-    Ok(())
-}
-
-// Recrea la tabla de productos agregando fecha_ingreso y rellenandola con la
-// fecha de la cabecera del parte al que pertenece cada fila, para no perder los
-// ingresos ya registrados.
-async fn migrate_parte_produccion_producto_schema(
-    conn: &Connection,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut result = conn
-        .query("PRAGMA table_info(parte_produccion_producto)", ())
-        .await?;
-    let mut tiene_tabla = false;
-    let mut tiene_columna = false;
-    while let Some(row) = result.next().await? {
-        tiene_tabla = true;
-        let nombre_columna: String = row.get(1)?;
-        if nombre_columna == "fecha_ingreso" {
-            tiene_columna = true;
-            break;
-        }
-    }
-
-    if !tiene_tabla || tiene_columna {
-        return Ok(());
-    }
-
-    eprintln!("Migrando parte_produccion_producto para congelar fecha_ingreso...");
-    conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
-    conn.execute("DROP VIEW IF EXISTS stock_por_lote_view", ()).await?;
-    conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
-    conn.execute(
-        "ALTER TABLE parte_produccion_producto RENAME TO parte_produccion_producto_old",
-        (),
-    )
-    .await?;
-    conn.execute(CREATE_PARTE_PRODUCCION_PRODUCTO, ()).await?;
-    conn.execute(
-        "INSERT INTO parte_produccion_producto
-            (id, parte_id, variante_id, fecha_ingreso, peso_unidad, cajas_carro_1,
-             cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg,
-             acumulado_presentacion, rendimiento)
-         SELECT o.id, o.parte_id, o.variante_id, p.fecha, o.peso_unidad, o.cajas_carro_1,
-                o.cajas_carro_2, o.cajas_carro_3, o.cajas_carro_4, o.peso_total_neto_kg,
-                o.acumulado_presentacion, o.rendimiento
-         FROM parte_produccion_producto_old o
-         LEFT JOIN partes_produccion p ON p.id = o.parte_id",
-        (),
-    )
-    .await?;
-    conn.execute("DROP TABLE parte_produccion_producto_old", ()).await?;
-    conn.execute("PRAGMA foreign_keys = ON", ()).await?;
-    eprintln!("  ✓ parte_produccion_producto migrada con fecha_ingreso poblada");
-
     Ok(())
 }
 
@@ -518,79 +377,9 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
     conn.execute(CREATE_PARTE_PRODUCCION_TRANSPORTE, ()).await?;
     conn.execute(CREATE_PARTE_PRODUCCION_EMBARCACION, ()).await?;
     conn.execute(CREATE_PARTE_PRODUCCION_PRODUCTO, ()).await?;
+    conn.execute(CREATE_PARTE_PRODUCCION_PRODUCTO_CARRO, ()).await?;
     conn.execute(CREATE_PARTE_PRODUCCION_INSUMO, ()).await?;
-    
-    Ok(())
-}
 
-// SQLite no permite agregar un CHECK con ALTER TABLE: hay que recrear la tabla.
-// Se usa el procedimiento seguro (crear la nueva, copiar, borrar la vieja,
-// renombrar) porque algunas de estas tablas tienen hijos con claves foraneas:
-// si se renombrara la original primero, SQLite reescribiria esas referencias.
-async fn migrar_tabla_con_check_fecha(
-    conn: &Connection,
-    tabla: &str,
-    create_sql: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut result = conn
-        .query(
-            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?1",
-            [libsql::Value::from(tabla.to_string())],
-        )
-        .await?;
-
-    let sql_actual: Option<String> = match result.next().await? {
-        Some(row) => Some(row.get(0)?),
-        None => None,
-    };
-
-    // Si la tabla aun no existe, create_tables la creara ya con el CHECK
-    let Some(sql_actual) = sql_actual else {
-        return Ok(());
-    };
-    if sql_actual.contains("GLOB") {
-        return Ok(());
-    }
-
-    let tabla_nueva = format!("{}_new", tabla);
-    let create_nueva = create_sql.replacen(tabla, &tabla_nueva, 1);
-
-    eprintln!("Agregando validacion de formato de fecha a {}...", tabla);
-    conn.execute("PRAGMA foreign_keys = OFF", ()).await?;
-    // Las vistas se recrean despues; se quitan para que el RENAME no falle al
-    // intentar resolver referencias a una tabla que esta siendo reemplazada.
-    conn.execute("DROP VIEW IF EXISTS stock_por_lote_view", ()).await?;
-    conn.execute("DROP VIEW IF EXISTS stock_actual_view", ()).await?;
-    conn.execute("DROP VIEW IF EXISTS variantes_completas_view", ()).await?;
-    conn.execute(&format!("DROP TABLE IF EXISTS {}", tabla_nueva), ()).await?;
-    conn.execute(&create_nueva, ()).await?;
-    conn.execute(
-        &format!("INSERT INTO {} SELECT * FROM {}", tabla_nueva, tabla),
-        (),
-    )
-    .await?;
-    conn.execute(&format!("DROP TABLE {}", tabla), ()).await?;
-    conn.execute(
-        &format!("ALTER TABLE {} RENAME TO {}", tabla_nueva, tabla),
-        (),
-    )
-    .await?;
-    conn.execute("PRAGMA foreign_keys = ON", ()).await?;
-    eprintln!("  ✓ {} migrada", tabla);
-
-    Ok(())
-}
-
-async fn migrate_checks_de_fecha(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    migrar_tabla_con_check_fecha(conn, "partes_produccion", CREATE_PARTES_PRODUCCION).await?;
-    migrar_tabla_con_check_fecha(
-        conn,
-        "parte_produccion_producto",
-        CREATE_PARTE_PRODUCCION_PRODUCTO,
-    )
-    .await?;
-    migrar_tabla_con_check_fecha(conn, "controles_salida", CREATE_CONTROLES_SALIDA).await?;
-    migrar_tabla_con_check_fecha(conn, "control_salida_items", CREATE_CONTROL_SALIDA_ITEMS).await?;
     Ok(())
 }
 
@@ -686,12 +475,7 @@ pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
     let conn = db.connect()?;
     conn.execute("PRAGMA foreign_keys = ON", ()).await?;
     create_tables(&conn).await?;
-    migrate_variantes_schema(&conn).await?;
-    migrate_especies_schema(&conn).await?;
     create_transaction_tables(&conn).await?;
-    migrate_control_salida_items_schema(&conn).await?;
-    migrate_parte_produccion_producto_schema(&conn).await?;
-    migrate_checks_de_fecha(&conn).await?;
     create_users_table(&conn).await?;
     create_views(&conn).await?;
     create_indexes(&conn).await?;

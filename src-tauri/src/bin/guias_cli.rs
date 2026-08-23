@@ -300,10 +300,7 @@ fn calcular_total_recepcion(parte: &ParteProduccion) -> f64 {
 fn completar_productos(parte: &mut ParteProduccion) {
     let total_recepcion = calcular_total_recepcion(parte);
     for producto in parte.productos.iter_mut() {
-        let total_cajas = producto.cajas_carro_1
-            + producto.cajas_carro_2
-            + producto.cajas_carro_3
-            + producto.cajas_carro_4;
+        let total_cajas: i32 = producto.cajas_carros.iter().sum();
         let peso_unidad = producto.peso_unidad.unwrap_or(0.0);
         let total_neto = total_cajas as f64 * peso_unidad;
 

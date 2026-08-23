@@ -161,10 +161,10 @@ pub struct ParteProduccionProducto {
     #[serde(default)]
     pub fecha_ingreso: Option<String>,
     pub peso_unidad: Option<f64>,
-    pub cajas_carro_1: i32,
-    pub cajas_carro_2: i32,
-    pub cajas_carro_3: i32,
-    pub cajas_carro_4: i32,
+    /// Cajas por carro, en el mismo orden en que se cargaron los transportes del
+    /// parte. La cantidad de carros la define el usuario, no es fija.
+    #[serde(default)]
+    pub cajas_carros: Vec<i32>,
     pub peso_total_neto_kg: Option<f64>,
     pub codigo_completo: Option<String>,
     pub acumulado_presentacion: Option<f64>,

@@ -10,14 +10,38 @@ import { ChevronDown, ChevronRight, Edit2, Plus, Trash2 } from "lucide-react";
 const FILAS_INICIALES_POR_PRESENTACION = 10;
 const PESO_UNIDAD_POR_DEFECTO = 10;
 
-function crearFilaProducto(varianteId, pesoUnidad = PESO_UNIDAD_POR_DEFECTO) {
+function ajustarCajasCarros(cajasCarros, cantidadCarros) {
+  const actuales = Array.isArray(cajasCarros) ? cajasCarros : [];
+  return Array.from({ length: cantidadCarros }, (_, i) => actuales[i] ?? 0);
+}
+
+function sumarCajas(producto) {
+  if (!Array.isArray(producto.cajas_carros)) return 0;
+  return producto.cajas_carros.reduce(
+    (total, cajas) => total + (parseInt(cajas) || 0),
+    0,
+  );
+}
+
+function recalcularDerivados(producto, totalRecepcion) {
+  const pesoTotalNeto = sumarCajas(producto) * (parseFloat(producto.peso_unidad) || 0);
+  return {
+    ...producto,
+    peso_total_neto_kg: pesoTotalNeto,
+    acumulado_presentacion: pesoTotalNeto,
+    rendimiento: totalRecepcion > 0 ? (pesoTotalNeto * 100) / totalRecepcion : 0,
+  };
+}
+
+function crearFilaProducto(
+  varianteId,
+  pesoUnidad = PESO_UNIDAD_POR_DEFECTO,
+  cantidadCarros = 0,
+) {
   return {
     variante_id: varianteId,
     peso_unidad: pesoUnidad,
-    cajas_carro_1: 0,
-    cajas_carro_2: 0,
-    cajas_carro_3: 0,
-    cajas_carro_4: 0,
+    cajas_carros: ajustarCajasCarros([], cantidadCarros),
     peso_total_neto_kg: 0,
     acumulado_presentacion: 0,
     rendimiento: 0,
@@ -39,13 +63,12 @@ function etiquetaBase(base) {
 // desplaza hacia abajo dentro de la misma columna, y al llegar a la última
 // fila salta al inicio de la siguiente columna. Así se puede rellenar toda
 // la columna "Carro 1" de corrido antes de pasar a "Carro 2", etc.
-const ORDEN_COLUMNAS_NUMERICAS = [
-  "peso_unidad",
-  "cajas_carro_1",
-  "cajas_carro_2",
-  "cajas_carro_3",
-  "cajas_carro_4",
-];
+function ordenColumnasNumericas(cantidadCarros) {
+  return [
+    "peso_unidad",
+    ...Array.from({ length: cantidadCarros }, (_, i) => `carro_${i}`),
+  ];
+}
 
 function idCampoNumerico(presentacionId, columna, posicion) {
   return `campo-${presentacionId}-${columna}-${posicion}`;
@@ -57,13 +80,14 @@ function manejarNavegacionVertical(
   columna,
   posicion,
   totalFilas,
+  ordenColumnas,
 ) {
   if (evento.key !== "Tab" && evento.key !== "Enter") {
     return;
   }
   evento.preventDefault();
 
-  const indiceColumna = ORDEN_COLUMNAS_NUMERICAS.indexOf(columna);
+  const indiceColumna = ordenColumnas.indexOf(columna);
   const retroceder = evento.key === "Tab" && evento.shiftKey;
 
   let siguienteColumna = columna;
@@ -71,13 +95,13 @@ function manejarNavegacionVertical(
 
   if (siguientePosicion < 0) {
     if (indiceColumna <= 0) return;
-    siguienteColumna = ORDEN_COLUMNAS_NUMERICAS[indiceColumna - 1];
+    siguienteColumna = ordenColumnas[indiceColumna - 1];
     siguientePosicion = totalFilas - 1;
   } else if (siguientePosicion >= totalFilas) {
-    if (indiceColumna === -1 || indiceColumna === ORDEN_COLUMNAS_NUMERICAS.length - 1) {
+    if (indiceColumna === -1 || indiceColumna === ordenColumnas.length - 1) {
       return;
     }
-    siguienteColumna = ORDEN_COLUMNAS_NUMERICAS[indiceColumna + 1];
+    siguienteColumna = ordenColumnas[indiceColumna + 1];
     siguientePosicion = 0;
   }
 
@@ -99,6 +123,7 @@ export default function PackedProductSection({
   onChangeProductos,
   onCrearVarianteEnsunchado,
   totalRecepcion,
+  cantidadCarros = 0,
 }) {
   const [presentacionesAbiertas, setPresentacionesAbiertas] = useState(
     new Set(),
@@ -213,6 +238,39 @@ export default function PackedProductSection({
     }
   }, [totalRecepcion]);
 
+  // Cada fila lleva una casilla por carro registrado en la recepción. Al agregar
+  // o quitar transportes hay que reajustar las filas ya cargadas.
+  useEffect(() => {
+    if (productos.length === 0) {
+      return;
+    }
+
+    const necesitaAjuste = productos.some(
+      (producto) =>
+        !Array.isArray(producto.cajas_carros) ||
+        producto.cajas_carros.length !== cantidadCarros,
+    );
+
+    if (!necesitaAjuste) {
+      return;
+    }
+
+    onChangeProductos(
+      productos.map((producto) =>
+        recalcularDerivados(
+          {
+            ...producto,
+            cajas_carros: ajustarCajasCarros(
+              producto.cajas_carros,
+              cantidadCarros,
+            ),
+          },
+          totalRecepcion,
+        ),
+      ),
+    );
+  }, [cantidadCarros, productos, totalRecepcion]);
+
   useEffect(() => {
     if (productos.length === 0) {
       return;
@@ -271,6 +329,7 @@ export default function PackedProductSection({
             crearFilaProducto(
               siguienteBaseAlfabetica(presentacion, i).variante_id,
               pesoUnidadInicial,
+              cantidadCarros,
             ),
         );
         onChangeProductos([...productos, ...nuevasFilas]);
@@ -283,7 +342,7 @@ export default function PackedProductSection({
     const base = siguienteBaseAlfabetica(presentacion, filasExistentes.length);
     onChangeProductos([
       ...productos,
-      crearFilaProducto(base.variante_id, pesoUnidadInicial),
+      crearFilaProducto(base.variante_id, pesoUnidadInicial, cantidadCarros),
     ]);
   };
 
@@ -294,25 +353,20 @@ export default function PackedProductSection({
 
   const updateProducto = (index, field, value) => {
     const newProductos = [...productos];
-    newProductos[index] = { ...newProductos[index], [field]: value };
-
-    // Recalcular
-    const p = newProductos[index];
-    const totalCajas =
-      (parseInt(p.cajas_carro_1) || 0) +
-      (parseInt(p.cajas_carro_2) || 0) +
-      (parseInt(p.cajas_carro_3) || 0) +
-      (parseInt(p.cajas_carro_4) || 0);
-
-    p.peso_total_neto_kg = totalCajas * (parseFloat(p.peso_unidad) || 0);
-    p.acumulado_presentacion = p.peso_total_neto_kg;
-
-    p.rendimiento =
-      totalRecepcion > 0
-        ? (p.acumulado_presentacion * 100) / totalRecepcion
-        : 0;
-
+    newProductos[index] = recalcularDerivados(
+      { ...newProductos[index], [field]: value },
+      totalRecepcion,
+    );
     onChangeProductos(newProductos);
+  };
+
+  const updateCajasCarro = (index, indiceCarro, value) => {
+    const cajasCarros = ajustarCajasCarros(
+      productos[index].cajas_carros,
+      cantidadCarros,
+    );
+    cajasCarros[indiceCarro] = value;
+    updateProducto(index, "cajas_carros", cajasCarros);
   };
 
   // El ensunchado ya no es un campo de la variante que se elige al crearla en
@@ -358,17 +412,15 @@ export default function PackedProductSection({
 
   const sumas = productos.reduce(
     (acc, p) => {
-      acc.cajas +=
-        (parseInt(p.cajas_carro_1) || 0) +
-        (parseInt(p.cajas_carro_2) || 0) +
-        (parseInt(p.cajas_carro_3) || 0) +
-        (parseInt(p.cajas_carro_4) || 0);
+      acc.cajas += sumarCajas(p);
       acc.pesoNeto += parseFloat(p.peso_total_neto_kg) || 0;
       acc.rendimiento += parseFloat(p.rendimiento) || 0;
       return acc;
     },
     { cajas: 0, pesoNeto: 0, rendimiento: 0 },
   );
+
+  const ordenColumnas = ordenColumnasNumericas(cantidadCarros);
 
   return (
     <div className="mb-4 border border-line bg-surface p-3 rounded-sm">
@@ -393,11 +445,7 @@ export default function PackedProductSection({
             const filas = filasDePresentacion(presentacion.presentacion_id);
             const filasSumas = filas.reduce(
               (acc, { producto: p }) => {
-                acc.cajas +=
-                  (parseInt(p.cajas_carro_1) || 0) +
-                  (parseInt(p.cajas_carro_2) || 0) +
-                  (parseInt(p.cajas_carro_3) || 0) +
-                  (parseInt(p.cajas_carro_4) || 0);
+                acc.cajas += sumarCajas(p);
                 acc.pesoNeto += parseFloat(p.peso_total_neto_kg) || 0;
                 return acc;
               },
@@ -439,10 +487,15 @@ export default function PackedProductSection({
                             Ensunchado
                           </TableHead>
                           <TableHead className="w-24">Peso Und</TableHead>
-                          <TableHead className="w-20">Carro 1</TableHead>
-                          <TableHead className="w-20">Carro 2</TableHead>
-                          <TableHead className="w-20">Carro 3</TableHead>
-                          <TableHead className="w-20">Carro 4</TableHead>
+                          {Array.from(
+                            { length: cantidadCarros },
+                            (_, indiceCarro) => (
+                              <TableHead
+                                key={indiceCarro}
+                                className="w-20"
+                              >{`Carro ${indiceCarro + 1}`}</TableHead>
+                            ),
+                          )}
                           <TableHead>Total Neto (kg)</TableHead>
                           <TableHead>Rend. (%)</TableHead>
                           <TableHead className="w-10"></TableHead>
@@ -465,6 +518,13 @@ export default function PackedProductSection({
                             : null;
                           const estaCreandoVariante =
                             filasCreandoVariante.has(index);
+                          // El efecto que sincroniza las filas con los carros
+                          // corre despues del render, asi que aqui se ajusta
+                          // tambien para no desalinear celdas y cabeceras.
+                          const cajasCarros = ajustarCajasCarros(
+                            p.cajas_carros,
+                            cantidadCarros,
+                          );
 
                           return (
                             <tr
@@ -560,122 +620,42 @@ export default function PackedProductSection({
                                       "peso_unidad",
                                       posEnPresentacion,
                                       filas.length,
+                                      ordenColumnas,
                                     )
                                   }
                                 />
                               </td>
-                              <td className="p-1 border">
-                                <input
-                                  id={idCampoNumerico(
-                                    presentacion.presentacion_id,
-                                    "cajas_carro_1",
-                                    posEnPresentacion,
-                                  )}
-                                  type="number"
-                                  className="w-full p-1 border-none bg-transparent focus:ring-0"
-                                  value={p.cajas_carro_1}
-                                  onChange={(e) =>
-                                    updateProducto(
-                                      index,
-                                      "cajas_carro_1",
-                                      e.target.value,
-                                    )
-                                  }
-                                  onKeyDown={(e) =>
-                                    manejarNavegacionVertical(
-                                      e,
+                              {cajasCarros.map((cajas, indiceCarro) => (
+                                <td key={indiceCarro} className="p-1 border">
+                                  <input
+                                    id={idCampoNumerico(
                                       presentacion.presentacion_id,
-                                      "cajas_carro_1",
+                                      `carro_${indiceCarro}`,
                                       posEnPresentacion,
-                                      filas.length,
-                                    )
-                                  }
-                                />
-                              </td>
-                              <td className="p-1 border">
-                                <input
-                                  id={idCampoNumerico(
-                                    presentacion.presentacion_id,
-                                    "cajas_carro_2",
-                                    posEnPresentacion,
-                                  )}
-                                  type="number"
-                                  className="w-full p-1 border-none bg-transparent focus:ring-0"
-                                  value={p.cajas_carro_2}
-                                  onChange={(e) =>
-                                    updateProducto(
-                                      index,
-                                      "cajas_carro_2",
-                                      e.target.value,
-                                    )
-                                  }
-                                  onKeyDown={(e) =>
-                                    manejarNavegacionVertical(
-                                      e,
-                                      presentacion.presentacion_id,
-                                      "cajas_carro_2",
-                                      posEnPresentacion,
-                                      filas.length,
-                                    )
-                                  }
-                                />
-                              </td>
-                              <td className="p-1 border">
-                                <input
-                                  id={idCampoNumerico(
-                                    presentacion.presentacion_id,
-                                    "cajas_carro_3",
-                                    posEnPresentacion,
-                                  )}
-                                  type="number"
-                                  className="w-full p-1 border-none bg-transparent focus:ring-0"
-                                  value={p.cajas_carro_3}
-                                  onChange={(e) =>
-                                    updateProducto(
-                                      index,
-                                      "cajas_carro_3",
-                                      e.target.value,
-                                    )
-                                  }
-                                  onKeyDown={(e) =>
-                                    manejarNavegacionVertical(
-                                      e,
-                                      presentacion.presentacion_id,
-                                      "cajas_carro_3",
-                                      posEnPresentacion,
-                                      filas.length,
-                                    )
-                                  }
-                                />
-                              </td>
-                              <td className="p-1 border">
-                                <input
-                                  id={idCampoNumerico(
-                                    presentacion.presentacion_id,
-                                    "cajas_carro_4",
-                                    posEnPresentacion,
-                                  )}
-                                  type="number"
-                                  className="w-full p-1 border-none bg-transparent focus:ring-0"
-                                  value={p.cajas_carro_4}
-                                  onChange={(e) =>
-                                    updateProducto(
-                                      index,
-                                      "cajas_carro_4",
-                                      e.target.value,
-                                    )
-                                  }
-                                  onKeyDown={(e) =>
-                                    manejarNavegacionVertical(
-                                      e,
-                                      presentacion.presentacion_id,
-                                      "cajas_carro_4",
-                                      posEnPresentacion,
-                                      filas.length,
-                                    )
-                                  }
-                                />
-                              </td>
+                                    )}
+                                    type="number"
+                                    className="w-full p-1 border-none bg-transparent focus:ring-0"
+                                    value={cajas}
+                                    onChange={(e) =>
+                                      updateCajasCarro(
+                                        index,
+                                        indiceCarro,
+                                        e.target.value,
+                                      )
+                                    }
+                                    onKeyDown={(e) =>
+                                      manejarNavegacionVertical(
+                                        e,
+                                        presentacion.presentacion_id,
+                                        `carro_${indiceCarro}`,
+                                        posEnPresentacion,
+                                        filas.length,
+                                        ordenColumnas,
+                                      )
+                                    }
+                                  />
+                                </td>
+                              ))}
                               <td className="num p-2 border text-right font-medium">
                                 {p.peso_total_neto_kg?.toFixed(2)}
                               </td>

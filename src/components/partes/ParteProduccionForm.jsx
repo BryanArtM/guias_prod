@@ -178,10 +178,9 @@ export default function ParteProduccionForm({
         ...p,
         variante_id: parseInt(p.variante_id),
         peso_unidad: parseFloat(p.peso_unidad) || 0,
-        cajas_carro_1: parseInt(p.cajas_carro_1) || 0,
-        cajas_carro_2: parseInt(p.cajas_carro_2) || 0,
-        cajas_carro_3: parseInt(p.cajas_carro_3) || 0,
-        cajas_carro_4: parseInt(p.cajas_carro_4) || 0,
+        cajas_carros: (p.cajas_carros || []).map(
+          (cajas) => parseInt(cajas) || 0,
+        ),
         peso_total_neto_kg: parseFloat(p.peso_total_neto_kg) || 0,
         acumulado_presentacion: parseFloat(p.acumulado_presentacion) || 0,
         rendimiento: parseFloat(p.rendimiento) || 0,
@@ -285,6 +284,7 @@ export default function ParteProduccionForm({
         }
         onCrearVarianteEnsunchado={crearVarianteEnsunchado}
         totalRecepcion={totalRecepcion}
+        cantidadCarros={formData.transportes.length}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

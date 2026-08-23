@@ -35,7 +35,9 @@ const SQL_MOVIMIENTOS: &str = "SELECT * FROM (
         vc.presentacion_nombre AS presentacion_nombre,
         vc.calidad AS calidad,
         vc.calibre AS calibre,
-        CAST(pp.cajas_carro_1 + pp.cajas_carro_2 + pp.cajas_carro_3 + pp.cajas_carro_4 AS INTEGER) AS cajas,
+        CAST(COALESCE((SELECT SUM(cc.cajas)
+                       FROM parte_produccion_producto_carro cc
+                       WHERE cc.producto_id = pp.id), 0) AS INTEGER) AS cajas,
         CAST(COALESCE(pp.peso_total_neto_kg, 0) AS REAL) AS kg,
         p.codigo_trazabilidad AS codigo_trazabilidad
     FROM parte_produccion_producto pp

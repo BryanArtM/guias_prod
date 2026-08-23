@@ -67,11 +67,6 @@ pub fn get_optional_f64(row: &Row, idx: i32) -> Result<Option<f64>, libsql::Erro
     Ok(get_f64(row, idx).ok())
 }
 
-// Helper para obtener un valor i32 opcional de una fila
-pub fn get_optional_i32(row: &Row, idx: i32) -> Result<Option<i32>, libsql::Error> {
-    Ok(get_i64(row, idx).ok().map(|v| v as i32))
-}
-
 // Helper para obtener un valor bool desde un entero
 pub fn get_bool_from_int(row: &Row, idx: i32) -> Result<bool, libsql::Error> {
     Ok(get_i64(row, idx)? != 0)

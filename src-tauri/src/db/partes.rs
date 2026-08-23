@@ -1,7 +1,30 @@
-use libsql::{Database, Value};
+use std::collections::HashMap;
+
+use libsql::{Connection, Database, Value};
 use crate::db::types::ParteProduccion;
 use crate::db::helpers::*;
 use crate::{ParteProduccionEmbarcacion, ParteProduccionTransporte, ParteProduccionProducto, ParteProduccionInsumo};
+
+// El reparto de cajas por carro vive en una tabla hija porque la cantidad de
+// carros la decide el usuario al cargar los transportes del parte.
+async fn insertar_carros_de_producto(
+    conn: &Connection,
+    producto_id: i64,
+    cajas_carros: &[i32],
+) -> Result<(), String> {
+    for (indice, cajas) in cajas_carros.iter().enumerate() {
+        conn.execute(
+            "INSERT INTO parte_produccion_producto_carro (producto_id, numero_carro, cajas)
+             VALUES (?1, ?2, ?3)",
+            vec![
+                Value::from(producto_id),
+                Value::from((indice + 1) as i64),
+                Value::from(*cajas as i64),
+            ],
+        ).await.map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
 
 // Valida las fechas del documento y de los lotes de cada producto
 fn validar_fechas_parte(parte: &ParteProduccion) -> Result<(), String> {
@@ -71,23 +94,21 @@ pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> R
     for producto in &parte.productos {
         conn.execute(
             "INSERT INTO parte_produccion_producto
-             (parte_id, variante_id, fecha_ingreso, peso_unidad, cajas_carro_1, cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+             (parte_id, variante_id, fecha_ingreso, peso_unidad, peso_total_neto_kg, acumulado_presentacion, rendimiento)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             vec![
                 Value::from(parte_id),
                 Value::from(producto.variante_id),
                 Value::from(parte.fecha.clone()),
                 option_f64_to_value(producto.peso_unidad),
-                Value::from(producto.cajas_carro_1 as i64),
-                Value::from(producto.cajas_carro_2 as i64),
-                Value::from(producto.cajas_carro_3 as i64),
-                Value::from(producto.cajas_carro_4 as i64),
                 option_f64_to_value(producto.peso_total_neto_kg),
                 option_f64_to_value(producto.acumulado_presentacion),
                 option_f64_to_value(producto.rendimiento),
             ],
         ).await.map_err(|e| e.to_string())?;
 
+        let producto_id = conn.last_insert_rowid();
+        insertar_carros_de_producto(&conn, producto_id, &producto.cajas_carros).await?;
     }
 
     // 4. Insertar insumos
@@ -140,6 +161,12 @@ pub async fn actualizar_parte_produccion(db: &Database, id: i64, parte: &PartePr
     ).await.map_err(|e| e.to_string())?;
 
     conn.execute(
+        "DELETE FROM parte_produccion_producto_carro
+         WHERE producto_id IN (SELECT id FROM parte_produccion_producto WHERE parte_id = ?1)",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    conn.execute(
         "DELETE FROM parte_produccion_producto WHERE parte_id = ?1",
         vec![Value::from(id)],
     ).await.map_err(|e| e.to_string())?;
@@ -187,22 +214,21 @@ pub async fn actualizar_parte_produccion(db: &Database, id: i64, parte: &PartePr
             .unwrap_or_else(|| parte.fecha.clone());
         conn.execute(
             "INSERT INTO parte_produccion_producto
-             (parte_id, variante_id, fecha_ingreso, peso_unidad, cajas_carro_1, cajas_carro_2, cajas_carro_3, cajas_carro_4, peso_total_neto_kg, acumulado_presentacion, rendimiento)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+             (parte_id, variante_id, fecha_ingreso, peso_unidad, peso_total_neto_kg, acumulado_presentacion, rendimiento)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             vec![
                 Value::from(id),
                 Value::from(producto.variante_id),
                 Value::from(fecha_lote),
                 option_f64_to_value(producto.peso_unidad),
-                Value::from(producto.cajas_carro_1 as i64),
-                Value::from(producto.cajas_carro_2 as i64),
-                Value::from(producto.cajas_carro_3 as i64),
-                Value::from(producto.cajas_carro_4 as i64),
                 option_f64_to_value(producto.peso_total_neto_kg),
                 option_f64_to_value(producto.acumulado_presentacion),
                 option_f64_to_value(producto.rendimiento),
             ],
         ).await.map_err(|e| e.to_string())?;
+
+        let producto_id = conn.last_insert_rowid();
+        insertar_carros_de_producto(&conn, producto_id, &producto.cajas_carros).await?;
     }
 
     // 5. Re-insertar insumos
@@ -346,10 +372,37 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         });
     }
 
+    // Cajas por carro de todos los productos del parte, en una sola consulta.
+    // numero_carro es 1-based y puede tener huecos, asi que se ubica cada valor
+    // en su posicion y se rellena con cero lo que falte.
+    let mut carros_por_producto: HashMap<i64, Vec<i32>> = HashMap::new();
+    let mut res_c = conn.query(
+        "SELECT c.producto_id, c.numero_carro, c.cajas
+         FROM parte_produccion_producto_carro c
+         JOIN parte_produccion_producto pp ON pp.id = c.producto_id
+         WHERE pp.parte_id = ?1
+         ORDER BY c.producto_id, c.numero_carro",
+        vec![Value::from(parte_id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    while let Some(row_c) = res_c.next().await.map_err(|e| e.to_string())? {
+        let producto_id: i64 = row_c.get(0).map_err(|e| e.to_string())?;
+        let numero_carro: i64 = row_c.get(1).map_err(|e| e.to_string())?;
+        let cajas: i64 = row_c.get(2).map_err(|e| e.to_string())?;
+        if numero_carro < 1 {
+            continue;
+        }
+        let posicion = (numero_carro - 1) as usize;
+        let lista = carros_por_producto.entry(producto_id).or_default();
+        if lista.len() <= posicion {
+            lista.resize(posicion + 1, 0);
+        }
+        lista[posicion] = cajas as i32;
+    }
+
     // Productos
         let mut res_p = conn.query(
-            "SELECT pp.id, pp.variante_id, pp.peso_unidad, pp.cajas_carro_1, pp.cajas_carro_2,
-                    pp.cajas_carro_3, pp.cajas_carro_4, pp.peso_total_neto_kg,
+            "SELECT pp.id, pp.variante_id, pp.peso_unidad, pp.peso_total_neto_kg,
                     pp.acumulado_presentacion, pp.rendimiento,
                     vc.codigo_completo, pp.fecha_ingreso
             FROM parte_produccion_producto pp
@@ -359,19 +412,17 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         ).await.map_err(|e| e.to_string())?;
 
     while let Some(row_p) = res_p.next().await.map_err(|e| e.to_string())? {
+        let producto_id: i64 = row_p.get(0).map_err(|e| e.to_string())?;
         parte.productos.push(ParteProduccionProducto {
-            id: Some(row_p.get(0).map_err(|e| e.to_string())?),
+            id: Some(producto_id),
             variante_id: row_p.get(1).map_err(|e| e.to_string())?,
-            fecha_ingreso: get_optional_string(&row_p, 11).map_err(|e| e.to_string())?,
+            fecha_ingreso: get_optional_string(&row_p, 7).map_err(|e| e.to_string())?,
             peso_unidad: get_optional_f64(&row_p, 2).map_err(|e| e.to_string())?,
-            cajas_carro_1: get_optional_i32(&row_p, 3).unwrap_or(None).unwrap_or(0),
-            cajas_carro_2: get_optional_i32(&row_p, 4).unwrap_or(None).unwrap_or(0),
-            cajas_carro_3: get_optional_i32(&row_p, 5).unwrap_or(None).unwrap_or(0),
-            cajas_carro_4: get_optional_i32(&row_p, 6).unwrap_or(None).unwrap_or(0),
-            peso_total_neto_kg: get_optional_f64(&row_p, 7).map_err(|e| e.to_string())?,
-            codigo_completo: get_optional_string(&row_p, 10).map_err(|e| e.to_string())?,
-            acumulado_presentacion: get_optional_f64(&row_p, 8).map_err(|e| e.to_string())?,
-            rendimiento: get_optional_f64(&row_p, 9).map_err(|e| e.to_string())?,
+            cajas_carros: carros_por_producto.remove(&producto_id).unwrap_or_default(),
+            peso_total_neto_kg: get_optional_f64(&row_p, 3).map_err(|e| e.to_string())?,
+            codigo_completo: get_optional_string(&row_p, 6).map_err(|e| e.to_string())?,
+            acumulado_presentacion: get_optional_f64(&row_p, 4).map_err(|e| e.to_string())?,
+            rendimiento: get_optional_f64(&row_p, 5).map_err(|e| e.to_string())?,
         });
     }
 
@@ -403,6 +454,12 @@ pub async fn eliminar_parte_produccion(db: &Database, id: i64) -> Result<(), Str
 
     conn.execute(
         "DELETE FROM parte_produccion_transporte WHERE parte_id = ?1",
+        vec![Value::from(id)],
+    ).await.map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "DELETE FROM parte_produccion_producto_carro
+         WHERE producto_id IN (SELECT id FROM parte_produccion_producto WHERE parte_id = ?1)",
         vec![Value::from(id)],
     ).await.map_err(|e| e.to_string())?;
 

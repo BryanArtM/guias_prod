@@ -83,6 +83,11 @@ export default function IngresoDetallePage() {
     insumos = [],
   } = ingreso;
 
+  const cantidadCarros = productos.reduce(
+    (maximo, prod) => Math.max(maximo, prod.cajas_carros?.length ?? 0),
+    transportes.length,
+  );
+
   return (
     <div className="space-y-4 px-5 py-4">
       <PageActions>
@@ -220,10 +225,11 @@ export default function IngresoDetallePage() {
                 <TableRow>
                   <TableHead>Variante</TableHead>
                   <TableHead>Peso Unidad</TableHead>
-                  <TableHead>Carro 1</TableHead>
-                  <TableHead>Carro 2</TableHead>
-                  <TableHead>Carro 3</TableHead>
-                  <TableHead>Carro 4</TableHead>
+                  {Array.from({ length: cantidadCarros }, (_, indiceCarro) => (
+                    <TableHead key={indiceCarro}>{`Carro ${
+                      indiceCarro + 1
+                    }`}</TableHead>
+                  ))}
                   <TableHead>Total Neto (kg)</TableHead>
                   <TableHead>Acum. Presentación</TableHead>
                   <TableHead>Rendimiento</TableHead>
@@ -238,10 +244,14 @@ export default function IngresoDetallePage() {
                       </span>
                     </TableCell>
                     <TableCell>{prod.peso_unidad ?? "-"}</TableCell>
-                    <TableCell>{prod.cajas_carro_1 ?? 0}</TableCell>
-                    <TableCell>{prod.cajas_carro_2 ?? 0}</TableCell>
-                    <TableCell>{prod.cajas_carro_3 ?? 0}</TableCell>
-                    <TableCell>{prod.cajas_carro_4 ?? 0}</TableCell>
+                    {Array.from(
+                      { length: cantidadCarros },
+                      (_, indiceCarro) => (
+                        <TableCell key={indiceCarro}>
+                          {prod.cajas_carros?.[indiceCarro] ?? 0}
+                        </TableCell>
+                      ),
+                    )}
                     <TableCell>
                       {prod.peso_total_neto_kg != null
                         ? Number(prod.peso_total_neto_kg).toFixed(2)

@@ -37,10 +37,10 @@ function generarHtmlImpresion(parte) {
   const motivoActivo = (motivo_ingreso_codigo || "PRODUCCION").toUpperCase();
   const marcaOn = (v) => (motivoActivo === v.toUpperCase() ? "X" : "");
   const sumaCajas = (p) =>
-    (parseInt(p.cajas_carro_1) || 0) +
-    (parseInt(p.cajas_carro_2) || 0) +
-    (parseInt(p.cajas_carro_3) || 0) +
-    (parseInt(p.cajas_carro_4) || 0);
+    (p.cajas_carros || []).reduce(
+      (total, cajas) => total + (parseInt(cajas) || 0),
+      0,
+    );
 
   const totales = productos.reduce(
     (acc, p) => {
