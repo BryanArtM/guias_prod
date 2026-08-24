@@ -69,6 +69,7 @@ export default function SalidaDetallePage() {
     numero_control,
     fecha,
     cliente,
+    usuario_nombre,
     turno,
     numero_lote,
     numero_camara,
@@ -107,6 +108,7 @@ export default function SalidaDetallePage() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           <Campo etiqueta="N° Control" valor={numero_control} mono />
           <Campo etiqueta="Cliente" valor={cliente} />
+          <Campo etiqueta="Registrado por" valor={usuario_nombre} />
           <Campo etiqueta="Fecha" valor={fecha} />
           <Campo etiqueta="Turno" valor={turno} />
           <Campo etiqueta="Tipo Documento" valor={tipo_documento_codigo} />

@@ -6,6 +6,8 @@ export default function ControlHeaderSection({
   especies = [],
   tipoDocumento,
   errors = {},
+  clientes = [],
+  onChangeCliente,
 }) {
   return (
     <div className="mb-4 border border-line bg-surface p-3 rounded-sm">
@@ -33,14 +35,23 @@ export default function ControlHeaderSection({
           error={errors.fecha}
           required
         />
-        <Input
+        <Select
           label="Cliente"
-          name="cliente"
-          value={formData.cliente}
-          onChange={onChange}
-          error={errors.cliente}
+          name="cliente_id"
+          value={formData.cliente_id ?? ""}
+          onChange={onChangeCliente}
+          error={errors.cliente_id}
           required
-        />
+        >
+          <option value="">
+            {formData.cliente ? formData.cliente : "Seleccione un cliente"}
+          </option>
+          {clientes.map((cliente) => (
+            <option key={cliente.id} value={cliente.id}>
+              {cliente.codigo} - {cliente.razon_social}
+            </option>
+          ))}
+        </Select>
         <Input
           label="Fecha Producción"
           name="fecha_produccion"

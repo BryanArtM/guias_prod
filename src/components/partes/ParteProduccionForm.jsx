@@ -11,6 +11,7 @@ import {
   crearVariantePresentacion,
   obtenerMotivosIngreso,
   obtenerTiposDocumentoProduccion,
+  obtenerClientes,
 } from "@/services";
 import { useAuthStore } from "@/stores";
 import { useFormDraft } from "@/hooks";
@@ -32,6 +33,7 @@ export default function ParteProduccionForm({
       version: "",
       usuario: user?.username || "",
       cliente: "",
+      cliente_id: "",
       fecha: new Date().toISOString().split("T")[0],
       turno: "DIA",
       codigo_trazabilidad: "",
@@ -74,6 +76,7 @@ export default function ParteProduccionForm({
   const [especies, setEspecies] = useState([]);
   const [variantes, setVariantes] = useState([]);
   const [motivosIngreso, setMotivosIngreso] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [tiposDocumento, setTiposDocumento] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [confirmacionAbierta, setConfirmacionAbierta] = useState(false);
@@ -81,16 +84,19 @@ export default function ParteProduccionForm({
   useEffect(() => {
     async function loadData() {
       try {
-        const [espRes, varRes, tiposRes, motivosRes] = await Promise.all([
-          obtenerEspecies(),
-          obtenerVariantesCompletas(),
-          obtenerTiposDocumentoProduccion(),
-          obtenerMotivosIngreso(),
-        ]);
+        const [espRes, varRes, tiposRes, motivosRes, clientesRes] =
+          await Promise.all([
+            obtenerEspecies(),
+            obtenerVariantesCompletas(),
+            obtenerTiposDocumentoProduccion(),
+            obtenerMotivosIngreso(),
+            obtenerClientes(),
+          ]);
         setEspecies(espRes);
         setVariantes(varRes);
         setTiposDocumento(tiposRes || []);
         setMotivosIngreso(motivosRes || []);
+        setClientes(clientesRes || []);
       } catch (error) {
         console.error("Error cargando catálogos:", error);
       } finally {
@@ -103,6 +109,20 @@ export default function ParteProduccionForm({
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // El cliente se elige del catalogo, pero el documento guarda ademas la razon
+  // social del momento para no reescribir el historico si el cliente cambia.
+  const handleChangeCliente = (e) => {
+    const clienteId = e.target.value;
+    const cliente = clientes.find(
+      (c) => String(c.id) === String(clienteId),
+    );
+    setFormData((prev) => ({
+      ...prev,
+      cliente_id: clienteId,
+      cliente: cliente ? cliente.razon_social : "",
+    }));
   };
 
   const handleChangeEspecie = (val) => {
@@ -157,6 +177,8 @@ export default function ParteProduccionForm({
     e.preventDefault();
 
     if (!formData.especie_id) return alert("Debe seleccionar una especie");
+    if (!formData.cliente_id && !formData.cliente)
+      return alert("Debe seleccionar un cliente");
     if (!formData.tipo_documento_id)
       return alert("Debe seleccionar un tipo de documento");
     if (formData.productos.length === 0)
@@ -165,6 +187,7 @@ export default function ParteProduccionForm({
     const dataToSend = {
       ...formData,
       especie_id: parseInt(formData.especie_id),
+      cliente_id: formData.cliente_id ? parseInt(formData.cliente_id, 10) : null,
       tipo_documento_id: parseInt(formData.tipo_documento_id, 10),
       entera: parseFloat(formData.entera) || 0,
       transportes: formData.transportes.map((t) => ({
@@ -255,7 +278,12 @@ export default function ParteProduccionForm({
         </div>
       </div>
 
-      <HeaderSection formData={formData} onChange={handleChange} />
+      <HeaderSection
+        formData={formData}
+        onChange={handleChange}
+        clientes={clientes}
+        onChangeCliente={handleChangeCliente}
+      />
 
       <ReceptionSection
         especieId={formData.especie_id}

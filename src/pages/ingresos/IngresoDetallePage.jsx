@@ -70,6 +70,7 @@ export default function IngresoDetallePage() {
     revision,
     version,
     cliente,
+    usuario_nombre,
     fecha,
     turno,
     codigo_trazabilidad,
@@ -151,6 +152,7 @@ export default function IngresoDetallePage() {
       <Panel title="Datos Generales">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           <Campo etiqueta="Cliente" valor={cliente} />
+          <Campo etiqueta="Registrado por" valor={usuario_nombre} />
           <Campo etiqueta="Fecha" valor={fecha} />
           <Campo etiqueta="Turno" valor={turno} />
           <Campo etiqueta="Cód. Trazabilidad" valor={codigo_trazabilidad} />

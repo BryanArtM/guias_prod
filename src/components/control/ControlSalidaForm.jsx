@@ -9,6 +9,7 @@ import {
   obtenerMotivosSalida,
   obtenerTiposDocumentoSalida,
   obtenerStockPorLote,
+  obtenerClientes,
 } from "@/services/api";
 
 // El formulario guarda su borrador en dos entradas (cabecera e items), por eso
@@ -36,6 +37,7 @@ export default function ControlSalidaForm({
             numero_control: initialData.numero_control || "",
             fecha: initialData.fecha || "",
             cliente: initialData.cliente || "",
+            cliente_id: initialData.cliente_id || "",
             tipo_documento_id: initialData.tipo_documento_id || null,
             usuario_sistema: user?.username || "",
             fecha_produccion: initialData.fecha_produccion || "",
@@ -50,6 +52,7 @@ export default function ControlSalidaForm({
             numero_control: "",
             fecha: new Date().toISOString().split("T")[0],
             cliente: "",
+            cliente_id: "",
             tipo_documento_id: null,
             usuario_sistema: user?.username || "",
             fecha_produccion: "",
@@ -88,6 +91,7 @@ export default function ControlSalidaForm({
   const [motivos, setMotivos] = useState([]);
   const [tiposDocumentoSalida, setTiposDocumentoSalida] = useState([]);
   const [lotes, setLotes] = useState([]);
+  const [clientes, setClientes] = useState([]);
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -110,6 +114,7 @@ export default function ControlSalidaForm({
       obtenerMotivosSalida(),
       obtenerTiposDocumentoSalida(),
       obtenerStockPorLote(),
+      obtenerClientes(),
     ])
       .then((res) => {
         if (!mounted) return;
@@ -118,6 +123,7 @@ export default function ControlSalidaForm({
         setMotivos(motivosRes);
         setTiposDocumentoSalida(tiposRes);
         setLotes(res[2] || []);
+        setClientes(res[3] || []);
         // set default motivo (OTROS) if exists, respetando el borrador restaurado
         const otros = (motivosRes || []).find((m) => m.codigo === "OTROS");
         if (otros)
@@ -149,6 +155,21 @@ export default function ControlSalidaForm({
     }
   };
 
+  // El cliente se elige del catalogo, pero el documento guarda ademas la razon
+  // social del momento para no reescribir el historico si el cliente cambia.
+  const handleChangeCliente = (e) => {
+    const clienteId = e.target.value;
+    const cliente = clientes.find((c) => String(c.id) === String(clienteId));
+    setFormData((prev) => ({
+      ...prev,
+      cliente_id: clienteId,
+      cliente: cliente ? cliente.razon_social : "",
+    }));
+    if (errors.cliente_id) {
+      setErrors((prev) => ({ ...prev, cliente_id: "" }));
+    }
+  };
+
   const itemsConCantidad = () =>
     items.filter((item) => (parseFloat(item.cantidad) || 0) > 0);
 
@@ -158,7 +179,8 @@ export default function ControlSalidaForm({
     if (!formData.numero_control.trim())
       nextErrors.numero_control = "Requerido";
     if (!formData.fecha) nextErrors.fecha = "Requerido";
-    if (!formData.cliente?.trim()) nextErrors.cliente = "Requerido";
+    if (!formData.cliente_id && !formData.cliente?.trim())
+      nextErrors.cliente_id = "Seleccione un cliente";
     if (!formData.turno) nextErrors.turno = "Seleccione un turno";
     if (!formData.numero_lote.trim()) nextErrors.numero_lote = "Requerido";
     if (!formData.numero_camara.trim()) nextErrors.numero_camara = "Requerido";
@@ -257,6 +279,9 @@ export default function ControlSalidaForm({
         numero_control: formData.numero_control.trim(),
         fecha: formData.fecha,
         cliente: formData.cliente.trim(),
+        cliente_id: formData.cliente_id
+          ? parseInt(formData.cliente_id, 10)
+          : null,
         fecha_produccion: formData.fecha_produccion || null,
         turno: formData.turno,
         numero_lote: formData.numero_lote.trim(),
@@ -328,6 +353,8 @@ export default function ControlSalidaForm({
         especies={especies}
         tipoDocumento={tipoDocumento}
         errors={errors}
+        clientes={clientes}
+        onChangeCliente={handleChangeCliente}
       />
 
       <ControlItemsSection
