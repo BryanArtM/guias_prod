@@ -16,6 +16,7 @@ fn validar_fechas_control(control: &ControlSalida) -> Result<(), String> {
 pub async fn crear_control_salida(
     db: &Database,
     control: &ControlSalida,
+    usuario_id: Option<i64>,
 ) -> Result<i64, String> {
     if control.items.is_empty() {
         return Err("Debe registrar al menos un ítem".to_string());
@@ -33,14 +34,16 @@ pub async fn crear_control_salida(
     let insert_result = conn
         .execute(
                         "INSERT INTO controles_salida
-                        (tipo_documento_id, numero_control, fecha, cliente, fecha_produccion, turno,
+                        (tipo_documento_id, numero_control, fecha, cliente, cliente_id, usuario_id, fecha_produccion, turno,
                             numero_lote, numero_camara, especie_id, motivo_salida_id, suma_cantidad, suma_total_kg, observaciones)
-                        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+                        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
                         vec![
                                 Value::from(control.tipo_documento_id),
                                 Value::from(control.numero_control.clone()),
                                 Value::from(control.fecha.clone()),
                                 Value::from(control.cliente.clone()),
+                                option_i64_to_value(control.cliente_id),
+                                option_i64_to_value(usuario_id),
                                 option_string_to_value(control.fecha_produccion.clone()),
                                 option_string_to_value(control.turno.clone()),
                                 option_string_to_value(control.numero_lote.clone()),
@@ -104,11 +107,13 @@ pub async fn obtener_control_salida_por_id(db: &Database, id: i64) -> Result<Con
         "SELECT c.id, c.tipo_documento_id, td.codigo, c.numero_control, c.fecha, c.cliente,
                 c.fecha_produccion, c.turno, c.numero_lote, c.numero_camara,
                 c.especie_id, e.nombre, c.suma_cantidad, c.suma_total_kg,
-                c.motivo_salida_id, ms.codigo, c.observaciones
+                c.motivo_salida_id, ms.codigo, c.observaciones,
+                c.cliente_id, c.usuario_id, u.username
          FROM controles_salida c
          LEFT JOIN tipos_documento_salida td ON td.id = c.tipo_documento_id
          LEFT JOIN especies e ON e.id = c.especie_id
          LEFT JOIN motivos_salida ms ON ms.id = c.motivo_salida_id
+         LEFT JOIN users u ON u.id = c.usuario_id
          WHERE c.id = ?1",
         vec![Value::from(id)],
     ).await.map_err(|e| e.to_string())?;
@@ -124,6 +129,9 @@ pub async fn obtener_control_salida_por_id(db: &Database, id: i64) -> Result<Con
         numero_control: row.get(3).map_err(|e| e.to_string())?,
         fecha: row.get(4).map_err(|e| e.to_string())?,
         cliente: row.get(5).map_err(|e| e.to_string())?,
+        cliente_id: get_optional_i64(&row, 17).map_err(|e| e.to_string())?,
+        usuario_id: get_optional_i64(&row, 18).map_err(|e| e.to_string())?,
+        usuario_nombre: get_optional_string(&row, 19).map_err(|e| e.to_string())?,
         fecha_produccion: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
         turno: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
         numero_lote: get_optional_string(&row, 8).map_err(|e| e.to_string())?,
@@ -182,16 +190,17 @@ pub async fn actualizar_control_salida(db: &Database, id: i64, control: &Control
 
     let update_result = conn.execute(
         "UPDATE controles_salida SET
-            tipo_documento_id = ?1, numero_control = ?2, fecha = ?3, cliente = ?4,
-            fecha_produccion = ?5, turno = ?6, numero_lote = ?7, numero_camara = ?8,
-            especie_id = ?9, motivo_salida_id = ?10, suma_cantidad = ?11, suma_total_kg = ?12,
-            observaciones = ?13
-         WHERE id = ?14",
+            tipo_documento_id = ?1, numero_control = ?2, fecha = ?3, cliente = ?4, cliente_id = ?5,
+            fecha_produccion = ?6, turno = ?7, numero_lote = ?8, numero_camara = ?9,
+            especie_id = ?10, motivo_salida_id = ?11, suma_cantidad = ?12, suma_total_kg = ?13,
+            observaciones = ?14
+         WHERE id = ?15",
         vec![
             Value::from(control.tipo_documento_id),
             Value::from(control.numero_control.clone()),
             Value::from(control.fecha.clone()),
             Value::from(control.cliente.clone()),
+            option_i64_to_value(control.cliente_id),
             option_string_to_value(control.fecha_produccion.clone()),
             option_string_to_value(control.turno.clone()),
             option_string_to_value(control.numero_lote.clone()),

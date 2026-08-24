@@ -321,8 +321,8 @@ async fn contar_salidas_cmd( state: State<'_, AppState>, token: String, tipo_doc
 
 #[tauri::command]
 async fn crear_control_salida_cmd(state: State<'_, AppState>, token: String, control: ControlSalida) -> Result<i64, String> {
-    require_auth(&token)?;
-    crear_control_salida(&state.db, &control).await
+    let usuario_id = require_auth(&token)?;
+    crear_control_salida(&state.db, &control, Some(usuario_id)).await
 }
 
 #[tauri::command]
@@ -347,8 +347,8 @@ async fn eliminar_control_salida_cmd(state: State<'_, AppState>, token: String, 
 
 #[tauri::command]
 async fn crear_parte_produccion_cmd(state: State<'_, AppState>, token: String, parte: ParteProduccion) -> Result<i64, String> {
-    require_auth(&token)?;
-    crear_parte_produccion(&state.db, &parte).await
+    let usuario_id = require_auth(&token)?;
+    crear_parte_produccion(&state.db, &parte, Some(usuario_id)).await
 }
 
 #[tauri::command]

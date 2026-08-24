@@ -35,20 +35,26 @@ fn validar_fechas_parte(parte: &ParteProduccion) -> Result<(), String> {
     Ok(())
 }
 
-pub async fn crear_parte_produccion(db: &Database, parte: &ParteProduccion) -> Result<i64, String> {
+pub async fn crear_parte_produccion(
+    db: &Database,
+    parte: &ParteProduccion,
+    usuario_id: Option<i64>,
+) -> Result<i64, String> {
     validar_fechas_parte(parte)?;
     let conn = db.connect().map_err(|e| e.to_string())?;
 
     // 1. Insertar encabezado
     conn.execute(
         "INSERT INTO partes_produccion 
-         (codigo, revision, version, cliente, fecha, turno, codigo_trazabilidad, especie_id, motivo_ingreso_id, entera, observaciones, tipo_documento_id)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         (codigo, revision, version, cliente, cliente_id, usuario_id, fecha, turno, codigo_trazabilidad, especie_id, motivo_ingreso_id, entera, observaciones, tipo_documento_id)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
         vec![
             option_string_to_value(parte.codigo.clone()),
             option_string_to_value(parte.revision.clone()),
             option_string_to_value(parte.version.clone()),
             option_string_to_value(parte.cliente.clone()),
+            option_i64_to_value(parte.cliente_id),
+            option_i64_to_value(usuario_id),
             Value::from(parte.fecha.clone()),
             option_string_to_value(parte.turno.clone()),
             option_string_to_value(parte.codigo_trazabilidad.clone()),
@@ -133,15 +139,16 @@ pub async fn actualizar_parte_produccion(db: &Database, id: i64, parte: &PartePr
     // 1. Actualizar encabezado
     conn.execute(
         "UPDATE partes_produccion SET
-         codigo = ?1, revision = ?2, version = ?3, cliente = ?4, fecha = ?5,
-         turno = ?6, codigo_trazabilidad = ?7, especie_id = ?8, motivo_ingreso_id = ?9, entera = ?10,
-         observaciones = ?11, tipo_documento_id = ?12
-         WHERE id = ?13",
+         codigo = ?1, revision = ?2, version = ?3, cliente = ?4, cliente_id = ?5, fecha = ?6,
+         turno = ?7, codigo_trazabilidad = ?8, especie_id = ?9, motivo_ingreso_id = ?10, entera = ?11,
+         observaciones = ?12, tipo_documento_id = ?13
+         WHERE id = ?14",
         vec![
             option_string_to_value(parte.codigo.clone()),
             option_string_to_value(parte.revision.clone()),
             option_string_to_value(parte.version.clone()),
             option_string_to_value(parte.cliente.clone()),
+            option_i64_to_value(parte.cliente_id),
             Value::from(parte.fecha.clone()),
             option_string_to_value(parte.turno.clone()),
             option_string_to_value(parte.codigo_trazabilidad.clone()),
@@ -276,6 +283,9 @@ pub async fn obtener_partes_produccion(db: &Database, tipo_documento_id: Option<
             revision: get_optional_string(&row, 2).map_err(|e| e.to_string())?,
             version: get_optional_string(&row, 3).map_err(|e| e.to_string())?,
             cliente: get_optional_string(&row, 4).map_err(|e| e.to_string())?,
+            cliente_id: None,
+            usuario_id: None,
+            usuario_nombre: None,
             fecha: row.get(5).map_err(|e| e.to_string())?,
             turno: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
             codigo_trazabilidad: get_optional_string(&row, 7).map_err(|e| e.to_string())?,
@@ -303,11 +313,13 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         "SELECT p.id, p.codigo, p.revision, p.version, p.cliente, p.fecha, p.turno, 
                 p.codigo_trazabilidad, p.especie_id, p.motivo_ingreso_id, p.entera, p.observaciones, 
                 p.tipo_documento_id, t.codigo as tipo_documento_codigo,
-                e.nombre as especie_nombre, mi.codigo as motivo_ingreso_codigo
+                e.nombre as especie_nombre, mi.codigo as motivo_ingreso_codigo,
+                p.cliente_id, p.usuario_id, u.username
         FROM partes_produccion p
         LEFT JOIN tipos_documento_produccion t ON t.id = p.tipo_documento_id
         LEFT JOIN especies e ON e.id = p.especie_id
         LEFT JOIN motivos_ingreso mi ON mi.id = p.motivo_ingreso_id
+        LEFT JOIN users u ON u.id = p.usuario_id
         WHERE p.id = ?1",
         vec![Value::from(id)],
     ).await.map_err(|e| e.to_string())?;
@@ -322,6 +334,9 @@ pub async fn obtener_parte_produccion_por_id(db: &Database, id: i64) -> Result<P
         revision: get_optional_string(&row, 2).map_err(|e| e.to_string())?,
         version: get_optional_string(&row, 3).map_err(|e| e.to_string())?,
         cliente: get_optional_string(&row, 4).map_err(|e| e.to_string())?,
+        cliente_id: get_optional_i64(&row, 16).map_err(|e| e.to_string())?,
+        usuario_id: get_optional_i64(&row, 17).map_err(|e| e.to_string())?,
+        usuario_nombre: get_optional_string(&row, 18).map_err(|e| e.to_string())?,
         fecha: row.get(5).map_err(|e| e.to_string())?,
         turno: get_optional_string(&row, 6).map_err(|e| e.to_string())?,
         codigo_trazabilidad: get_optional_string(&row, 7).map_err(|e| e.to_string())?,

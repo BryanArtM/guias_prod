@@ -500,7 +500,7 @@ async fn ejecutar(cli: Cli) -> Result<(), String> {
             IngresoAccion::Crear { archivo } => {
                 let mut parte: ParteProduccion = leer_json(&archivo)?;
                 completar_productos(&mut parte);
-                let id = db::crear_parte_produccion(&base_datos, &parte).await?;
+                let id = db::crear_parte_produccion(&base_datos, &parte, parte.usuario_id).await?;
                 imprimir(&serde_json::json!({ "id": id }));
             }
             IngresoAccion::Actualizar { id, archivo } => {
@@ -525,7 +525,7 @@ async fn ejecutar(cli: Cli) -> Result<(), String> {
             SalidaAccion::Crear { archivo } => {
                 let mut control: ControlSalida = leer_json(&archivo)?;
                 completar_items(&mut control);
-                let id = db::crear_control_salida(&base_datos, &control).await?;
+                let id = db::crear_control_salida(&base_datos, &control, control.usuario_id).await?;
                 imprimir(&serde_json::json!({ "id": id }));
             }
             SalidaAccion::Actualizar { id, archivo } => {

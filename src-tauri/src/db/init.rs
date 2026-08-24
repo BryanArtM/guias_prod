@@ -360,7 +360,6 @@ async fn create_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Erro
 }
 
 async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    eprintln!("Creando tablas de transacciones...");
     
     // Tipos de documento para partes de producción
     conn.execute(CREATE_TIPOS_DOCUMENTO_PRODUCCION, ()).await?;
@@ -415,37 +414,8 @@ async fn create_transaction_tables(conn: &Connection) -> Result<(), Box<dyn std:
 }
 
 async fn create_users_table(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    eprintln!("Creando tabla de usuarios...");
     conn.execute(CREATE_USERS, ()).await?;
     eprintln!("  ✓ Tabla users");
-    Ok(())
-}
-
-// Migracion puntual: las columnas se agregan a la base que ya existe. Una vez
-// aplicada en Turso, este bloque se elimina y queda solo el DDL declarativo.
-async fn agregar_columna_si_falta(
-    conn: &Connection,
-    tabla: &str,
-    columna: &str,
-    definicion: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let sentencia = format!("ALTER TABLE {} ADD COLUMN {} {}", tabla, columna, definicion);
-    match conn.execute(&sentencia, ()).await {
-        Ok(_) => {
-            eprintln!("  ✓ Columna {}.{} agregada", tabla, columna);
-            Ok(())
-        }
-        Err(e) if e.to_string().contains("duplicate column name") => Ok(()),
-        Err(e) => Err(Box::new(e)),
-    }
-}
-
-async fn apply_migrations(conn: &Connection) -> Result<(), Box<dyn std::error::Error>> {
-    eprintln!("Aplicando migraciones...");
-    for tabla in ["partes_produccion", "controles_salida"] {
-        agregar_columna_si_falta(conn, tabla, "cliente_id", "INTEGER REFERENCES clientes(id)").await?;
-        agregar_columna_si_falta(conn, tabla, "usuario_id", "INTEGER REFERENCES users(id)").await?;
-    }
     Ok(())
 }
 
@@ -467,37 +437,37 @@ async fn create_indexes(conn: &Connection) -> Result<(), Box<dyn std::error::Err
     eprintln!("Creando índices de optimización...");
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_fecha ON controles_salida(fecha DESC)", ()).await?;
-    eprintln!(" Índice idx_controles_salida_fecha");
+    eprintln!("  ✓ Índice idx_controles_salida_fecha");
 
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_especie_id ON controles_salida(especie_id)", ()).await?;
-    eprintln!(" Índice idx_controles_salida_especie_id");
+    eprintln!("  ✓ Índice idx_controles_salida_especie_id");
 
     conn.execute("CREATE INDEX IF NOT EXISTS idx_control_salida_items_control_id ON control_salida_items(control_salida_id)", ()).await?;
-    eprintln!(" Índice idx_control_salida_items_control_id");
+    eprintln!("  ✓ Índice idx_control_salida_items_control_id");
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_presentaciones_especie_id ON presentaciones(especie_id)", ()).await?;
-    eprintln!(" Índice idx_presentaciones_especie_id");
+    eprintln!("  ✓ Índice idx_presentaciones_especie_id");
     
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_producto_parte_id ON parte_produccion_producto(parte_id)", ()).await?;
-    eprintln!(" Índice idx_parte_produccion_producto_parte_id");
+    eprintln!("  ✓ Índice idx_parte_produccion_producto_parte_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_producto_variante_id ON parte_produccion_producto(variante_id)", ()).await?;
-    eprintln!(" Índice idx_parte_produccion_producto_variante_id");
+    eprintln!("  ✓ Índice idx_parte_produccion_producto_variante_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_transporte_parte_id ON parte_produccion_transporte(parte_id)", ()).await?;
-    eprintln!(" Índice idx_parte_produccion_transporte_parte_id");
+    eprintln!("  ✓ Índice idx_parte_produccion_transporte_parte_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_embarcacion_transporte_id ON parte_produccion_embarcacion(transporte_id)", ()).await?;
-    eprintln!(" Índice idx_parte_produccion_embarcacion_transporte_id");
+    eprintln!("  ✓ Índice idx_parte_produccion_embarcacion_transporte_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_parte_produccion_insumo_parte_id ON parte_produccion_insumo(parte_id)", ()).await?;
-    eprintln!(" Índice idx_parte_produccion_insumo_parte_id");
+    eprintln!("  ✓ Índice idx_parte_produccion_insumo_parte_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_partes_produccion_especie_id ON partes_produccion(especie_id)", ()).await?;
-    eprintln!(" Índice idx_partes_produccion_especie_id");
+    eprintln!("  ✓ Índice idx_partes_produccion_especie_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_partes_produccion_tipo_documento_id ON partes_produccion(tipo_documento_id)", ()).await?;
-    eprintln!(" Índice idx_partes_produccion_tipo_documento_id");
+    eprintln!("  ✓ Índice idx_partes_produccion_tipo_documento_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_control_salida_items_variante_id ON control_salida_items(variante_id)", ()).await?;
-    eprintln!(" Índice idx_control_salida_items_variante_id");
+    eprintln!("  ✓ Índice idx_control_salida_items_variante_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_motivo_salida_id ON controles_salida(motivo_salida_id)", ()).await?;
-    eprintln!(" Índice idx_controles_salida_motivo_salida_id");
+    eprintln!("  ✓ Índice idx_controles_salida_motivo_salida_id");
     conn.execute("CREATE INDEX IF NOT EXISTS idx_controles_salida_tipo_documento_id ON controles_salida(tipo_documento_id)", ()).await?;
-    eprintln!(" Índice idx_controles_salida_tipo_documento_id");
+    eprintln!("  ✓ Índice idx_controles_salida_tipo_documento_id");
     
     Ok(())
 }
@@ -537,7 +507,6 @@ pub async fn init_db() -> Result<Database, Box<dyn std::error::Error>> {
     create_tables(&conn).await?;
     create_transaction_tables(&conn).await?;
     create_users_table(&conn).await?;
-    apply_migrations(&conn).await?;
     create_views(&conn).await?;
     create_indexes(&conn).await?;
 
