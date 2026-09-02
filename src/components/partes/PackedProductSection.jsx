@@ -27,6 +27,35 @@ function pesoNetoFila(producto) {
   return sumarCajas(producto) * (parseFloat(producto.peso_unidad) || 0);
 }
 
+function totalCajasVisible(producto) {
+  return producto.total_cajas_reparto ?? (sumarCajas(producto) || "");
+}
+
+function repartirCajasEntreCarros(totalCajas, pesosPorCarro) {
+  const cantidadCarros = pesosPorCarro.length;
+  if (cantidadCarros === 0) {
+    return [];
+  }
+
+  const pesoTotal = pesosPorCarro.reduce((acc, peso) => acc + peso, 0);
+  if (pesoTotal <= 0) {
+    return Array.from({ length: cantidadCarros }, () => 0);
+  }
+
+  const reparto = [];
+  let asignadas = 0;
+  for (let indiceCarro = 0; indiceCarro < cantidadCarros - 1; indiceCarro += 1) {
+    const cajas = Math.trunc(
+      (totalCajas * pesosPorCarro[indiceCarro]) / pesoTotal,
+    );
+    reparto.push(cajas);
+    asignadas += cajas;
+  }
+  reparto.push(totalCajas - asignadas);
+
+  return reparto;
+}
+
 // El acumulado y el rendimiento se miden por presentacion completa
 function recalcularDerivados(productos, totalRecepcion, varianteById) {
   const presentacionDeFila = (producto) =>
@@ -91,6 +120,7 @@ function etiquetaBase(base) {
 function ordenColumnasNumericas(cantidadCarros) {
   return [
     "peso_unidad",
+    "total_cajas",
     ...Array.from({ length: cantidadCarros }, (_, i) => `carro_${i}`),
   ];
 }
@@ -149,6 +179,7 @@ export default function PackedProductSection({
   onCrearVarianteEnsunchado,
   totalRecepcion,
   cantidadCarros = 0,
+  pesosCarros = [],
 }) {
   const [presentacionesAbiertas, setPresentacionesAbiertas] = useState(
     new Set(),
@@ -156,6 +187,13 @@ export default function PackedProductSection({
   const [filaEditandoIndex, setFilaEditandoIndex] = useState(null);
   const [filasCreandoVariante, setFilasCreandoVariante] = useState(new Set());
   const especieInicializada = useRef(null);
+
+  const valorTotalAlEnfocar = useRef(null);
+
+  const pesosPorCarro = Array.from(
+    { length: cantidadCarros },
+    (_, indiceCarro) => parseFloat(pesosCarros[indiceCarro]) || 0,
+  );
 
   const variantesFiltradas = useMemo(() => {
     if (!especieId) {
@@ -386,6 +424,21 @@ export default function PackedProductSection({
     updateProducto(index, "cajas_carros", cajasCarros);
   };
 
+  // El total ingresado se reparte entre los carros solo al confirmar el campo
+  // (Enter o al salir habiendolo modificado), nunca mientras se escribe.
+  const repartirEnCarros = (index) => {
+    const totalCajas = parseInt(totalCajasVisible(productos[index]), 10);
+    if (Number.isNaN(totalCajas)) {
+      return;
+    }
+
+    updateProducto(
+      index,
+      "cajas_carros",
+      repartirCajasEntreCarros(totalCajas, pesosPorCarro),
+    );
+  };
+
   // El ensunchado ya no es un campo de la variante que se elige al crearla en
   // el catálogo, sino un checkbox por fila. Si no existe todavía la variante
   // con ese estado para el mismo combo (calidad + calibre), se crea al vuelo.
@@ -504,6 +557,7 @@ export default function PackedProductSection({
                             Ensunchado
                           </TableHead>
                           <TableHead className="w-24">Peso Und</TableHead>
+                          <TableHead className="w-24">Total cajas</TableHead>
                           {Array.from(
                             { length: cantidadCarros },
                             (_, indiceCarro) => (
@@ -639,6 +693,51 @@ export default function PackedProductSection({
                                       ordenColumnas,
                                     )
                                   }
+                                />
+                              </td>
+                              <td className="p-1 border">
+                                <input
+                                  id={idCampoNumerico(
+                                    presentacion.presentacion_id,
+                                    "total_cajas",
+                                    posEnPresentacion,
+                                  )}
+                                  type="number"
+                                  className="w-full p-1 border-none bg-transparent focus:ring-0"
+                                  value={totalCajasVisible(p)}
+                                  onFocus={(e) => {
+                                    valorTotalAlEnfocar.current = e.target.value;
+                                  }}
+                                  onChange={(e) =>
+                                    updateProducto(
+                                      index,
+                                      "total_cajas_reparto",
+                                      e.target.value,
+                                    )
+                                  }
+                                  onBlur={(e) => {
+                                    if (
+                                      e.target.value !==
+                                      valorTotalAlEnfocar.current
+                                    ) {
+                                      repartirEnCarros(index);
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      repartirEnCarros(index);
+                                      valorTotalAlEnfocar.current =
+                                        e.target.value;
+                                    }
+                                    manejarNavegacionVertical(
+                                      e,
+                                      presentacion.presentacion_id,
+                                      "total_cajas",
+                                      posEnPresentacion,
+                                      filas.length,
+                                      ordenColumnas,
+                                    );
+                                  }}
                                 />
                               </td>
                               {cajasCarros.map((cajas, indiceCarro) => (

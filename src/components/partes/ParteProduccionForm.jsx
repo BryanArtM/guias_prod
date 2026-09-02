@@ -153,16 +153,13 @@ export default function ParteProduccionForm({
     return variantesActualizadas.find((v) => v.variante_id === nuevoId);
   };
 
-  const calculateTotalRecepcion = () => {
-    return formData.transportes.reduce((acc, t) => {
-      return (
-        acc +
-        t.embarcaciones.reduce(
-          (accE, e) => accE + (parseFloat(e.peso_total_kg) || 0),
-          0,
-        )
-      );
-    }, 0);
+  const calcularPesosPorCarro = () => {
+    return formData.transportes.map((t) =>
+      t.embarcaciones.reduce(
+        (acc, e) => acc + (parseFloat(e.peso_total_kg) || 0),
+        0,
+      ),
+    );
   };
 
   // Cancelar limpia todos los campos y descarta el borrador guardado sin salir
@@ -197,18 +194,26 @@ export default function ParteProduccionForm({
           peso_total_kg: parseFloat(e.peso_total_kg) || 0,
         })),
       })),
-      productos: formData.productos.map((p) => ({
-        ...p,
-        variante_id: parseInt(p.variante_id),
-        peso_unidad: parseFloat(p.peso_unidad) || 0,
-        cajas_carros: (p.cajas_carros || []).map(
-          (cajas) => parseInt(cajas) || 0,
-        ),
-        peso_total_neto_kg: parseFloat(p.peso_total_neto_kg) || 0,
-        acumulado_presentacion: parseFloat(p.acumulado_presentacion) || 0,
-        rendimiento: parseFloat(p.rendimiento) || 0,
-        motivo_ingreso_id: formData.motivo_ingreso_id,
-      })),
+      productos: formData.productos.map((p) => {
+        // total_cajas_reparto solo asiste el llenado en pantalla; lo que se
+        // guarda son las cajas ya repartidas en cada carro.
+        const producto = { ...p };
+        delete producto.total_cajas_reparto;
+
+        return {
+          ...producto,
+          variante_id: parseInt(producto.variante_id),
+          peso_unidad: parseFloat(producto.peso_unidad) || 0,
+          cajas_carros: (producto.cajas_carros || []).map(
+            (cajas) => parseInt(cajas) || 0,
+          ),
+          peso_total_neto_kg: parseFloat(producto.peso_total_neto_kg) || 0,
+          acumulado_presentacion:
+            parseFloat(producto.acumulado_presentacion) || 0,
+          rendimiento: parseFloat(producto.rendimiento) || 0,
+          motivo_ingreso_id: formData.motivo_ingreso_id,
+        };
+      }),
       insumos: formData.insumos.map((i) => ({
         ...i,
         cantidad: parseInt(i.cantidad) || 0,
@@ -220,7 +225,8 @@ export default function ParteProduccionForm({
 
   if (cargando) return <Loading />;
 
-  const totalRecepcion = calculateTotalRecepcion();
+  const pesosPorCarro = calcularPesosPorCarro();
+  const totalRecepcion = pesosPorCarro.reduce((acc, peso) => acc + peso, 0);
   const tipoDocumentoSeleccionado = tiposDocumento.find(
     (tipoDocumentoItem) =>
       String(tipoDocumentoItem.id) === String(formData.tipo_documento_id),
@@ -313,6 +319,7 @@ export default function ParteProduccionForm({
         onCrearVarianteEnsunchado={crearVarianteEnsunchado}
         totalRecepcion={totalRecepcion}
         cantidadCarros={formData.transportes.length}
+        pesosCarros={pesosPorCarro}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
