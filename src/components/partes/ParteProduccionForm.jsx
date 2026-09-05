@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Alert, Input, Button, Loading, Modal } from "@/components/common";
+import {
+  ErrorAlert,
+  Input,
+  Button,
+  Loading,
+  Modal,
+} from "@/components/common";
 import ReceptionSection from "./ReceptionSection";
 import PackedProductSection from "./PackedProductSection";
 import InsumosSection from "./InsumosSection";
@@ -12,6 +18,7 @@ import {
   obtenerMotivosIngreso,
   obtenerTiposDocumentoProduccion,
   obtenerClientes,
+  describirError,
 } from "@/services";
 import { useAuthStore } from "@/stores";
 import { useFormDraft } from "@/hooks";
@@ -188,8 +195,16 @@ export default function ParteProduccionForm({
       return setMensajeError("Debe añadir al menos un producto");
     }
 
+    // Los identificadores viajan como numero o como null: el backend los
+    // deserializa a i64 y una cadena vacia lo hace fallar antes de llegar, con
+    // un mensaje de serializacion que no le dice nada al usuario.
+    const motivoIngresoId = formData.motivo_ingreso_id
+      ? parseInt(formData.motivo_ingreso_id, 10)
+      : null;
+
     const dataToSend = {
       ...formData,
+      motivo_ingreso_id: motivoIngresoId,
       especie_id: parseInt(formData.especie_id),
       cliente_id: formData.cliente_id ? parseInt(formData.cliente_id, 10) : null,
       tipo_documento_id: parseInt(formData.tipo_documento_id, 10),
@@ -218,7 +233,7 @@ export default function ParteProduccionForm({
           acumulado_presentacion:
             parseFloat(producto.acumulado_presentacion) || 0,
           rendimiento: parseFloat(producto.rendimiento) || 0,
-          motivo_ingreso_id: formData.motivo_ingreso_id,
+          motivo_ingreso_id: motivoIngresoId,
         };
       }),
       insumos: formData.insumos.map((i) => ({
@@ -232,9 +247,7 @@ export default function ParteProduccionForm({
     try {
       await onSubmit(dataToSend);
     } catch (error) {
-      setMensajeError(
-        typeof error === "string" ? error : error?.message || String(error),
-      );
+      setMensajeError(describirError(error));
     }
   };
 
@@ -249,11 +262,11 @@ export default function ParteProduccionForm({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
-      {mensajeError && (
-        <Alert variant="error" className="mb-4">
-          {mensajeError}
-        </Alert>
-      )}
+      <ErrorAlert
+        error={mensajeError}
+        className="mb-4"
+        onClose={() => setMensajeError(null)}
+      />
 
       <div className="doc-header mb-4 rounded-sm bg-navy px-4 py-3 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">

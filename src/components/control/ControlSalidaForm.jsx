@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Alert, Modal } from "@/components/common";
+import { Button, ErrorAlert, Modal } from "@/components/common";
 import { useAuthStore } from "@/stores";
 import { useFormDraft, limpiarBorradorGuardado } from "@/hooks";
 import ControlHeaderSection from "./ControlHeaderSection";
@@ -11,6 +11,7 @@ import {
   obtenerStockPorLote,
   obtenerClientes,
 } from "@/services/api";
+import { describirError } from "@/services/errores";
 
 // El formulario guarda su borrador en dos entradas (cabecera e items), por eso
 // la limpieza externa pasa por esta funcion en vez de tocar las claves a mano.
@@ -185,6 +186,12 @@ export default function ControlSalidaForm({
     if (!formData.numero_lote.trim()) nextErrors.numero_lote = "Requerido";
     if (!formData.numero_camara.trim()) nextErrors.numero_camara = "Requerido";
     if (!formData.especie_id) nextErrors.especie_id = "Seleccione una especie";
+    // Ambos viajan al backend como i64 obligatorio: sin ellos el guardado falla
+    // en la deserializacion, con un mensaje que no le dice nada al usuario.
+    if (!formData.motivo_salida_id)
+      nextErrors.motivo_salida_id = "Seleccione un motivo de salida";
+    if (!formData.tipo_documento_id)
+      nextErrors.tipo_documento_id = "Falta el tipo de documento";
 
     // Las filas se precargan en 0 al desplegar una presentación: las que quedan
     // en 0 se consideran no utilizadas y no se guardan.
@@ -296,9 +303,7 @@ export default function ControlSalidaForm({
         items: itemsConTotales,
       });
     } catch (error) {
-      setMensajeError(
-        typeof error === "string" ? error : error?.message || String(error),
-      );
+      setMensajeError(describirError(error));
     } finally {
       setCargando(false);
     }
@@ -306,11 +311,11 @@ export default function ControlSalidaForm({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
-      {mensajeError && (
-        <Alert variant="error" className="mb-4">
-          {mensajeError}
-        </Alert>
-      )}
+      <ErrorAlert
+        error={mensajeError}
+        className="mb-4"
+        onClose={() => setMensajeError(null)}
+      />
 
       <div className="doc-header mb-4 rounded-sm bg-navy px-4 py-3 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
