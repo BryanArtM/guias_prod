@@ -60,7 +60,7 @@ export default function ReportesPage() {
   return (
     <div className="px-5 py-4">
       {/* Filtros comunes */}
-      <div className="border border-line bg-surface px-3 py-3 rounded-sm">
+      <div className="border border-line bg-surface px-3 py-3 rounded-t-sm">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div>
             <label className="label-col mb-1 block">Desde</label>
@@ -135,7 +135,7 @@ export default function ReportesPage() {
         })}
       </nav>
 
-      <div className="border-x border-b border-line bg-surface px-3 py-3 rounded-sm">
+      <div className="border-x border-b border-line bg-surface px-3 py-3 rounded-b-sm">
         {reporteActivo === "movimiento" && (
           <ReporteMovimientoDiario
             desde={desde}

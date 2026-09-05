@@ -8,7 +8,7 @@
     padding: 0.5rem 0.625rem;
     border: 1px solid;
     border-left-width: 3px;
-    border-radius: 2px;
+    border-radius: var(--radius-sm);
     font-size: var(--text-sm);
   }
 
@@ -78,7 +78,7 @@
     flex-shrink: 0;
     cursor: pointer;
     color: currentColor;
-    border-radius: 2px;
+    border-radius: var(--radius-sm);
   }
 
   .alert__close:hover {

@@ -330,7 +330,7 @@ export default function ControlItemsSection({
             return (
               <div
                 key={presentacion.presentacion_id}
-                className="border border-line overflow-hidden"
+                className="rounded-sm border border-line overflow-hidden"
               >
                 <button
                   type="button"

@@ -102,7 +102,7 @@ export function PresentacionForm({
           }
           placeholder="Descripción opcional de la presentación"
           rows={3}
-          className="w-full px-3 py-2 border border-line focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 rounded-sm border border-line focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 

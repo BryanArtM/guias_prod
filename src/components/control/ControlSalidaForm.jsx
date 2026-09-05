@@ -314,7 +314,7 @@ export default function ControlSalidaForm({
         </Alert>
       )}
 
-      <div className="doc-header mb-4 bg-navy px-4 py-3 text-white">
+      <div className="doc-header mb-4 rounded-sm bg-navy px-4 py-3 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-base font-semibold tracking-tight">
             Registro de {tipoDocumento}

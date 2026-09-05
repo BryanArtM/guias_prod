@@ -61,7 +61,7 @@ export function Register() {
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
       <Panel className="w-full max-w-md" padding="lg">
         <div className="flex justify-center mb-6">
-          <div className="flex h-12 w-12 items-center justify-center border border-line text-steel">
+          <div className="flex h-12 w-12 items-center justify-center rounded-sm border border-line text-steel">
             <UserPlus className="h-6 w-6" />
           </div>
         </div>

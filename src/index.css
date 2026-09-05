@@ -133,15 +133,15 @@
   --text-5xl: 36px;
   --text-5xl--line-height: 1.1;
 
-  /* ---------- Geometria: nada redondeado ---------- */
-  --radius-xs: 2px;
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 2px;
-  --radius-xl: 2px;
-  --radius-2xl: 2px;
-  --radius-3xl: 2px;
-  --radius-4xl: 2px;
+  /* ---------- Geometria: redondeo suave y uniforme ---------- */
+  --radius-xs: 6px;
+  --radius-sm: 6px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 6px;
+  --radius-2xl: 6px;
+  --radius-3xl: 6px;
+  --radius-4xl: 6px;
 
   /* ---------- Sombras: como maximo una linea de 1px ---------- */
   --shadow-2xs: 0 1px 0 0 rgb(15 36 57 / 0.05);
@@ -269,4 +269,15 @@
 @utility num {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* En un grid separado por lineas de 1px las tarjetas comparten trazo: si cada
+   una se redondea asoma el fondo en las esquinas, asi que el radio va en el
+   contenedor y las tarjetas se recortan contra el. */
+.stat-grid {
+  overflow: hidden;
+}
+
+.stat-grid > * {
+  border-radius: 0;
 }

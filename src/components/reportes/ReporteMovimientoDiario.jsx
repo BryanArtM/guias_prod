@@ -245,10 +245,10 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
 
     return (
       <section className="mb-8">
-        <h3 className="label-col border border-line border-b-0 bg-gray-50 px-3 py-2">
+        <h3 className="label-col rounded-t-sm border border-line border-b-0 bg-gray-50 px-3 py-2">
           {titulo}
         </h3>
-        <div className="overflow-x-auto border border-line">
+        <div className="overflow-x-auto rounded-b-sm border border-line">
           <table className="table text-xs">
             <thead>
               <tr>
@@ -430,7 +430,7 @@ export default function ReporteMovimientoDiario({ desde, hasta, especieId }) {
         descripcion="Producción, salidas y saldo por variante para cada día del período. Los ingresos se ubican en la fecha del lote; las salidas, en la fecha en que salió la mercadería."
         acciones={
           <>
-            <div className="flex border border-line overflow-hidden">
+            <div className="flex rounded-sm border border-line overflow-hidden">
               {[UNIDAD_KG, UNIDAD_CAJAS].map((u) => (
                 <button
                   key={u}

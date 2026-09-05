@@ -184,7 +184,7 @@ export default function IngresoDetallePage() {
             {transportes.map((transporte, idx) => (
               <div
                 key={transporte.id}
-                className="border border-line p-4"
+                className="rounded-sm border border-line p-4"
               >
                 <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">
                   Transporte {idx + 1}
@@ -251,7 +251,10 @@ export default function IngresoDetallePage() {
         >
           <div className="space-y-4">
             {presentaciones.map((presentacion) => (
-              <div key={presentacion.clave} className="border border-line">
+              <div
+                key={presentacion.clave}
+                className="overflow-hidden rounded-sm border border-line"
+              >
                 <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line bg-gray-50 px-3 py-2">
                   <span className="font-medium text-ink">
                     {presentacion.nombre}

@@ -165,7 +165,7 @@ export default function ReporteHistorialMovimientos({
         acciones={
           varianteId && (
             <>
-              <div className="flex border border-line overflow-hidden">
+              <div className="flex rounded-sm border border-line overflow-hidden">
                 {[UNIDAD_KG, UNIDAD_CAJAS].map((u) => (
                   <button
                     key={u}
@@ -271,7 +271,7 @@ export default function ReporteHistorialMovimientos({
             />
           </section>
 
-          <div className="overflow-x-auto border border-line">
+          <div className="overflow-x-auto rounded-sm border border-line">
             <TableModular className="text-left">
               <TableHeader>
                 <tr>

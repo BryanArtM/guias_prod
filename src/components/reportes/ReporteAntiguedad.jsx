@@ -206,7 +206,7 @@ export default function ReporteAntiguedad({ especieId }) {
       </section>
 
       <section className="mb-6">
-        <div className="overflow-x-auto border border-line">
+        <div className="overflow-x-auto rounded-sm border border-line">
           <TableModular className="text-left">
             <TableHeader>
               <tr>
@@ -278,7 +278,7 @@ export default function ReporteAntiguedad({ especieId }) {
         <h3 className="label-col mb-2">
           Lotes ordenados por antigüedad
         </h3>
-        <div className="overflow-x-auto border border-line">
+        <div className="overflow-x-auto rounded-sm border border-line">
           <TableModular className="text-left">
             <TableHeader>
               <tr>

@@ -124,7 +124,7 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      <div className="mb-4 grid grid-cols-2 gap-px border border-line bg-line lg:grid-cols-6">
+      <div className="stat-grid mb-4 grid grid-cols-2 gap-px rounded-md border border-line bg-line lg:grid-cols-6">
         <StatCard label="Especies" value={stats.totalEspecies} icon={Fish} />
         <StatCard label="Variantes" value={stats.totalVariantes} icon={Package} />
         <StatCard

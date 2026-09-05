@@ -12,7 +12,7 @@ export default function ControlObservacionesSection({
         value={value}
         onChange={onChange}
         rows="6"
-        className="w-full p-3 border border-line focus:ring-2 focus:ring-blue-500 outline-none"
+        className="w-full p-3 rounded-sm border border-line focus:ring-2 focus:ring-blue-500 outline-none"
         placeholder="Ingrese notas o comentarios..."
       />
     </div>

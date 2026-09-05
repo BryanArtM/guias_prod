@@ -30,7 +30,7 @@ export const StatCard = ({
       {nota && <p className="mt-1.5 truncate text-xs text-ink-muted">{nota}</p>}
     </div>
     {Icon && (
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-line text-steel">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-line text-steel">
         <Icon size={16} />
       </span>
     )}
