@@ -41,6 +41,13 @@ export function usePagination(fetchFn, countFn, itemsPerPage = 5) {
   const offset = (paginaActual - 1) * itemsPerPage;
   const totalPaginas = Math.ceil(totalItems / itemsPerPage);
 
+  // Al eliminar el ultimo registro de una pagina el total se encoge y la pagina
+  // actual puede quedar fuera de rango, mostrando una tabla vacia: se recorta a
+  // la ultima que si existe.
+  if (totalPaginas > 0 && paginaActual > totalPaginas) {
+    setPaginaActual(totalPaginas);
+  }
+
   // Los items dependen de la pagina; el total, solo de los filtros. Van por
   // separado para no recontar toda la tabla en cada avance de pagina.
   const cargarPagina = useCallback(async () => {
