@@ -384,9 +384,9 @@ export default function ControlSalidaForm({
       >
         <p className="text-sm text-ink">
           {initialData
-            ? "Se descartaran los cambios realizados en este documento."
-            : "Se borraran todos los datos ingresados en este control de salida."}{" "}
-          Esta accion no se puede deshacer.
+            ? "Se descartarán los cambios realizados en este documento."
+            : "Se borrarán todos los datos ingresados en este control de salida."}{" "}
+          Esta acción no se puede deshacer.
         </p>
         <div className="mt-4 flex justify-end gap-2">
           <Button
