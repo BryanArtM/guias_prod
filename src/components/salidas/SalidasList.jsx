@@ -51,6 +51,7 @@ export default function SalidasList({
     data: salidas,
     cargando,
     cargaInicial,
+    error: errorCarga,
     paginaActual,
     totalPaginas,
     totalItems,
@@ -98,6 +99,12 @@ export default function SalidasList({
       {alerta && (
         <Alert variant={alerta.tipo} className="mb-4">
           {alerta.mensaje}
+        </Alert>
+      )}
+
+      {errorCarga && (
+        <Alert variant="error" className="mb-4">
+          {errorCarga}
         </Alert>
       )}
 
@@ -157,9 +164,11 @@ export default function SalidasList({
 
       {salidas.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          {hayFiltrosActivos
-            ? "No se encontraron salidas con los filtros aplicados"
-            : "No hay controles de salida registrados"}
+          {errorCarga
+            ? "No se pudieron cargar las salidas"
+            : hayFiltrosActivos
+              ? "No se encontraron salidas con los filtros aplicados"
+              : "No hay controles de salida registrados"}
         </div>
       ) : (
         <div

@@ -55,6 +55,7 @@ export default function IngresosList({
     data: ingresos,
     cargando,
     cargaInicial,
+    error: errorCarga,
     paginaActual,
     totalPaginas,
     totalItems,
@@ -102,6 +103,12 @@ export default function IngresosList({
       {alerta && (
         <Alert variant={alerta.tipo} className="mb-4">
           {alerta.mensaje}
+        </Alert>
+      )}
+
+      {errorCarga && (
+        <Alert variant="error" className="mb-4">
+          {errorCarga}
         </Alert>
       )}
 
@@ -161,9 +168,11 @@ export default function IngresosList({
 
       {ingresos.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          {hayFiltrosActivos
-            ? "No se encontraron ingresos con los filtros aplicados"
-            : "No hay ingresos registrados"}
+          {errorCarga
+            ? "No se pudieron cargar los ingresos"
+            : hayFiltrosActivos
+              ? "No se encontraron ingresos con los filtros aplicados"
+              : "No hay ingresos registrados"}
         </div>
       ) : (
         <div
