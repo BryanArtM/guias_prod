@@ -74,6 +74,7 @@ export default function Pagination({
         {/* Primera página */}
         {mostrarPrimerUltimo && paginaActual > 2 && (
           <button
+            type="button"
             className="pagination-btn"
             onClick={() => onIrAPagina(1)}
             title="Primera página"
@@ -84,6 +85,7 @@ export default function Pagination({
 
         {/* Página anterior */}
         <button
+          type="button"
           className="pagination-btn"
           onClick={onPaginaAnterior}
           disabled={!hayPaginaAnterior}
@@ -98,6 +100,7 @@ export default function Pagination({
           {numerosPagina.map((num) => (
             <button
               key={num}
+              type="button"
               className={`pagination-number ${num === paginaActual ? "active" : ""}`}
               onClick={() => onIrAPagina(num)}
             >
@@ -108,6 +111,7 @@ export default function Pagination({
 
         {/* Página siguiente */}
         <button
+          type="button"
           className="pagination-btn"
           onClick={onPaginaSiguiente}
           disabled={!hayPaginaSiguiente}
@@ -120,6 +124,7 @@ export default function Pagination({
         {/* Última página */}
         {mostrarPrimerUltimo && paginaActual < totalPaginas - 1 && (
           <button
+            type="button"
             className="pagination-btn"
             onClick={() => onIrAPagina(totalPaginas)}
             title="Última página"
