@@ -557,7 +557,9 @@ export default function PackedProductSection({
                             Ensunchado
                           </TableHead>
                           <TableHead className="w-24">Peso Und</TableHead>
-                          <TableHead className="w-24">Total cajas</TableHead>
+                          <TableHead className="w-24 bg-navy-bg text-ink ">
+                            Total cajas
+                          </TableHead>
                           {Array.from(
                             { length: cantidadCarros },
                             (_, indiceCarro) => (
@@ -695,7 +697,7 @@ export default function PackedProductSection({
                                   }
                                 />
                               </td>
-                              <td className="p-1 border">
+                              <td className="p-1 bg-navy-bg">
                                 <input
                                   id={idCampoNumerico(
                                     presentacion.presentacion_id,
@@ -703,7 +705,7 @@ export default function PackedProductSection({
                                     posEnPresentacion,
                                   )}
                                   type="number"
-                                  className="w-full p-1 border-none bg-transparent focus:ring-0"
+                                  className="w-full p-1 border-none bg-transparent font-semibold text-ink focus:ring-0"
                                   value={totalCajasVisible(p)}
                                   onFocus={(e) => {
                                     valorTotalAlEnfocar.current = e.target.value;
