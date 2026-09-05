@@ -11,39 +11,51 @@ export function usePagination(fetchFn, countFn, itemsPerPage = 5) {
   const [data, setData] = useState([]);
   const [paginaActual, setPaginaActual] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [totalPaginas, setTotalPaginas] = useState(0);
   const [cargando, setCargando] = useState(false);
+  // Permite que la vista muestre el spinner completo solo la primera vez, y
+  // que los cambios de pagina se resuelvan sin desmontar el listado.
+  const [cargaInicial, setCargaInicial] = useState(true);
   const [error, setError] = useState(null);
 
   // Calcular offset basado en página actual
   const offset = (paginaActual - 1) * itemsPerPage;
+  const totalPaginas = Math.ceil(totalItems / itemsPerPage);
 
-  // Cargar datos
-  const cargarDatos = useCallback(async () => {
+  // Los items dependen de la pagina; el total, solo de los filtros. Van por
+  // separado para no recontar toda la tabla en cada avance de pagina.
+  const cargarPagina = useCallback(async () => {
     setCargando(true);
     setError(null);
 
     try {
-      const [items, total] = await Promise.all([
-        fetchFn(itemsPerPage, offset),
-        countFn(),
-      ]);
-
-      setData(items);
-      setTotalItems(total);
-      setTotalPaginas(Math.ceil(total / itemsPerPage));
+      setData(await fetchFn(itemsPerPage, offset));
     } catch (err) {
       setError(err.message || "Error al cargar datos");
       console.error("Error en usePagination:", err);
     } finally {
       setCargando(false);
+      setCargaInicial(false);
     }
-  }, [fetchFn, countFn, itemsPerPage, offset]);
+  }, [fetchFn, itemsPerPage, offset]);
 
-  // Cargar datos cuando cambia la página
+  const cargarTotal = useCallback(async () => {
+    try {
+      setTotalItems(await countFn());
+    } catch (err) {
+      setError(err.message || "Error al contar los registros");
+      console.error("Error en usePagination:", err);
+    }
+  }, [countFn]);
+
+  // Cargar la pagina al cambiar de pagina, de tamano o de filtros
   useEffect(() => {
-    cargarDatos();
-  }, [cargarDatos]);
+    cargarPagina();
+  }, [cargarPagina]);
+
+  // Recontar solo cuando cambian los filtros
+  useEffect(() => {
+    cargarTotal();
+  }, [cargarTotal]);
 
   // Navegación
   const irAPagina = (pagina) => {
@@ -63,14 +75,17 @@ export function usePagination(fetchFn, countFn, itemsPerPage = 5) {
     }
   };
 
+  // Tras crear o eliminar un registro hay que rehacer ambas consultas
   const refrescar = () => {
-    cargarDatos();
+    cargarPagina();
+    cargarTotal();
   };
 
   return {
     // Datos
     data,
     cargando,
+    cargaInicial,
     error,
 
     // Paginación

@@ -50,6 +50,7 @@ export default function SalidasList({
   const {
     data: salidas,
     cargando,
+    cargaInicial,
     paginaActual,
     totalPaginas,
     totalItems,
@@ -85,10 +86,11 @@ export default function SalidasList({
   };
   const hayFiltrosActivos = filtroTipo || filtroEspecie;
 
-  if (cargando) {
-    return (
-      <Loading />
-    );
+  // Solo la primera carga reemplaza la vista. Al cambiar de pagina el listado
+  // sigue montado y se atenua mientras llegan los datos, para no perder los
+  // filtros, el foco ni la posicion del scroll.
+  if (cargando && cargaInicial) {
+    return <Loading />;
   }
 
   return (
@@ -160,7 +162,12 @@ export default function SalidasList({
             : "No hay controles de salida registrados"}
         </div>
       ) : (
-        <>
+        <div
+          aria-busy={cargando}
+          className={`transition-opacity ${
+            cargando ? "pointer-events-none opacity-50" : ""
+          }`}
+        >
           <div className="border border-line bg-surface overflow-hidden rounded-sm">
             <Table>
               <TableHeader>
@@ -226,7 +233,7 @@ export default function SalidasList({
             hayPaginaAnterior={hayPaginaAnterior}
             hayPaginaSiguiente={hayPaginaSiguiente}
           />
-        </>
+        </div>
       )}
     </div>
   );
