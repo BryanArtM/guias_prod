@@ -234,7 +234,7 @@ export default function ParteProduccionForm({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
-      <div className="doc-header mb-4 bg-navy px-4 py-3 text-white">
+      <div className="doc-header mb-4 rounded-sm bg-navy px-4 py-3 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-base font-semibold tracking-tight">
             Registro de {tipoDocumentoSeleccionado?.codigo || ""}
@@ -341,7 +341,7 @@ export default function ParteProduccionForm({
             value={formData.observaciones}
             onChange={handleChange}
             rows="6"
-            className="flex-1 w-full p-3 border border-line focus:ring-2 focus:ring-blue-500 outline-none"
+            className="flex-1 w-full p-3 rounded-sm border border-line focus:ring-2 focus:ring-blue-500 outline-none"
             placeholder="Ingrese notas o comentarios..."
           />
           <p className="mt-2 text-xs text-gray-400"></p>
