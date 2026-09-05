@@ -24,6 +24,7 @@ import {
   eliminarIngreso,
 } from "@/services";
 import { usePagination, useConfirmacion } from "@/hooks";
+import { mensajeDeError } from "@/services/errores";
 
 export default function IngresosList({
   especies = [],
@@ -98,7 +99,7 @@ export default function IngresosList({
       mostrarAlerta("Ingreso eliminado exitosamente");
       refrescar();
     } catch (error) {
-      mostrarAlerta("Error al eliminar ingreso: " + error.message, "error");
+      mostrarAlerta("Error al eliminar ingreso: " + mensajeDeError(error), "error");
     }
   };
 

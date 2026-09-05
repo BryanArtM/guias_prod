@@ -25,6 +25,7 @@ import {
   PageActions,
 } from "@/components/common";
 import { PresentacionForm } from "./PresentacionForm";
+import { mensajeDeError } from "@/services/errores";
 
 export function PresentacionesList({ especies = [] }) {
   const [presentaciones, setPresentaciones] = useState([]);
@@ -52,7 +53,7 @@ export function PresentacionesList({ especies = [] }) {
       setPresentaciones(data);
       setError("");
     } catch (err) {
-      setError("Error al cargar las presentaciones: " + err.message);
+      setError("Error al cargar las presentaciones: " + mensajeDeError(err));
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ export function PresentacionesList({ especies = [] }) {
       cargarPresentaciones();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError("Error al eliminar: " + err.message);
+      setError("Error al eliminar: " + mensajeDeError(err));
       setTimeout(() => setError(""), 5000);
     }
   };
@@ -116,7 +117,7 @@ export function PresentacionesList({ especies = [] }) {
       cargarPresentaciones();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      throw new Error(err.message || "Error al guardar");
+      throw new Error(mensajeDeError(err, "Error al guardar"));
     }
   };
 

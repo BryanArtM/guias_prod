@@ -7,6 +7,7 @@ import {
 import { Alert, Loading } from "@/components/common";
 import { controlService, obtenerEspecies } from "@/services";
 import { useFormDraft, limpiarBorradorGuardado } from "@/hooks";
+import { mensajeDeError } from "@/services/errores";
 
 // Claves del borrador local: permiten abandonar la vista y retomar el registro
 const BORRADOR_SALIDA = "borrador-control-salida";
@@ -30,7 +31,7 @@ export default function NewControlPage() {
       try {
         setEspecies(await obtenerEspecies());
       } catch (err) {
-        setError("Error al cargar datos: " + err.message);
+        setError("Error al cargar datos: " + mensajeDeError(err));
       } finally {
         setCargando(false);
       }
@@ -47,10 +48,7 @@ export default function NewControlPage() {
       setSuccess(true);
       setTimeout(() => navigate("/salidas"), 2000);
     } catch (err) {
-      setError(
-        "Error al guardar: " +
-          (typeof err === "string" ? err : err.message || JSON.stringify(err)),
-      );
+      setError(describirError(err, "No se pudo guardar el documento"));
     }
   };
 
@@ -72,11 +70,11 @@ export default function NewControlPage() {
 
   return (
     <div className="px-5 py-4">
-      {error && (
-        <Alert variant="error" className="mb-4">
-          {error}
-        </Alert>
-      )}
+      <ErrorAlert
+        error={error}
+        className="mb-4"
+        onClose={() => setError(null)}
+      />
       <div className="flex mb-6 justify-center gap-4 flex-wrap">
         {tipos.map((tipo) => (
           <button

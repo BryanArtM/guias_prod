@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Loading, Alert } from "@/components/common";
 import ControlSalidaForm from "@/components/control/ControlSalidaForm";
 import { controlService, obtenerEspecies } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function EditarSalidasPage() {
   const { id } = useParams();
@@ -22,7 +23,7 @@ export default function EditarSalidasPage() {
         setInitialData(control);
         setEspecies(especiesData);
       } catch (err) {
-        setError(err.message);
+        setError(mensajeDeError(err));
       } finally {
         setCargando(false);
       }

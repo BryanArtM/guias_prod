@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Input, Button, Alert } from "@/components/common";
+import { mensajeDeError } from "@/services/errores";
 
 export function EspecieForm({ onSubmit, onCancel, especie = null }) {
   const [formData, setFormData] = useState({
@@ -52,7 +53,7 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
         abreviatura_trazabilidad: "",
       });
     } catch (err) {
-      setError(err.message || "Error al guardar la especie");
+      setError(mensajeDeError(err, "Error al guardar la especie"));
     } finally {
       setLoading(false);
     }

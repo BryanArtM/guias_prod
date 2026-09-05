@@ -19,6 +19,7 @@ import {
   actualizarCalibre,
   eliminarCalibre,
 } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function CatalogosPage() {
   const [tabActiva, setTabActiva] = useState("formasEnvasado");
@@ -51,7 +52,7 @@ export default function CatalogosPage() {
       setCalidades(cal);
       setCalibres(calib);
     } catch (err) {
-      setError("Error al cargar los catálogos: " + err.message);
+      setError("Error al cargar los catálogos: " + mensajeDeError(err));
     } finally {
       setCargando(false);
     }

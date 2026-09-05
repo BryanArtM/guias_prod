@@ -17,6 +17,7 @@ import {
 import { Button, Modal, Alert, Loading, PageActions } from "@/components/common";
 import { useConfirmacion } from "@/hooks";
 import { EspecieForm } from "./EspecieForm";
+import { mensajeDeError } from "@/services/errores";
 
 export function EspeciesList() {
   const [especies, setEspecies] = useState([]);
@@ -38,7 +39,7 @@ export function EspeciesList() {
       setEspecies(data);
       setError("");
     } catch (err) {
-      setError("Error al cargar las especies: " + err.message);
+      setError("Error al cargar las especies: " + mensajeDeError(err));
     } finally {
       setLoading(false);
     }
@@ -70,7 +71,7 @@ export function EspeciesList() {
       cargarEspecies();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      setError("Error al eliminar: " + err.message);
+      setError("Error al eliminar: " + mensajeDeError(err));
       setTimeout(() => setError(""), 5000);
     }
   };
@@ -88,7 +89,7 @@ export function EspeciesList() {
       cargarEspecies();
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
-      throw new Error(err.message || "Error al guardar");
+      throw new Error(mensajeDeError(err, "Error al guardar"));
     }
   };
 

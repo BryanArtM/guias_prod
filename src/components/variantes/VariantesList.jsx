@@ -25,6 +25,7 @@ import {
   actualizarVariantePresentacion,
   eliminarVariantePresentacion,
 } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function VariantesList({
   especies = [],
@@ -101,7 +102,7 @@ export default function VariantesList({
       const data = await obtenerVariantesCompletas();
       setVariantes(data);
     } catch (error) {
-      mostrarAlerta("Error al cargar variantes: " + error.message, "error");
+      mostrarAlerta("Error al cargar variantes: " + mensajeDeError(error), "error");
     } finally {
       setCargando(false);
     }
@@ -153,7 +154,7 @@ export default function VariantesList({
       mostrarAlerta("Variante eliminada exitosamente");
       cargarVariantes();
     } catch (error) {
-      mostrarAlerta("Error al eliminar variante: " + error.message, "error");
+      mostrarAlerta("Error al eliminar variante: " + mensajeDeError(error), "error");
     }
   };
 

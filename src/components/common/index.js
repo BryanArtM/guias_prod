@@ -5,6 +5,7 @@ export { Campo } from "./Campo";
 export { Modal } from "./Modal";
 export { ConfirmDialog } from "./ConfirmDialog";
 export { Alert } from "./Alert";
+export { ErrorAlert } from "./ErrorAlert";
 export { Loading } from "./Loading";
 export { Table } from "./Table";
 export { default as Pagination } from "./Pagination";

@@ -19,6 +19,7 @@ import {
 import { PrintButtonIngreso } from "@/components/ingresos/ImpresionParteProduccion";
 import { ArrowLeft, Truck, Ship, Package, Pencil, Wrench } from "lucide-react";
 import { partesService } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function IngresoDetallePage() {
   const { id } = useParams();
@@ -34,7 +35,7 @@ export default function IngresoDetallePage() {
         const data = await partesService.obtenerParte(id);
         setIngreso(data);
       } catch (err) {
-        setError(err.message);
+        setError(mensajeDeError(err));
       } finally {
         setCargando(false);
       }

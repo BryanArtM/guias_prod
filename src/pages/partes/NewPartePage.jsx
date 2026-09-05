@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ParteProduccionForm } from "@/components/partes";
-import { Alert, Loading } from "@/components/common";
-import { partesService, obtenerTiposDocumentoProduccion } from "@/services";
+import { Alert, ErrorAlert, Loading } from "@/components/common";
+import {
+  partesService,
+  obtenerTiposDocumentoProduccion,
+  describirError,
+} from "@/services";
 import { useFormDraft, limpiarBorradorGuardado } from "@/hooks";
+import { mensajeDeError } from "@/services/errores";
 
 // Claves del borrador local: permiten abandonar la vista y retomar el registro
 const BORRADOR_PARTE = "borrador-parte-produccion";
@@ -27,7 +32,7 @@ export default function NewPartePage() {
           setTipoSeleccionadoId((actual) => actual ?? data[0].id);
         }
       } catch (err) {
-        setError("Error al cargar tipos de documento: " + err.message);
+        setError("Error al cargar tipos de documento: " + mensajeDeError(err));
       } finally {
         setCargando(false);
       }
@@ -51,7 +56,7 @@ export default function NewPartePage() {
       setSuccess(true);
       setTimeout(() => navigate("/ingresos"), 2000);
     } catch (err) {
-      setError("Error al guardar: " + err);
+      setError(describirError(err, "No se pudo guardar el documento"));
     }
   };
 
@@ -74,11 +79,11 @@ export default function NewPartePage() {
 
   return (
     <div className="px-5 py-4">
-      {error && (
-        <Alert variant="error" className="mb-4">
-          {error}
-        </Alert>
-      )}
+      <ErrorAlert
+        error={error}
+        className="mb-4"
+        onClose={() => setError(null)}
+      />
       <div className="flex mb-6 justify-center gap-4 flex-wrap">
         {tipos.map((tipo) => (
           <button

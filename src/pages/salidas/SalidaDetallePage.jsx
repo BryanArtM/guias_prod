@@ -19,6 +19,7 @@ import {
 import { ArrowLeft, Pencil, Package } from "lucide-react";
 import { PrintButtonSalida } from "@/components/salidas/ImpresionControlSalida";
 import { controlService } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function SalidaDetallePage() {
   const { id } = useParams();
@@ -34,7 +35,7 @@ export default function SalidaDetallePage() {
         const data = await controlService.obtenerControlSalida(id);
         setSalida(data);
       } catch (err) {
-        setError(err.message);
+        setError(mensajeDeError(err));
       } finally {
         setCargando(false);
       }

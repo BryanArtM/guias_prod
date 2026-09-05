@@ -10,6 +10,7 @@ import {
 import { Button, Modal, Alert, Input } from "@/components/common";
 import { useConfirmacion } from "@/hooks";
 import { Edit2, Trash2, Plus } from "lucide-react";
+import { mensajeDeError } from "@/services/errores";
 
 export default function CatalogoManager({
   titulo,
@@ -106,7 +107,7 @@ export default function CatalogoManager({
       if (onRecargar) onRecargar();
     } catch (error) {
       mostrarAlerta(
-        error.message || `Error al guardar ${titulo.toLowerCase()}`,
+        mensajeDeError(error, `Error al guardar ${titulo.toLowerCase()}`),
         "error",
       );
     } finally {
@@ -129,7 +130,7 @@ export default function CatalogoManager({
       if (onRecargar) onRecargar();
     } catch (error) {
       mostrarAlerta(
-        error.message || `Error al eliminar ${titulo.toLowerCase()}`,
+        mensajeDeError(error, `Error al eliminar ${titulo.toLowerCase()}`),
         "error",
       );
     }

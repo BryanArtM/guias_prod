@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { SalidasList } from "@/components/salidas";
 import { Loading, Alert } from "@/components/common";
 import { obtenerTiposDocumentoSalida, obtenerEspecies } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function SalidasPage() {
   const [cargando, setCargando] = useState(true);
@@ -25,7 +26,7 @@ export default function SalidasPage() {
       setEspecies(especiesData);
       setTiposDocumentoSalida(tiposData);
     } catch (err) {
-      setError("Error al cargar los datos: " + err.message);
+      setError("Error al cargar los datos: " + mensajeDeError(err));
     } finally {
       setCargando(false);
     }

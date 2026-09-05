@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { PresentacionesList } from "@/components/presentaciones";
 import { obtenerEspecies } from "@/services";
 import { Loading, Alert } from "@/components/common";
+import { mensajeDeError } from "@/services/errores";
 
 export function PresentacionesPage() {
   const [especies, setEspecies] = useState([]);
@@ -19,7 +20,7 @@ export function PresentacionesPage() {
       setEspecies(data);
       setError("");
     } catch (err) {
-      setError("Error al cargar especies: " + err.message);
+      setError("Error al cargar especies: " + mensajeDeError(err));
     } finally {
       setLoading(false);
     }

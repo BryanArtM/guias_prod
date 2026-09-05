@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Loading, Alert } from "@/components/common";
 import ParteProduccionForm from "@/components/partes/ParteProduccionForm";
 import { partesService } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function EditarIngresosPage() {
   const { id } = useParams();
@@ -17,7 +18,7 @@ export default function EditarIngresosPage() {
         const data = await partesService.obtenerParte(id);
         setInitialData(data);
       } catch (err) {
-        setError(err.message);
+        setError(mensajeDeError(err));
       } finally {
         setCargando(false);
       }

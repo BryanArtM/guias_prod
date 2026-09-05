@@ -18,6 +18,7 @@ import {
 import { ChevronDown, ChevronRight, Download, RefreshCw } from "lucide-react";
 import { obtenerStockActual, obtenerStockPorLote } from "@/services";
 import { descargarCSV } from "@/components/reportes/shared";
+import { mensajeDeError } from "@/services/errores";
 
 function diasDesde(fechaIso) {
   const inicio = new Date(`${fechaIso}T00:00:00`);
@@ -64,7 +65,7 @@ export default function StockList() {
       setStock(agregado || []);
       setLotes(porLote || []);
     } catch (error) {
-      mostrarAlerta("Error al cargar stock: " + error.message, "error");
+      mostrarAlerta("Error al cargar stock: " + mensajeDeError(error), "error");
     } finally {
       setCargando(false);
     }

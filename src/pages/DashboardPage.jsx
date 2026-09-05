@@ -23,6 +23,7 @@ import {
   obtenerSalidas,
   obtenerStockPorVariante,
 } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -95,7 +96,7 @@ export default function DashboardPage() {
       // En la primera carga, simplemente dejamos los stats en 0
       if (!firstLoad) {
         setAlert({
-          message: "Error al cargar datos: " + (error.message || String(error)),
+          message: "Error al cargar datos: " + mensajeDeError(error),
           type: "error",
         });
       }

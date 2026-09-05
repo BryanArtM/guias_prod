@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Input, Select, Button, Alert } from "@/components/common";
+import { mensajeDeError } from "@/services/errores";
 
 export function PresentacionForm({
   onSubmit,
@@ -49,7 +50,7 @@ export function PresentacionForm({
       });
       setFormData({ especie_id: "", nombre: "", descripcion: "" });
     } catch (err) {
-      setError(err.message || "Error al guardar la presentación");
+      setError(mensajeDeError(err, "Error al guardar la presentación"));
     } finally {
       setLoading(false);
     }

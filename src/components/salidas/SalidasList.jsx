@@ -24,6 +24,7 @@ import {
 } from "@/services";
 import { usePagination, useConfirmacion } from "@/hooks";
 import PrintButtonSalida from "@/components/salidas/ImpresionControlSalida";
+import { mensajeDeError } from "@/services/errores";
 
 export default function SalidasList({
   especies = [],
@@ -97,7 +98,7 @@ export default function SalidasList({
       mostrarAlerta("Salida eliminada exitosamente");
       refrescar();
     } catch (error) {
-      mostrarAlerta("Error al eliminar salida: " + error.message, "error");
+      mostrarAlerta("Error al eliminar salida: " + mensajeDeError(error), "error");
     }
   };
 

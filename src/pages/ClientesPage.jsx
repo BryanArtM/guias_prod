@@ -7,6 +7,7 @@ import {
   actualizarCliente,
   eliminarCliente,
 } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 const CAMPOS_CLIENTE = [
   {
@@ -39,7 +40,7 @@ export default function ClientesPage() {
       setClientes(await obtenerClientes());
       setError(null);
     } catch (err) {
-      setError("Error al cargar los clientes: " + err.message);
+      setError("Error al cargar los clientes: " + mensajeDeError(err));
     } finally {
       setCargando(false);
     }

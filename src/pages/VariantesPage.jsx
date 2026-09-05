@@ -6,6 +6,7 @@ import {
   obtenerCalidades,
   obtenerCalibres,
 } from "@/services";
+import { mensajeDeError } from "@/services/errores";
 
 export default function VariantesPage() {
   const [cargando, setCargando] = useState(true);
@@ -34,7 +35,7 @@ export default function VariantesPage() {
       setCalidades(cal);
       setCalibres(calib);
     } catch (err) {
-      setError("Error al cargar los catálogos: " + err.message);
+      setError("Error al cargar los catálogos: " + mensajeDeError(err));
     } finally {
       setCargando(false);
     }
