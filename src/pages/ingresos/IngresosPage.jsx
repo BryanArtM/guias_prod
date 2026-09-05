@@ -1,17 +1,12 @@
 import { useState, useEffect } from "react";
 import { IngresosList } from "@/components/ingresos";
 import { Loading, Alert } from "@/components/common";
-import {
-  obtenerEspecies,
-  obtenerVariantesCompletas,
-  obtenerTiposDocumentoProduccion,
-} from "@/services";
+import { obtenerEspecies, obtenerTiposDocumentoProduccion } from "@/services";
 
 export default function IngresosPage() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const [especies, setEspecies] = useState([]);
-  const [variantes, setVariantes] = useState([]);
   const [tiposDocumentoIngreso, setTiposDocumentoIngreso] = useState([]);
 
   useEffect(() => {
@@ -22,14 +17,12 @@ export default function IngresosPage() {
     setCargando(true);
     setError(null);
     try {
-      const [especiesData, variantesData, tiposData] = await Promise.all([
+      const [especiesData, tiposData] = await Promise.all([
         obtenerEspecies(),
-        obtenerVariantesCompletas(),
         obtenerTiposDocumentoProduccion(),
       ]);
 
       setEspecies(especiesData);
-      setVariantes(variantesData);
       setTiposDocumentoIngreso(tiposData);
     } catch (err) {
       setError("Error al cargar los datos: " + err.message);
@@ -56,7 +49,6 @@ export default function IngresosPage() {
     <div className="px-5 py-4">
       <IngresosList
         especies={especies}
-        variantes={variantes}
         tiposDocumentoIngreso={tiposDocumentoIngreso}
       />
 
