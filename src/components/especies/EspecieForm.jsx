@@ -4,7 +4,6 @@ import { Input, Button, Alert } from "@/components/common";
 export function EspecieForm({ onSubmit, onCancel, especie = null }) {
   const [formData, setFormData] = useState({
     nombre: "",
-    descripcion: "",
     peso_unidad_defecto: "",
     abreviatura_trazabilidad: "",
   });
@@ -16,7 +15,6 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
     if (especie) {
       setFormData({
         nombre: especie.nombre || "",
-        descripcion: especie.descripcion || "",
         peso_unidad_defecto: especie.peso_unidad_defecto ?? "",
         abreviatura_trazabilidad: especie.abreviatura_trazabilidad || "",
       });
@@ -50,7 +48,6 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
       });
       setFormData({
         nombre: "",
-        descripcion: "",
         peso_unidad_defecto: "",
         abreviatura_trazabilidad: "",
       });
@@ -75,22 +72,6 @@ export function EspecieForm({ onSubmit, onCancel, especie = null }) {
         showRequiredIndicator={showRequired && !formData.nombre.trim()}
         autoFocus
       />
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Descripción
-        </label>
-        <textarea
-          name="descripcion"
-          value={formData.descripcion}
-          onChange={(e) =>
-            setFormData({ ...formData, descripcion: e.target.value })
-          }
-          placeholder="Descripción opcional de la especie"
-          rows={3}
-          className="w-full px-3 py-2 rounded-sm border border-line focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        />
-      </div>
 
       <Input
         label="Peso por unidad por defecto (kg)"

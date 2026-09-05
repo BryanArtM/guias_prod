@@ -123,8 +123,6 @@ enum EspecieAccion {
         #[arg(long)]
         nombre: String,
         #[arg(long)]
-        descripcion: Option<String>,
-        #[arg(long)]
         peso_unidad_defecto: Option<f64>,
         /// Dos letras que se incrustan en el codigo de trazabilidad (ej: PR)
         #[arg(long)]
@@ -365,7 +363,6 @@ async fn ejecutar(cli: Cli) -> Result<(), String> {
         Comando::Especie { accion } => match accion {
             EspecieAccion::Crear {
                 nombre,
-                descripcion,
                 peso_unidad_defecto,
                 abreviatura_trazabilidad,
             } => {
@@ -374,7 +371,6 @@ async fn ejecutar(cli: Cli) -> Result<(), String> {
                     &Especie {
                         id: None,
                         nombre,
-                        descripcion,
                         peso_unidad_defecto,
                         abreviatura_trazabilidad,
                     },

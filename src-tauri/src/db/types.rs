@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 pub struct Especie {
     pub id: Option<i64>,
     pub nombre: String,
-    pub descripcion: Option<String>,
     pub peso_unidad_defecto: Option<f64>,
     /// Dos letras que identifican a la especie dentro del codigo de trazabilidad
     #[serde(default)]

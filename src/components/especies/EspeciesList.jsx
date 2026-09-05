@@ -118,7 +118,6 @@ export function EspeciesList() {
               <TableHead>ID</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Abrev. Trazabilidad</TableHead>
-              <TableHead>Descripción</TableHead>
               <TableHead>Peso Und. Defecto (kg)</TableHead>
               <TableHead className="text-right pe-14">Acciones</TableHead>
             </TableRow>
@@ -127,7 +126,7 @@ export function EspeciesList() {
             {especies.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={5}
                   className="text-center py-8 text-gray-500"
                 >
                   No hay especies registradas. Crea la primera especie.
@@ -145,13 +144,6 @@ export function EspeciesList() {
                   <TableCell className="font-mono text-sm">
                     {especie.abreviatura_trazabilidad || (
                       <span className="text-gray-400 italic">Sin definir</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {especie.descripcion || (
-                      <span className="text-gray-400 italic">
-                        Sin descripción
-                      </span>
                     )}
                   </TableCell>
                   <TableCell className="text-gray-600">

@@ -4,7 +4,6 @@ use crate::env_config;
 const CREATE_ESPECIES: &str = "CREATE TABLE IF NOT EXISTS especies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL UNIQUE,
-    descripcion TEXT,
     peso_unidad_defecto REAL,
     abreviatura_trazabilidad TEXT
 )";
