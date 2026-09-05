@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useConfirmacion } from "@/hooks";
 import { Edit2, Trash2, Plus, Filter } from "lucide-react";
 import {
   crearPresentacion,
@@ -34,6 +35,7 @@ export function PresentacionesList({ especies = [] }) {
   const [showModal, setShowModal] = useState(false);
   const [editingPresentacion, setEditingPresentacion] = useState(null);
   const [filtroEspecie, setFiltroEspecie] = useState("");
+  const [confirmar, dialogoConfirmacion] = useConfirmacion();
 
   useEffect(() => {
     cargarPresentaciones();
@@ -79,13 +81,14 @@ export function PresentacionesList({ especies = [] }) {
   };
 
   const handleEliminar = async (presentacion) => {
-    if (
-      !window.confirm(
-        `¿Estás seguro de eliminar la presentación "${presentacion.nombre}"?\n\nNOTA: No se puede eliminar si tiene variantes asociadas.`,
-      )
-    ) {
-      return;
-    }
+    const confirmado = await confirmar({
+      titulo: "Eliminar presentación",
+      mensaje: `Se eliminará la presentación "${presentacion.nombre}".`,
+      detalle:
+        "No se puede eliminar si tiene variantes asociadas. Esta acción no se puede deshacer.",
+      textoConfirmar: "Sí, eliminar",
+    });
+    if (!confirmado) return;
 
     try {
       await eliminarPresentacion(presentacion.id);
@@ -269,6 +272,8 @@ export function PresentacionesList({ especies = [] }) {
           onCancel={() => setShowModal(false)}
         />
       </Modal>
+
+      {dialogoConfirmacion}
     </div>
   );
 }

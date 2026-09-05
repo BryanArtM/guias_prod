@@ -8,6 +8,7 @@ import {
   TableCell,
 } from "@/components/common/Table";
 import { Button, Modal, Alert, Input } from "@/components/common";
+import { useConfirmacion } from "@/hooks";
 import { Edit2, Trash2, Plus } from "lucide-react";
 
 export default function CatalogoManager({
@@ -25,6 +26,7 @@ export default function CatalogoManager({
   const [errores, setErrores] = useState({});
   const [cargando, setCargando] = useState(false);
   const [alerta, setAlerta] = useState(null);
+  const [confirmar, dialogoConfirmacion] = useConfirmacion();
 
   const mostrarAlerta = (mensaje, tipo = "success") => {
     setAlerta({ mensaje, tipo });
@@ -113,9 +115,13 @@ export default function CatalogoManager({
   };
 
   const handleEliminar = async (id, nombre) => {
-    if (!window.confirm(`¿Estás seguro de eliminar "${nombre}"?`)) {
-      return;
-    }
+    const confirmado = await confirmar({
+      titulo: `Eliminar ${titulo.toLowerCase()}`,
+      mensaje: `Se eliminará "${nombre}".`,
+      detalle: "Esta acción no se puede deshacer.",
+      textoConfirmar: "Sí, eliminar",
+    });
+    if (!confirmado) return;
 
     try {
       await onEliminar(id);
@@ -244,6 +250,8 @@ export default function CatalogoManager({
           </div>
         </form>
       </Modal>
+
+      {dialogoConfirmacion}
     </div>
   );
 }

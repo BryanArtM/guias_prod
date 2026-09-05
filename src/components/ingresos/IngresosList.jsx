@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   TableModular as Table,
@@ -23,7 +23,7 @@ import {
   contarIngresos,
   eliminarIngreso,
 } from "@/services";
-import { usePagination } from "@/hooks";
+import { usePagination, useConfirmacion } from "@/hooks";
 
 export default function IngresosList({
   especies = [],
@@ -34,6 +34,7 @@ export default function IngresosList({
   const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroEspecie, setFiltroEspecie] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [confirmar, dialogoConfirmacion] = useConfirmacion();
 
   const tipoId = filtroTipo ? parseInt(filtroTipo, 10) : null;
   const especieId = filtroEspecie ? parseInt(filtroEspecie, 10) : null;
@@ -68,14 +69,30 @@ export default function IngresosList({
     refrescar,
   } = pagination;
 
+  // El temporizador se guarda para poder cancelarlo al desmontar o al encadenar
+  // dos alertas seguidas, y no dejar un setState apuntando a un componente ido.
+  const temporizadorAlerta = useRef(null);
+
+  useEffect(() => () => clearTimeout(temporizadorAlerta.current), []);
+
   const mostrarAlerta = (mensaje, tipo = "success") => {
+    clearTimeout(temporizadorAlerta.current);
     setAlerta({ mensaje, tipo });
-    setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
+    temporizadorAlerta.current = setTimeout(
+      () => setAlerta(null),
+      tipo === "success" ? 3000 : 5000,
+    );
   };
 
   const handleEliminar = async (id, fecha) => {
-    if (!window.confirm(`¿Estás seguro de eliminar el ingreso del ${fecha}?`))
-      return;
+    const confirmado = await confirmar({
+      titulo: "Eliminar ingreso",
+      mensaje: `Se eliminará el ingreso del ${fecha}.`,
+      detalle: "Esta acción no se puede deshacer.",
+      textoConfirmar: "Sí, eliminar",
+    });
+    if (!confirmado) return;
+
     try {
       await eliminarIngreso(id);
       mostrarAlerta("Ingreso eliminado exitosamente");
@@ -251,6 +268,8 @@ export default function IngresosList({
           />
         </div>
       )}
+
+      {dialogoConfirmacion}
     </div>
   );
 }

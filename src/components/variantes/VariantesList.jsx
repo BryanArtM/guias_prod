@@ -16,6 +16,7 @@ import {
   PageActions,
 } from "@/components/common";
 import VarianteForm from "./VarianteForm";
+import { useConfirmacion } from "@/hooks";
 import { Edit2, Trash2, Plus, Filter } from "lucide-react";
 import {
   obtenerVariantesCompletas,
@@ -36,6 +37,7 @@ export default function VariantesList({
   const [modalAbierto, setModalAbierto] = useState(false);
   const [varianteEditando, setVarianteEditando] = useState(null);
   const [alerta, setAlerta] = useState(null);
+  const [confirmar, dialogoConfirmacion] = useConfirmacion();
 
   // Filtros
   const [filtroEspecie, setFiltroEspecie] = useState("");
@@ -138,9 +140,13 @@ export default function VariantesList({
   };
 
   const handleEliminar = async (id, codigo) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la variante "${codigo}"?`)) {
-      return;
-    }
+    const confirmado = await confirmar({
+      titulo: "Eliminar variante",
+      mensaje: `Se eliminará la variante "${codigo}".`,
+      detalle: "Esta acción no se puede deshacer.",
+      textoConfirmar: "Sí, eliminar",
+    });
+    if (!confirmado) return;
 
     try {
       await eliminarVariantePresentacion(id);
@@ -333,6 +339,8 @@ export default function VariantesList({
           calibres={calibres}
         />
       </Modal>
+
+      {dialogoConfirmacion}
     </div>
   );
 }

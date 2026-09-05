@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   TableModular as Table,
@@ -17,9 +17,12 @@ import {
   Pagination,
 } from "@/components/common";
 import { Trash2, Filter, Pencil, Eye } from "lucide-react";
-import { obtenerSalidasPaginadas, contarSalidas } from "@/services";
-import { controlService } from "@/services";
-import { usePagination } from "@/hooks";
+import {
+  contarSalidas,
+  controlService,
+  obtenerSalidasPaginadas,
+} from "@/services";
+import { usePagination, useConfirmacion } from "@/hooks";
 import PrintButtonSalida from "@/components/salidas/ImpresionControlSalida";
 
 export default function SalidasList({
@@ -31,6 +34,7 @@ export default function SalidasList({
   const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroEspecie, setFiltroEspecie] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [confirmar, dialogoConfirmacion] = useConfirmacion();
 
   const tipoId = filtroTipo ? parseInt(filtroTipo, 10) : null;
   const especieId = filtroEspecie ? parseInt(filtroEspecie, 10) : null;
@@ -64,14 +68,30 @@ export default function SalidasList({
     refrescar,
   } = pagination;
 
+  // El temporizador se guarda para poder cancelarlo al desmontar o al encadenar
+  // dos alertas seguidas, y no dejar un setState apuntando a un componente ido.
+  const temporizadorAlerta = useRef(null);
+
+  useEffect(() => () => clearTimeout(temporizadorAlerta.current), []);
+
   const mostrarAlerta = (mensaje, tipo = "success") => {
+    clearTimeout(temporizadorAlerta.current);
     setAlerta({ mensaje, tipo });
-    setTimeout(() => setAlerta(null), tipo === "success" ? 3000 : 5000);
+    temporizadorAlerta.current = setTimeout(
+      () => setAlerta(null),
+      tipo === "success" ? 3000 : 5000,
+    );
   };
 
   const handleEliminar = async (id, fecha) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la salida del ${fecha}?`))
-      return;
+    const confirmado = await confirmar({
+      titulo: "Eliminar salida",
+      mensaje: `Se eliminará la salida del ${fecha}.`,
+      detalle: "Esta acción no se puede deshacer.",
+      textoConfirmar: "Sí, eliminar",
+    });
+    if (!confirmado) return;
+
     try {
       await controlService.eliminarControlSalida(id);
       mostrarAlerta("Salida eliminada exitosamente");
@@ -244,6 +264,8 @@ export default function SalidasList({
           />
         </div>
       )}
+
+      {dialogoConfirmacion}
     </div>
   );
 }

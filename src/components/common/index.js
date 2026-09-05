@@ -3,6 +3,7 @@ export { Input } from "./Input";
 export { Select } from "./Select";
 export { Campo } from "./Campo";
 export { Modal } from "./Modal";
+export { ConfirmDialog } from "./ConfirmDialog";
 export { Alert } from "./Alert";
 export { Loading } from "./Loading";
 export { Table } from "./Table";

@@ -15,6 +15,7 @@ import {
   TableCell,
 } from "@/components/common/Table";
 import { Button, Modal, Alert, Loading, PageActions } from "@/components/common";
+import { useConfirmacion } from "@/hooks";
 import { EspecieForm } from "./EspecieForm";
 
 export function EspeciesList() {
@@ -24,6 +25,7 @@ export function EspeciesList() {
   const [success, setSuccess] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingEspecie, setEditingEspecie] = useState(null);
+  const [confirmar, dialogoConfirmacion] = useConfirmacion();
 
   useEffect(() => {
     cargarEspecies();
@@ -53,13 +55,14 @@ export function EspeciesList() {
   };
 
   const handleEliminar = async (especie) => {
-    if (
-      !window.confirm(
-        `¿Estás seguro de eliminar la especie "${especie.nombre}"?\n\nNOTA: No se puede eliminar si tiene presentaciones asociadas.`,
-      )
-    ) {
-      return;
-    }
+    const confirmado = await confirmar({
+      titulo: "Eliminar especie",
+      mensaje: `Se eliminará la especie "${especie.nombre}".`,
+      detalle:
+        "No se puede eliminar si tiene presentaciones asociadas. Esta acción no se puede deshacer.",
+      textoConfirmar: "Sí, eliminar",
+    });
+    if (!confirmado) return;
 
     try {
       await eliminarEspecie(especie.id);
@@ -190,6 +193,8 @@ export function EspeciesList() {
           onCancel={() => setShowModal(false)}
         />
       </Modal>
+
+      {dialogoConfirmacion}
     </div>
   );
 }
