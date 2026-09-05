@@ -296,10 +296,8 @@ export default function ControlSalidaForm({
         items: itemsConTotales,
       });
     } catch (error) {
-      console.log("ERROR CRUDO:", error);
-      console.log("ERROR TIPO:", typeof error);
       setMensajeError(
-        typeof error === "string" ? error : JSON.stringify(error),
+        typeof error === "string" ? error : error?.message || String(error),
       );
     } finally {
       setCargando(false);

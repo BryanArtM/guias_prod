@@ -25,13 +25,11 @@ export default function EditarIngresosPage() {
     cargar();
   }, [id]);
 
+  // Un fallo al guardar se propaga al formulario, que lo muestra en su alerta
+  // sin sacar al usuario de la vista ni perder lo que llevaba escrito.
   const handleSubmit = async (data) => {
-    try {
-      await partesService.actualizarParte(id, data);
-      navigate(`/ingresos/${id}`);
-    } catch (err) {
-      alert("Error al actualizar: " + err.message);
-    }
+    await partesService.actualizarParte(id, data);
+    navigate(`/ingresos/${id}`);
   };
 
   if (cargando) return <Loading />;

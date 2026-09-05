@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Input, Button, Loading, Modal } from "@/components/common";
+import { Alert, Input, Button, Loading, Modal } from "@/components/common";
 import ReceptionSection from "./ReceptionSection";
 import PackedProductSection from "./PackedProductSection";
 import InsumosSection from "./InsumosSection";
@@ -80,6 +80,7 @@ export default function ParteProduccionForm({
   const [tiposDocumento, setTiposDocumento] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [confirmacionAbierta, setConfirmacionAbierta] = useState(false);
+  const [mensajeError, setMensajeError] = useState(null);
 
   useEffect(() => {
     async function loadData() {
@@ -170,16 +171,22 @@ export default function ParteProduccionForm({
     if (onCancel) onCancel();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setMensajeError(null);
 
-    if (!formData.especie_id) return alert("Debe seleccionar una especie");
-    if (!formData.cliente_id && !formData.cliente)
-      return alert("Debe seleccionar un cliente");
-    if (!formData.tipo_documento_id)
-      return alert("Debe seleccionar un tipo de documento");
-    if (formData.productos.length === 0)
-      return alert("Debe añadir al menos un producto");
+    if (!formData.especie_id) {
+      return setMensajeError("Debe seleccionar una especie");
+    }
+    if (!formData.cliente_id && !formData.cliente) {
+      return setMensajeError("Debe seleccionar un cliente");
+    }
+    if (!formData.tipo_documento_id) {
+      return setMensajeError("Debe seleccionar un tipo de documento");
+    }
+    if (formData.productos.length === 0) {
+      return setMensajeError("Debe añadir al menos un producto");
+    }
 
     const dataToSend = {
       ...formData,
@@ -220,7 +227,15 @@ export default function ParteProduccionForm({
       })),
     };
 
-    onSubmit(dataToSend);
+    // Si quien recibe el envio no maneja el error, se muestra aqui mismo en vez
+    // de perderse: el usuario sigue con el formulario cargado delante.
+    try {
+      await onSubmit(dataToSend);
+    } catch (error) {
+      setMensajeError(
+        typeof error === "string" ? error : error?.message || String(error),
+      );
+    }
   };
 
   if (cargando) return <Loading />;
@@ -234,6 +249,12 @@ export default function ParteProduccionForm({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-7xl mx-auto pb-12 pt-10">
+      {mensajeError && (
+        <Alert variant="error" className="mb-4">
+          {mensajeError}
+        </Alert>
+      )}
+
       <div className="doc-header mb-4 rounded-sm bg-navy px-4 py-3 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-base font-semibold tracking-tight">

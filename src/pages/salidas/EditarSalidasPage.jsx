@@ -30,13 +30,11 @@ export default function EditarSalidasPage() {
     cargar();
   }, [id]);
 
+  // Un fallo al guardar se propaga al formulario, que lo muestra en su alerta
+  // sin sacar al usuario de la vista ni perder lo que llevaba escrito.
   const handleSubmit = async (data) => {
-    try {
-      await controlService.actualizarControlSalida(id, data);
-      navigate(`/salidas/${id}`);
-    } catch (err) {
-      alert("Error al actualizar: " + err.message);
-    }
+    await controlService.actualizarControlSalida(id, data);
+    navigate(`/salidas/${id}`);
   };
 
   if (cargando) return <Loading />;
